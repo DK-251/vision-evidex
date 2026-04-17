@@ -1,0 +1,18 @@
+{
+  "id": "tpl_builtin_dsr",
+  "name": "Daily Status Report",
+  "description": "Daily communication sent to project teams. One-click generate from today's sessions.",
+  "isBuiltin": true,
+  "schema": {
+    "reportType": "DSR",
+    "sections": [
+      { "id": "header", "type": "branding_header", "label": "Header", "required": true, "columnSpan": 3, "config": { "variant": "compact" } },
+      { "id": "date_project", "type": "text_field", "label": "Date / Project", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "exec_today", "type": "metrics_table", "label": "Today's Execution Summary", "required": true, "columnSpan": 3, "config": { "source": "today_sessions" } },
+      { "id": "defects", "type": "metrics_table", "label": "Defects Raised / Closed", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "blockers", "type": "rich_text", "label": "Blockers", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "tomorrow", "type": "rich_text", "label": "Tomorrow's Plan", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "tester_breakdown", "type": "metrics_table", "label": "Tester Breakdown", "required": false, "columnSpan": 3, "config": {} }
+    ]
+  }
+}

@@ -1,0 +1,81 @@
+/**
+ * Vision-EviDex design tokens — single source of truth for all visual styling.
+ * Components must consume these tokens via Tailwind classes or var() — never
+ * hardcode hex colours or pixel values.
+ */
+
+:root {
+  /* Accent */
+  --color-accent:       #1A6FD4;
+  --color-accent-light: #D6E8FA;
+  --color-accent-dark:  #0D4A8F;
+
+  /* Status */
+  --color-pass:         #166534;
+  --color-pass-bg:      #DCFCE7;
+  --color-fail:         #991B1B;
+  --color-fail-bg:      #FEE2E2;
+  --color-blocked:      #B45309;
+  --color-blocked-bg:   #FEF3C7;
+  --color-untagged:     #475569;
+  --color-untagged-bg:  #F1F5F9;
+
+  /* Surfaces */
+  --surface-primary:      #FFFFFF;
+  --surface-secondary:    #F8FAFC;
+  --surface-glass:        rgba(255, 255, 255, 0.72);
+  --surface-modal-glass:  rgba(255, 255, 255, 0.88);
+  --border-default:       rgba(0, 0, 0, 0.08);
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --text-primary:    #0D1B2A;
+  --text-secondary:  #475569;
+  --text-hint:       #94A3B8;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* Effects */
+  --glass-blur:        blur(12px);
+  --glass-blur-heavy:  blur(20px);
+  --shadow-neumorphic-out: 4px 4px 10px rgba(0, 0, 0, 0.12), -2px -2px 6px rgba(255, 255, 255, 0.7);
+  --shadow-neumorphic-in:  inset 2px 2px 6px rgba(0, 0, 0, 0.12), inset -2px -2px 4px rgba(255, 255, 255, 0.7);
+
+  /* Transitions */
+  --transition-fast:   150ms ease-out;
+  --transition-normal: 200ms ease-out;
+  --transition-slow:   300ms ease-out;
+}
+
+[data-theme='dark'] {
+  --surface-primary:     #0F172A;
+  --surface-secondary:   #1E293B;
+  --surface-glass:       rgba(15, 23, 42, 0.72);
+  --surface-modal-glass: rgba(15, 23, 42, 0.88);
+  --border-default:      rgba(255, 255, 255, 0.08);
+  --text-primary:        #F1F5F9;
+  --text-secondary:      #94A3B8;
+  --text-hint:           #64748B;
+
+  --shadow-neumorphic-out: 4px 4px 10px rgba(0, 0, 0, 0.4), -2px -2px 6px rgba(255, 255, 255, 0.04);
+  --shadow-neumorphic-in:  inset 2px 2px 6px rgba(0, 0, 0, 0.4), inset -2px -2px 4px rgba(255, 255, 255, 0.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast:   0ms;
+    --transition-normal: 0ms;
+    --transition-slow:   0ms;
+  }
+}

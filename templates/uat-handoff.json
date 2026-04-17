@@ -1,0 +1,19 @@
+{
+  "id": "tpl_builtin_uat",
+  "name": "UAT Handoff Report",
+  "description": "User acceptance testing handoff with client sign-off block.",
+  "isBuiltin": true,
+  "schema": {
+    "reportType": "UAT",
+    "sections": [
+      { "id": "cover", "type": "branding_header", "label": "Cover page", "required": true, "columnSpan": 3, "config": { "variant": "title" } },
+      { "id": "project_overview", "type": "rich_text", "label": "Project Overview", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "uat_scope", "type": "rich_text", "label": "UAT Scope", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "env", "type": "text_field", "label": "Test Environment", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "exec_results", "type": "metrics_table", "label": "Execution Results", "required": true, "columnSpan": 3, "config": { "source": "imported_metrics" } },
+      { "id": "defect_list", "type": "metrics_table", "label": "Defect List", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "outstanding_risks", "type": "rich_text", "label": "Outstanding Risks", "required": false, "columnSpan": 3, "config": {} },
+      { "id": "client_signoff", "type": "signature_block", "label": "Client Sign-off", "required": true, "columnSpan": 3, "config": {} }
+    ]
+  }
+}

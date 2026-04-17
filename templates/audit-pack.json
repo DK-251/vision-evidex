@@ -1,0 +1,19 @@
+{
+  "id": "tpl_builtin_audit",
+  "name": "Audit Evidence Pack",
+  "description": "Full audit bundle template — traceability matrix, SHA-256 manifest, sign-offs, access log.",
+  "isBuiltin": true,
+  "schema": {
+    "reportType": "AUDIT",
+    "sections": [
+      { "id": "cover", "type": "branding_header", "label": "Audit Cover", "required": true, "columnSpan": 3, "config": { "variant": "title" } },
+      { "id": "project_metadata", "type": "text_field", "label": "Project Metadata", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "tester_roster", "type": "metrics_table", "label": "Tester Roster", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "session_list", "type": "metrics_table", "label": "Session List with Hashes", "required": true, "columnSpan": 3, "config": { "source": "sessions_with_hashes" } },
+      { "id": "traceability", "type": "metrics_table", "label": "Traceability Matrix", "required": true, "columnSpan": 3, "config": { "source": "traceability" } },
+      { "id": "manifest", "type": "metrics_table", "label": "SHA-256 Manifest", "required": true, "columnSpan": 3, "config": { "source": "manifest" } },
+      { "id": "signoff_records", "type": "signature_block", "label": "Sign-off Records", "required": true, "columnSpan": 3, "config": { "showAll": true } },
+      { "id": "integrity_log", "type": "metrics_table", "label": "Integrity / Access Log", "required": true, "columnSpan": 3, "config": { "source": "access_log" } }
+    ]
+  }
+}

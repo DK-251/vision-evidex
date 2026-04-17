@@ -1,0 +1,19 @@
+{
+  "id": "tpl_builtin_tsr",
+  "name": "Test Summary Report",
+  "description": "Formal release-end document. Auto-populates from captures + metrics + sign-off records.",
+  "isBuiltin": true,
+  "schema": {
+    "reportType": "TSR",
+    "sections": [
+      { "id": "cover", "type": "branding_header", "label": "Cover page", "required": true, "columnSpan": 3, "config": { "variant": "title" } },
+      { "id": "exec_summary", "type": "rich_text", "label": "Executive Summary", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "test_scope", "type": "rich_text", "label": "Test Scope", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "exec_summary_table", "type": "metrics_table", "label": "Execution Summary", "required": true, "columnSpan": 3, "config": { "source": "imported_metrics" } },
+      { "id": "defect_summary", "type": "metrics_table", "label": "Defect Summary", "required": true, "columnSpan": 3, "config": { "source": "imported_metrics" } },
+      { "id": "coverage", "type": "metrics_table", "label": "Coverage Metrics", "required": true, "columnSpan": 3, "config": { "source": "imported_metrics" } },
+      { "id": "exit_criteria", "type": "text_field", "label": "Exit Criteria Status", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "signoff", "type": "signature_block", "label": "Sign-off", "required": true, "columnSpan": 3, "config": {} }
+    ]
+  }
+}

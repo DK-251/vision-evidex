@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-04-17T00:00:00Z",
+  "branch": "main",
+  "phase": "0 (scaffold)",
+  "nodeVersion": null,
+  "electronVersion": null,
+  "modules": [],
+  "summary": {
+    "total_modules": 0,
+    "pass": 0,
+    "fail": 0,
+    "warn": 0,
+    "suspect": 0,
+    "skip": 18
+  },
+  "next_actions": [
+    "Run scripts/setup-asus.ps1 on the Asus TUF.",
+    "Then `npm run verify-setup` and `npm run report` to overwrite this placeholder."
+  ]
+}

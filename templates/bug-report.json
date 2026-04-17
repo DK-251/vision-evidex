@@ -1,0 +1,21 @@
+{
+  "id": "tpl_builtin_bug",
+  "name": "Bug / Defect Report",
+  "description": "Standalone defect report with reproduction steps and evidence slots.",
+  "isBuiltin": true,
+  "schema": {
+    "reportType": "BUG",
+    "sections": [
+      { "id": "header", "type": "branding_header", "label": "Header", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "bug_id", "type": "text_field", "label": "Bug ID", "required": true, "columnSpan": 1, "config": {} },
+      { "id": "severity", "type": "text_field", "label": "Severity", "required": true, "columnSpan": 1, "config": {} },
+      { "id": "priority", "type": "text_field", "label": "Priority", "required": true, "columnSpan": 1, "config": {} },
+      { "id": "summary", "type": "text_field", "label": "Summary", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "steps", "type": "rich_text", "label": "Steps to Reproduce", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "expected", "type": "rich_text", "label": "Expected vs Actual", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "env", "type": "text_field", "label": "Environment", "required": true, "columnSpan": 3, "config": {} },
+      { "id": "evidence", "type": "image_slot", "label": "Screenshot Evidence", "required": true, "columnSpan": 3, "config": { "allowMultiple": true } },
+      { "id": "status", "type": "text_field", "label": "Status", "required": true, "columnSpan": 3, "config": {} }
+    ]
+  }
+}
