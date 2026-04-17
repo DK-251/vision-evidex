@@ -1,6 +1,9 @@
-# Run reports: Asus TUF is always the source of truth
-run-reports/*.json merge=ours
-run-reports/*.md merge=ours
+# Run reports + status: Asus TUF is always the source of truth
+run-reports/*.json   merge=ours
+run-reports/*.md     merge=ours
+run-reports/*.jsonl  merge=ours
+run-reports/**       merge=ours
+STATUS.md            merge=ours
 
 # Line endings: preserve LF for source files on Windows
 *.ts       text eol=lf

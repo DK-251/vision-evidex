@@ -85,6 +85,15 @@ No service calls another service directly. All communication is via IPC or const
 - **No run report yet.** First Asus TUF run pending — `run-reports/latest.md` is a placeholder.
 - **Known Phase 0 issue:** CTS laptop hits a corporate SSL cert error in `node-gyp` when building native modules (`unable to get local issuer certificate` downloading Node headers). Mitigation: Asus TUF performs the real install + `electron-rebuild`. CTS is code-authoring only.
 
+## 8a. Two-machine comms layer (read these first in every session)
+
+1. [STATUS.md](STATUS.md) — live pulse (auto-rewritten by `npm run report`)
+2. [run-reports/latest.md](run-reports/latest.md) — detailed last-run report
+3. [INBOX-TO-CTS.md](INBOX-TO-CTS.md) — messages from Asus awaiting CTS action
+4. [FEATURES.md](FEATURES.md) — tick boxes as features land
+
+Write to [INBOX-TO-ASUS.md](INBOX-TO-ASUS.md) when CTS needs the Asus to verify, run, or investigate something specific.
+
 ## 9. Locked decisions (do not re-litigate)
 
 - Scaffold root: `c:\Users\2072940\Vision-EviDex\vision-evidex\`

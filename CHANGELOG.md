@@ -4,6 +4,16 @@ All notable changes are documented here. Versions follow [SemVer](https://semver
 
 ## [Unreleased]
 
+### Phase 0 — two-machine comms layer (2026-04-17)
+
+- `STATUS.md` — auto-rewritten live pulse by `npm run report`
+- `FEATURES.md` — 92 P0 feature checklist organized by module + ID
+- `INBOX-TO-ASUS.md` and `INBOX-TO-CTS.md` — merge-safe async messaging
+- `run-reports/history/` — per-run archive folder
+- `run-reports/benchmarks.jsonl` — append-only trend data
+- `ASUS-FIRST-RUN.md` — step-by-step playbook for the run machine
+- `scripts/run-report.js` enhanced: git SHA + branch capture, history archive, STATUS rewrite, benchmarks append
+
 ### Phase 0 — scaffold (2026-04-17)
 
 - Initial project scaffold: package.json, tsconfig, electron-vite 4-entry config, electron-builder dual-mode, Tailwind + PostCSS, ESLint + Prettier + Vitest

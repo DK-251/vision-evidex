@@ -1,0 +1,7 @@
+# Archived run reports land here, one folder per run:
+#   run-reports/history/<short-sha>-<timestamp>/
+#     ├── latest.json
+#     ├── latest.md
+#     └── console-latest.log (if captured)
+# The current run stays at run-reports/latest.*. Previous run is moved to
+# history by scripts/run-report.js before the new one is written.

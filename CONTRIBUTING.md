@@ -30,9 +30,30 @@ Example: `[CAPTURE] feat: add SHA-256 hashing before JPEG compression`
 
 ## Run report ownership
 
-`run-reports/latest.md` and `run-reports/latest.json` are authored **only** by the Asus TUF. These files are listed in `.gitattributes` with `merge=ours` — on any merge conflict, Asus's version always wins.
+`run-reports/latest.md`, `run-reports/latest.json`, `run-reports/history/`, `run-reports/benchmarks.jsonl`, and `STATUS.md` are authored **only** by the Asus TUF. These are listed in `.gitattributes` with `merge=ours` — on any merge conflict, Asus's version always wins.
 
 Never hand-edit these files on the CTS laptop.
+
+## Cross-machine inbox protocol
+
+- **[INBOX-TO-ASUS.md](INBOX-TO-ASUS.md)** — CTS appends here when it wants Asus to verify or investigate something. Asus reads at the top of every session.
+- **[INBOX-TO-CTS.md](INBOX-TO-CTS.md)** — Asus appends here with error output, blockers, and run failures. CTS reads at the top of every session.
+
+Rules:
+
+1. **Append to the top** — newest entries first.
+2. **Date format:** `YYYY-MM-DD HH:MM`.
+3. **Never delete** — mark with `[RESOLVED YYYY-MM-DD]` prefix on the message header when addressed.
+4. **Paste concrete data** — exact error text, command run, expected vs actual. No "hey it broke".
+5. **Separate files by direction** so there are no merge conflicts — each machine only writes to its own outgoing file.
+
+## Feature tracking
+
+[FEATURES.md](FEATURES.md) holds all 92 P0 features by ID. When a feature branch merges to `main`:
+
+1. CTS updates the `[ ]` to `[x]` for each feature ID landed.
+2. CTS fills the commit SHA in the table row.
+3. Next Asus run updates STATUS.md's progress counts automatically via `scripts/run-report.js`.
 
 ## CLAUDE.md maintenance
 
