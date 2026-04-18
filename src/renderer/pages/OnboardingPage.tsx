@@ -1,12 +1,24 @@
-import { useOnboardingStore, selectVisibleSteps, selectCurrentStep, selectIsFirst, selectIsLast } from '../stores/onboarding-store';
+import {
+  useOnboardingStore,
+  selectVisibleSteps,
+  selectCurrentStep,
+  selectIsFirst,
+  selectIsLast,
+} from '../stores/onboarding-store';
+import { isStepValid } from '../onboarding/validators';
+import { LicenceStep } from '../onboarding/LicenceStep';
+import { WelcomeTourStep } from '../onboarding/WelcomeTourStep';
+import { UserProfileStep } from '../onboarding/UserProfileStep';
+import { BrandingStep } from '../onboarding/BrandingStep';
 
 /**
- * S-02 — onboarding wizard skeleton.
+ * S-02 — onboarding wizard.
  *
- * Phase 1 Wk4 D20: navigation state machine wired; step bodies are
- * placeholder descriptions. Real step forms land in Wk5 D21–D22 (OB-01
- * through OB-13); the `settings:*` IPC channels that gate entry into
- * this page land there too.
+ * Phase 1 Wk5 D21: dispatches per `step.id` to the real step component,
+ * gates the Next button via `isStepValid`. Steps 5–8 (naming, storage,
+ * shortcuts, done) still render the generic placeholder body until D22
+ * lands their components. Persistence to `settings.json` + app.db
+ * happens at the Finish click on Step 8 and wires in D22.
  */
 export function OnboardingPage(): JSX.Element {
   const visible = useOnboardingStore(selectVisibleSteps);
@@ -15,6 +27,7 @@ export function OnboardingPage(): JSX.Element {
   const isLast = useOnboardingStore(selectIsLast);
   const currentIndex = useOnboardingStore((s) => s.currentIndex);
   const completed = useOnboardingStore((s) => s.completed);
+  const stepData = useOnboardingStore((s) => s.data[step.id]);
   const next = useOnboardingStore((s) => s.next);
   const back = useOnboardingStore((s) => s.back);
   const skip = useOnboardingStore((s) => s.skip);
@@ -43,6 +56,8 @@ export function OnboardingPage(): JSX.Element {
     );
   }
 
+  const canAdvance = isStepValid(step.id, stepData);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-primary p-6">
       <div
@@ -57,12 +72,7 @@ export function OnboardingPage(): JSX.Element {
           <p className="text-sm text-text-secondary mt-2">{step.description}</p>
         </div>
 
-        <div className="px-8 py-6 text-sm text-text-secondary">
-          <p>
-            Placeholder content for <span className="font-mono">{step.id}</span>. Real form lands
-            in Phase 1 Week 5.
-          </p>
-        </div>
+        <div className="px-8 py-6">{renderStepBody(step.id)}</div>
 
         <div
           className="px-8 py-4 flex items-center justify-between border-t border-border-subtle"
@@ -90,7 +100,8 @@ export function OnboardingPage(): JSX.Element {
               <button
                 type="button"
                 onClick={complete}
-                className="px-4 py-2 rounded-md bg-accent-primary text-white"
+                disabled={!canAdvance}
+                className="px-4 py-2 rounded-md bg-accent-primary text-white disabled:opacity-50"
               >
                 Finish
               </button>
@@ -98,7 +109,8 @@ export function OnboardingPage(): JSX.Element {
               <button
                 type="button"
                 onClick={next}
-                className="px-4 py-2 rounded-md bg-accent-primary text-white"
+                disabled={!canAdvance}
+                className="px-4 py-2 rounded-md bg-accent-primary text-white disabled:opacity-50"
               >
                 Next
               </button>
@@ -108,4 +120,24 @@ export function OnboardingPage(): JSX.Element {
       </div>
     </div>
   );
+}
+
+function renderStepBody(stepId: string): JSX.Element {
+  switch (stepId) {
+    case 'licence':
+      return <LicenceStep />;
+    case 'tour':
+      return <WelcomeTourStep />;
+    case 'profile':
+      return <UserProfileStep />;
+    case 'branding':
+      return <BrandingStep />;
+    default:
+      return (
+        <p className="text-sm text-text-secondary">
+          Placeholder content for <span className="font-mono">{stepId}</span>. Real form lands in
+          Phase 1 Week 5 D22.
+        </p>
+      );
+  }
 }

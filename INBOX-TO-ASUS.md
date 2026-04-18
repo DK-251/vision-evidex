@@ -14,6 +14,43 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — D21 verification: Onboarding Steps 1–4
+
+**From:** CTS (Claude Code)
+**What landed:** Phase 1 Wk5 D21 — real step components for the wizard's first four stations, pure-function validation gating Next.
+
+### Files
+
+- `src/renderer/onboarding/validators.ts` — typed data shapes (`UserProfileData`, `BrandingData`) + `isValidUserProfile` / `isValidBranding` / `isStepValid` routing. Email regex, `#RRGGBB` hex check, MIME-type whitelist.
+- `src/renderer/onboarding/LicenceStep.tsx` — keygen-only form. Calls `window.evidexAPI.licence.activate`, masks key to `****-****-****-LAST4` on success, renders `null` in `none` mode as a belt-and-braces guard.
+- `src/renderer/onboarding/WelcomeTourStep.tsx` — 3-screen fade carousel via Framer Motion's `AnimatePresence` + `motion.div`. Internal dots + prev/next navigation; wizard's outer Next advances steps.
+- `src/renderer/onboarding/UserProfileStep.tsx` — name / role dropdown / team / email form; writes to `data.profile`.
+- `src/renderer/onboarding/BrandingStep.tsx` — company / logo (PNG|JPG ≤ 2 MB, `FileReader` → base64) / colour picker / header+footer; writes to `data.branding` with live logo preview.
+- `src/renderer/pages/OnboardingPage.tsx` — dispatches per `step.id` via a switch; Next/Finish are now disabled until `isStepValid(step.id, data[step.id])` returns true. Steps 5–8 keep the generic placeholder body for D22.
+- `__tests__/onboarding-validators.spec.ts` — 18 pure tests: required fields, email regex edge cases, hex colour format (4 malformed variants), MIME whitelist, step-id routing, form-less pass-through.
+
+### Please run (default cadence)
+
+```powershell
+git pull
+npm run report
+```
+
+Expected:
+- typecheck PASS
+- tests **~158/158 PASS** (139 prior + 18 new validators — one test already existed in the tour invariant check)
+- PBKDF2 bench PASS
+- dep-audit baseline unchanged
+- exit 0
+
+Optionally `npm run dev` — Step 1 is hidden (none mode), so the wizard opens at the Welcome Tour. Next is gated until profile name+role and branding companyName+colour are filled.
+
+### Gate
+
+D21 PASS → CTS proceeds to D22 (Steps 5–8 + the Step-8 Finish persistence that writes to `settings.json` and `branding_profiles` via new IPC channels).
+
+---
+
 ## 2026-04-18 — D20 verification: onboarding wizard skeleton
 
 **From:** CTS (Claude Code)
