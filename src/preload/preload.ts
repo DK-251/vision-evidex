@@ -25,6 +25,8 @@ import type {
   LicenceValidationResult,
   Settings,
   BrandingProfile,
+  MetricsSummary,
+  RecentProject,
 } from '@shared/types/entities';
 import type { SettingsUpdateInput, BrandingSaveInput } from '@shared/schemas';
 
@@ -112,6 +114,13 @@ const evidexAPI = {
       input: { title?: string; defaultPath?: string } = {}
     ): Promise<IpcResult<{ path: string | null }>> =>
       ipcRenderer.invoke(IPC.DIALOG_SELECT_DIRECTORY, input),
+  },
+
+  dashboard: {
+    summary: (): Promise<IpcResult<MetricsSummary>> =>
+      ipcRenderer.invoke(IPC.METRICS_SUMMARY, {}),
+    recentProjects: (): Promise<IpcResult<RecentProject[]>> =>
+      ipcRenderer.invoke(IPC.RECENT_PROJECTS_LIST, {}),
   },
 
   events: {

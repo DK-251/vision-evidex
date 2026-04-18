@@ -8,6 +8,7 @@ import { logger } from './logger';
 import { LicenceService } from './services/licence.service';
 import { SettingsService } from './services/settings.service';
 import { DatabaseService } from './services/database.service';
+import { MetricsService } from './services/metrics.service';
 
 /**
  * Vision-EviDex main process entry point.
@@ -100,10 +101,12 @@ function bootstrap(): void {
     appDb = new DatabaseService(path.join(appDataRoot, 'app.db'));
     appDb.initAppSchema();
 
+    const metricsService = new MetricsService(appDb);
     registerAllHandlers({
       licence: licenceService,
       settings: settingsService,
       appDb: appDb,
+      metrics: metricsService,
       getMainWindow,
     });
 

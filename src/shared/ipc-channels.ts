@@ -43,6 +43,10 @@ export const IPC = {
   SETTINGS_UPDATE: 'settings:update',
   BRANDING_SAVE: 'branding:save',
   DIALOG_SELECT_DIRECTORY: 'dialog:selectDirectory',
+
+  // Dashboard metrics + recent projects (Phase 1 Wk5 D23)
+  METRICS_SUMMARY: 'metrics:summary',
+  RECENT_PROJECTS_LIST: 'recentProjects:list',
 } as const;
 
 export const IPC_EVENTS = {

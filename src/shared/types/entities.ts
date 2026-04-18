@@ -435,6 +435,15 @@ export interface RecentProject {
   lastOpenedAt: string;
 }
 
+// ─── Dashboard metrics ──────────────────────────────────────────────────
+
+export interface MetricsSummary {
+  activeProjects: number;
+  sessionsToday: number;
+  capturesThisWeek: number;
+  exportsThisWeek: number;
+}
+
 // ─── Settings (AppData/settings.json) ───────────────────────────────────
 
 export interface UserProfileSettings {

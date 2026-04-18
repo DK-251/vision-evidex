@@ -230,6 +230,11 @@ export const SettingsUpdateSchema = SettingsSchema.partial().omit({ schemaVersio
 
 export const SettingsGetSchema = z.object({});
 
+// ─── Dashboard ──────────────────────────────────────────────────────────
+
+export const MetricsSummarySchema = z.object({});
+export const RecentProjectsListSchema = z.object({});
+
 // ─── Branding (app.db) ──────────────────────────────────────────────────
 
 export const BrandingSaveSchema = z.object({
