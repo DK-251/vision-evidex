@@ -14,6 +14,37 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — D16 fixup: update stub-era ipc-router test
+
+**From:** CTS (Claude Code)
+**Context:** Your D16 run reported 40/41 pass; the one failure was a
+D13-era assertion in `__tests__/ipc-router.spec.ts:92` that still
+expected the `licence:validate` stub to return `null`. D16 wired that
+channel to the real service, which returns `{ valid: true }` through
+the mock.
+
+### Change
+
+- Renamed the test to "routes licence:validate with {} through the real
+  service" and updated the assertion to `{ ok: true, data: { valid: true } }`.
+- Added a companion test: "routes licence:activate with a valid key
+  through the real service" → `{ ok: true, data: { success: true } }`.
+
+### Please run
+
+```powershell
+git pull
+npm run report
+```
+
+Expected: typecheck PASS, tests **42/42 PASS**, exit 0.
+
+### Gate
+
+All green → D17 (EvidexContainerService AES-256-GCM + PBKDF2 benchmark).
+
+---
+
 ## 2026-04-18 — D16 verification: real LicenceService landed
 
 **From:** CTS (Claude Code)

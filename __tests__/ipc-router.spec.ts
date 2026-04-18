@@ -86,10 +86,18 @@ describe('ipc-router (Phase 1 Wk3 security gate)', () => {
     expect(result.error.code).toBe(EvidexErrorCode.VALIDATION_FAILED);
   });
 
-  it('accepts licence:validate with {} payload', async () => {
+  it('routes licence:validate with {} through the real service', async () => {
     const fn = handlers.get(IPC.LICENCE_VALIDATE)!;
     const result = (await fn({}, {})) as { ok: true; data: unknown };
-    expect(result).toEqual({ ok: true, data: null });
+    // D16 wired licence:validate to services.licence.validate() — mock
+    // returns { valid: true }. Previously (D13) this was a stub null.
+    expect(result).toEqual({ ok: true, data: { valid: true } });
+  });
+
+  it('routes licence:activate with a valid key through the real service', async () => {
+    const fn = handlers.get(IPC.LICENCE_ACTIVATE)!;
+    const result = (await fn({}, { licenceKey: 'abc-123' })) as { ok: true; data: unknown };
+    expect(result).toEqual({ ok: true, data: { success: true } });
   });
 
   it('rejects signoff:submit when decision=reject has no comments', async () => {
