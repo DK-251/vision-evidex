@@ -1,9 +1,9 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-18T09:44:47.891Z  
-**Branch:** `main` · **Commit:** `8af86a4a`  
+**Date:** 2026-04-18T08:07:03.126Z  
+**Branch:** `main` · **Commit:** `c09762a2`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
-**Duration:** 0 ms
+**Duration:** 1 ms
 
 ## Summary
 
@@ -42,18 +42,6 @@
 | sign_off | SKIP | Phase 4 |
 | settings | SKIP | Phase 1 Week 3 |
 
-## Dependency audit (prod)
-
-| Severity | Count |
-|---|---|
-| critical | 0 |
-| high | 5 |
-| moderate | 0 |
-| low | 3 |
-| total | 8 |
-
-Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITIES.md) for accepted baseline and remediation plan.
-
 ## Next actions
 
-- DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md
+- No failures — all modules SKIP (Phase 0 scaffold).

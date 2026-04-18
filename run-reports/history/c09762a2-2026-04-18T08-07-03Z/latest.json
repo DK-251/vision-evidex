@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-04-18T09:44:47.891Z",
+  "timestamp": "2026-04-18T08:07:03.126Z",
   "branch": "main",
-  "commitSha": "8af86a4acdd9cfb966f681e332a0cf25cb1568c6",
-  "shortSha": "8af86a4a",
+  "commitSha": "c09762a2938a8b5aab18c7148caff0c1c0452b93",
+  "shortSha": "c09762a2",
   "nodeVersion": "22.22.2",
   "electronVersion": "^30.4.0",
-  "totalDurationMs": 0,
+  "totalDurationMs": 1,
   "modules": [
     {
       "name": "licence",
@@ -202,19 +202,7 @@
       }
     }
   },
-  "dependencyAudit": {
-    "ok": true,
-    "counts": {
-      "info": 0,
-      "low": 3,
-      "moderate": 0,
-      "high": 5,
-      "critical": 0,
-      "total": 8
-    },
-    "duration_ms": 5882
-  },
   "next_actions": [
-    "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
+    "No failures — all modules SKIP (Phase 0 scaffold)."
   ]
 }

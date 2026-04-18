@@ -27,7 +27,7 @@ import type {
  *
  * Architectural Rule 4: all writes go through prepared statements.
  * Architectural Rule 5: sign_offs, access_log, version_history are
- *   append-only — this class provides NO update*/delete* methods for them.
+*   append-only; this class provides NO update/delete methods for them.
  *
  * Phase 1 Week 3 (D14): constructor + app-level schema + recent_projects
  * CRUD. Project-db methods (sessions, captures, etc.) land Phase 1 Wk4–

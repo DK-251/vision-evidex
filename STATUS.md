@@ -8,12 +8,12 @@
 
 | Field | Value |
 |---|---|
-| Last Asus run | 2026-04-18T08:07:03.126Z |
-| Last run commit | `c09762a2` |
+| Last Asus run | 2026-04-18T09:44:47.891Z |
+| Last run commit | `8af86a4a` |
 | Last run branch | `main` |
 | Node | v22.22.2 |
 | Electron | ^30.4.0 |
-| Run duration | 1 ms |
+| Run duration | 0 ms |
 
 ## Module results
 
@@ -51,7 +51,7 @@ See [FEATURES.md](FEATURES.md) for the full checklist.
 
 ### Next actions
 
-- No failures — all modules SKIP (Phase 0 scaffold).
+- DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md
 
 ## Links
 
