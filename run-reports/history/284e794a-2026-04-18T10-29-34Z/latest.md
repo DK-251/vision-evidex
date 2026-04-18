@@ -1,7 +1,7 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-18T10:46:57.281Z  
-**Branch:** `main` · **Commit:** `70e1e166`  
+**Date:** 2026-04-18T10:29:34.365Z  
+**Branch:** `main` · **Commit:** `284e794a`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
 **Duration:** 0 ms
 
@@ -23,8 +23,8 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 5056 ms | — |
-| tests | PASS | 8427 ms | 68/68 passed |
+| typecheck | PASS | 4966 ms | — |
+| tests | PASS | 5855 ms | 42/42 passed |
 
 ## Module results
 
