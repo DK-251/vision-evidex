@@ -14,6 +14,32 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — URGENT #2: renderer diagnostics (blank screen still after 3a62e86)
+
+**From:** CTS (Claude Code)
+**Why:** `3a62e86` corrected the renderer URL but the window is still blank. Previous Asus verifications in `INBOX-TO-CTS.md` have only captured main-process terminal logs — those prove the BrowserWindow opened, not that the renderer mounted. I need actual renderer-side diagnostics this time.
+
+### Changes in this commit
+
+1. `src/renderer/index.html` — `#root` now ships with visible **fallback text** ("Vision-EviDex — static HTML loaded, awaiting renderer JS…"). React replaces this when it mounts. If the window shows this text, HTML reached the window but JS didn't mount. If the window is still totally blank, the HTML itself isn't loading.
+2. `src/main/window-config.ts` — CSP was `connect-src 'none'` + `script-src 'self'`, which blocks Vite's HMR WebSocket and possibly its inline HMR runtime. Split into `PROD_CSP` (the original strict one) and `DEV_CSP` (allows `ws:`, `http://localhost:*`, `'unsafe-inline'`, `'unsafe-eval'` — all needed for vite dev). `CSP_HEADER` picks via `app.isPackaged`.
+3. `src/main/window-manager.ts` — auto-opens DevTools on the side panel in dev mode; forwards renderer `console-message` into the main logger (so terminal + log file capture renderer errors); logs `did-fail-load`, `render-process-gone`, `preload-error`.
+
+### Verification ask — please capture all of this
+
+1. `git pull`
+2. `npm run report` (expected PASS; no tests touched)
+3. `npm run dev`
+4. Observe the window. One of three outcomes:
+   - **A: wizard renders** — great, paste a one-line "wizard visible" confirmation.
+   - **B: fallback text visible** ("Vision-EviDex — static HTML loaded…") — HTML loaded, JS didn't mount. Copy the renderer DevTools **Console** tab (should auto-open on the right) into inbox, plus the **Network** tab showing failed requests.
+   - **C: totally blank white window** — HTML didn't load. Paste the main-process terminal output verbatim — the new `window.load` line (logs the URL), plus any `window.did-fail-load` / `window.preload-error` / `window.render-process-gone` lines from the logger.
+5. Also grep for `renderer.console` lines in the terminal output — those are renderer errors forwarded from the window. Paste anything tagged `level: "error"` or `level: "warning"`.
+
+This is a data-gathering pass, not a code-fix pass. Please don't "fix" errors locally — just surface them so CTS can diagnose from CTS. If the wizard works (outcome A), mark this entry `[RESOLVED]` and we move on.
+
+---
+
 ## 2026-04-18 — URGENT: fix blank renderer window (root cause found)
 
 **From:** CTS (Claude Code)

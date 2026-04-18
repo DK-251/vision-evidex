@@ -7,7 +7,16 @@
     <title>Vision-EviDex</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="boot-fallback" style="padding:24px;font-family:system-ui,sans-serif;color:#0D1B2A;background:#FFFFFF;min-height:100vh;box-sizing:border-box;">
+        <h1 style="font-size:18px;margin:0 0 8px;">Vision-EviDex — static HTML loaded, awaiting renderer JS…</h1>
+        <p style="font-size:13px;color:#475569;margin:0 0 6px;">
+          This fallback means <code>index.html</code> reached the window. If it stays for more than a second or two, the
+          renderer JavaScript never mounted — open DevTools (Ctrl+Shift+I), copy the Console + Network tabs and paste into <code>INBOX-TO-CTS.md</code>.
+        </p>
+        <p style="font-size:13px;color:#475569;margin:0;">If you see a totally blank white window instead of this text, the HTML itself is not reaching the renderer.</p>
+      </div>
+    </div>
     <script type="module" src="./main.tsx"></script>
   </body>
 </html>
