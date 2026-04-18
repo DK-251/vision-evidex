@@ -33,11 +33,7 @@
     "bench:pbkdf2": "node scripts/benchmark-key-derivation.js",
     "rebuild": "electron-rebuild",
     "rebuild:electron": "electron-rebuild -f -w better-sqlite3",
-    "rebuild:node": "npm rebuild better-sqlite3",
-    "pretest:e2e": "npm run build",
-    "test:e2e": "playwright test",
-    "test:e2e:update-snapshots": "playwright test --update-snapshots",
-    "test:e2e:install": "playwright install chromium"
+    "rebuild:node": "npm rebuild better-sqlite3"
   },
   "dependencies": {
     "archiver": "^7.0.1",
@@ -56,7 +52,6 @@
   },
   "devDependencies": {
     "@electron/rebuild": "^3.7.0",
-    "@playwright/test": "^1.48.0",
     "@types/archiver": "^6.0.2",
     "@types/better-sqlite3": "^7.6.11",
     "@types/fabric": "^5.3.9",

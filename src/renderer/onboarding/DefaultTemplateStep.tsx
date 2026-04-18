@@ -1,14 +1,5 @@
 import { useOnboardingStore } from '../stores/onboarding-store';
 
-/**
- * Step 5 — Default template.
- *
- * Built-in template list is a placeholder for Phase 3 when the
- * Template Engine lands. The skeleton shows 5 representative report
- * types so the choice UI is wired end-to-end and the user's selection
- * persists into `settings.defaultTemplateId` at Finish.
- */
-
 export interface TemplateOption {
   id: string;
   name: string;

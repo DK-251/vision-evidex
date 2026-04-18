@@ -10,24 +10,6 @@ import { SettingsService } from './services/settings.service';
 import { DatabaseService } from './services/database.service';
 import { MetricsService } from './services/metrics.service';
 
-/**
- * Vision-EviDex main process entry point.
- *
- * Phase 1 Week 3 D11 responsibilities:
- *   - Single-instance lock
- *   - Content Security Policy on every renderer session
- *   - IPC handler registration
- *   - AppData directory provisioning
- *   - File-backed logger initialization
- *   - Licence validation at startup (no-op in Phase 0–1 stub mode)
- *   - globalShortcut cleanup on quit
- *
- * Later phases expand this file with:
- *   - Activation window routing when `licenceService.validate()` returns invalid (Week 4)
- *   - Onboarding window routing when settings.onboardingComplete === false (Week 5)
- *   - System tray + hotkey registration (Phase 2)
- */
-
 export const isDev = !app.isPackaged;
 
 const LICENCE_MODE = ((process.env['EVIDEX_LICENCE_MODE'] ?? 'none') === 'keygen'
@@ -122,13 +104,10 @@ function bootstrap(): void {
       ...(licence.valid ? {} : { reason: licence.reason }),
     });
     if (!licence.valid) {
-      // Activation window lands D20 — for now we log the gate miss
-      // and fall through to the main window so dev can still boot.
-      logger.warn('licence.gate-miss — falling through to main window (D20 will route to activation)', {
+      logger.warn('licence.gate-miss — falling through to main window', {
         reason: licence.reason,
       });
     }
-    // Week 5 adds: if (!settingsService.isOnboardingComplete()) return windowManager.showOnboardingWindow();
     createMainWindow();
 
     app.on('activate', () => {

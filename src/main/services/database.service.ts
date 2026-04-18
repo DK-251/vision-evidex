@@ -8,11 +8,8 @@ import type {
   StatusTag,
   SignOff,
   SignOffDecision,
-  Template,
-  TemplateSaveInput,
   BrandingProfile,
   RecentProject,
-  ImportedMetricsData,
   ImportHistoryEntry,
   StoredAnnotationLayer,
   AccessLogEntry,
@@ -34,16 +31,6 @@ import { PROJECT_MIGRATIONS } from '../migrations';
  * no string interpolation anywhere in this file.
  * Architectural Rule 5: sign_offs, access_log, version_history are
  * append-only — this class exposes NO update/delete methods for them.
- *
- * Phase 1 Week 4 D18 deliverables landed in this file:
- *   - initProjectSchema() + migration runner against PROJECT_MIGRATIONS
- *   - Real prepared statements for projects / sessions / captures /
- *     annotation_layers / sign_offs / import_history / access_log /
- *     version_history
- *   - Append-only discipline enforced by omission
- *
- * Remaining phase-stubs (Phase 3 metrics import, Phase 1 Wk5 templates,
- * Phase 1 Wk5 branding profiles) throw with their target phase label.
  */
 export class DatabaseService {
   private readonly db: DatabaseT;
@@ -604,20 +591,6 @@ export class DatabaseService {
     }));
   }
 
-  // ─── app.db (Phase 1 Wk5 onboarding / Phase 3 metrics) ──────────────
-
-  getTemplates(): Template[] {
-    throw new Error('DatabaseService.getTemplates — Phase 1 Week 5');
-  }
-  getTemplate(_templateId: string): Template | null {
-    throw new Error('DatabaseService.getTemplate — Phase 1 Week 5');
-  }
-  saveTemplate(_template: TemplateSaveInput): Template {
-    throw new Error('DatabaseService.saveTemplate — Phase 3');
-  }
-  deleteTemplate(_templateId: string): void {
-    throw new Error('DatabaseService.deleteTemplate — Phase 3');
-  }
   getBrandingProfiles(): BrandingProfile[] {
     const rows = this.db
       .prepare(
@@ -669,16 +642,6 @@ export class DatabaseService {
       });
     return { ...profile, createdAt };
   }
-  deleteBrandingProfile(_profileId: string): void {
-    throw new Error('DatabaseService.deleteBrandingProfile — Phase 3');
-  }
-  upsertMetricsData(_projectId: string, _metrics: ImportedMetricsData): void {
-    throw new Error('DatabaseService.upsertMetricsData — Phase 3');
-  }
-  getMetricsData(_projectId: string): ImportedMetricsData | null {
-    throw new Error('DatabaseService.getMetricsData — Phase 3');
-  }
-
   getRecentProjects(): RecentProject[] {
     const rows = this.db
       .prepare(

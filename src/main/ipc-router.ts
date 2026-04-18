@@ -37,11 +37,6 @@ import type { SettingsService } from './services/settings.service';
 import type { DatabaseService } from './services/database.service';
 import type { MetricsService } from './services/metrics.service';
 
-/**
- * Service registry injected into `registerAllHandlers`. Additional
- * services join this shape as they land (Wk 4 container, Wk 6
- * project, Phase 2 session/capture, …).
- */
 export interface ServiceRegistry {
   licence: LicenceService;
   settings: SettingsService;
@@ -50,12 +45,6 @@ export interface ServiceRegistry {
   /** Owner of the currently-focused BrowserWindow for modal dialogs. */
   getMainWindow: () => BrowserWindow | undefined;
 }
-
-/**
- * Central IPC router — registers every invoke channel with Zod validation
- * and consistent IpcResult<T> wrapping. Handlers never throw across the
- * IPC boundary (Architectural Rule 3).
- */
 
 type Handler<TInput, TOutput> = (input: TInput, event: IpcMainInvokeEvent) => Promise<TOutput>;
 
@@ -105,22 +94,6 @@ export function registerHandler<TSchema extends z.ZodTypeAny, TOutput>(
   });
 }
 
-/**
- * Register all IPC handlers.
- *
- * Phase 1 Week 3 (D13): every channel is registered with its real Zod
- * schema. Unwired handlers return `null` until the owning service
- * lands — Zod rejection paths are live immediately, so the validation
- * envelope works end-to-end from the first app boot.
- *
- * Phase 1 Week 4 (D16): `licence:activate` / `licence:validate` now
- * route through `services.licence`. Remaining stubs replace per phase:
- *   - Wk 4 → project:* (via DB, D18)
- *   - Wk 6 → project:create, project:open, project:close
- *   - Ph 2 → session:*, capture:*
- *   - Ph 3 → export:*, metrics:import, template:save
- *   - Ph 4 → signoff:submit
- */
 export function registerAllHandlers(services: ServiceRegistry): void {
   const stub = async (): Promise<null> => null;
 

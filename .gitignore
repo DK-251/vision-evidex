@@ -53,12 +53,6 @@ coverage/
 *.lcov
 .nyc_output/
 
-# Playwright e2e — snapshots (-snapshots/) are tracked, everything else is not
-run-reports/e2e-html/
-run-reports/e2e-results.json
-test-results/
-playwright-report/
-
 # TypeScript incremental
 *.tsbuildinfo
 

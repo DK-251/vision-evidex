@@ -11,23 +11,13 @@ import { DEFAULT_HOTKEYS, HOTKEY_ACTIONS, detectHotkeyConflicts, formatKeyEvent 
 import { useNavStore } from '../stores/nav-store';
 import { Skeleton } from '../components/Skeleton';
 
-/**
- * S-23 — App settings with 6 tabs.
- *
- * Phase 1 Wk5 D24: every tab reads from `settings.json` via
- * `settings:get` and writes back via `settings:update`. The Hotkeys
- * tab reuses the remap + conflict logic introduced for onboarding
- * Step 6. The Licence / About tab is mode-aware — the label changes
- * and the body shows different info in `keygen` vs `none` modes.
- */
-
 const TABS = [
   { id: 'profile', label: 'Profile' },
   { id: 'hotkeys', label: 'Hotkeys' },
   { id: 'appearance', label: 'Appearance' },
   { id: 'storage', label: 'Storage' },
   { id: 'defaults', label: 'Defaults' },
-  { id: 'licence', label: 'Licence' }, // label overridden for 'none' mode below
+  { id: 'licence', label: 'Licence' },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -359,7 +349,6 @@ function LicenceTab({ mode }: { mode: LicenceMode }): JSX.Element {
     <div className="space-y-2 text-sm">
       <dl className="space-y-1">
         <Row label="Licence Mode" value="Standard (Keygen.sh)" />
-        <Row label="Status" value="see dashboard — deactivate UI lands in Wk6" />
       </dl>
     </div>
   );

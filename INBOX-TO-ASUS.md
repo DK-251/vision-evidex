@@ -14,6 +14,53 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — Cleanup pass (pre UI-redesign)
+
+**From:** CTS (Claude Code)
+**Why:** User is bringing a new UI design system. Before rebuilding the renderer I'm (a) reverting the Playwright e2e suite and (b) removing stub files + stale temporal comments that will either be deleted-and-recreated under the new design system, or rot further as the codebase evolves.
+
+### Reverted (Playwright e2e)
+
+- Deleted `e2e/` directory (6 files) and `playwright.config.ts`.
+- Removed `@playwright/test` from `package.json` devDependencies.
+- Removed `pretest:e2e`, `test:e2e`, `test:e2e:update-snapshots`, `test:e2e:install` npm scripts.
+- Removed `playwright.config.ts` from `tsconfig.node.json` include.
+- Removed Playwright patterns from `.gitignore`.
+- Removed `EVIDEX_APPDATA_ROOT` env-var override from `src/main/app-paths.ts` (it was test-only).
+
+### Deleted (unreferenced stubs — 26 files)
+
+- 19 renderer page stubs in `src/renderer/pages/`: AuditPack, BrandingProfile, CreateProject, KeyboardShortcuts, LicenceActivation, MetricsImport, ProjectList, ProjectOverview, ProjectSettings, ReportBuilder, SessionDetail, SessionGallery, SessionIntake, SessionList, SignOff, StatusReports, TemplateBuilder, TemplateLibrary, TsrBuilder. All were 12-line `export function XxxPage()` placeholders, none imported anywhere. They will be recreated under the new design system as each feature actually lands.
+- 7 service stubs in `src/main/services/`: signoff, tray, shortcut, export, session, capture, metrics-import. Each was a class where every method threw `Error('XxxService.foo — Phase N')`. Not imported by anything except the barrel `index.ts`. Same rationale — rebuilt when the owning phase actually starts.
+- `services/index.ts` pruned to the seven services that actually exist.
+- `DatabaseService` lost six `throw new Error(...)` stub methods (`getTemplates`, `getTemplate`, `saveTemplate`, `deleteTemplate`, `deleteBrandingProfile`, `upsertMetricsData`, `getMetricsData`). They'll be reintroduced as real prepared-statement implementations when the feature arrives.
+
+### Stripped (stale comments)
+
+Removed temporal phase-dating comments that describe *when something landed* or *when something will land* (e.g. "Phase 1 Wk5 D23:", "lands in Wk6", "D20 will route to…", "Week 5 adds…"). These rot within a sprint and make the code read like a diary instead of a spec. Kept comments that describe a constraint, invariant, or non-obvious behaviour (architectural rules, security notes, Risk R-07 references).
+
+### Kept (real fixes from the blank-screen epic)
+
+- URL correction in `window-manager.loadRendererEntry` — all four entries now at `src/<dir>/index.html`.
+- CSP split into `DEV_CSP` + `PROD_CSP` selected via `app.isPackaged`.
+- The `did-fail-load` listener (single line, operational, not debug).
+- `Skeleton` + `BootSkeleton` components and their wiring in App / Dashboard / AppSettings.
+
+### Verification ask
+
+Standard cadence:
+
+1. `git pull`
+2. `npm install` — `@playwright/test` is being removed; `npm install` should just prune its tree.
+3. `npm run report` — expected PASS. Watch for: 
+   - typecheck PASS (most at-risk — the `database.service.ts` import list shrunk and method stubs were removed).
+   - tests PASS, **expected count unchanged at 189** — no tests touched the deleted pages or stub services.
+4. `npm run dev` — expected: wizard renders exactly as on `373992d`. No visual change at all.
+
+If typecheck fails, please paste the exact TS errors into `INBOX-TO-CTS.md`. If tests fall below 189, paste the failing spec name + expected vs received.
+
+---
+
 ## 2026-04-18 — Cleanup + Playwright e2e suite (resolves blank-screen epic)
 
 **From:** CTS (Claude Code)

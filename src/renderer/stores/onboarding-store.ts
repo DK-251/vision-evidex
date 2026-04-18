@@ -1,20 +1,5 @@
 import { create } from 'zustand';
 
-/**
- * OnboardingStore — Phase 1 Wk4 D20 skeleton.
- *
- * Owns the state machine for the 8-step wizard (7 in no-licence mode).
- * Pure state: does not touch IPC, filesystem, or renderer-only APIs, so
- * the store is testable in Node without React. The UI layer subscribes
- * via `useOnboardingStore(...)` and dispatches `next` / `back` / `skip`
- * / `complete`.
- *
- * Step payloads (user profile, branding, etc.) live in a separate
- * `data` record keyed by step id — D21+ fills it in as each real form
- * lands. `complete()` is the point where the rest of the app should
- * persist onboardingComplete=true; that IPC is Wk5 work.
- */
-
 export type LicenceMode = 'keygen' | 'none';
 
 export interface OnboardingStepDef {
@@ -27,10 +12,6 @@ export interface OnboardingStepDef {
   optional?: boolean;
 }
 
-/** All 8 step definitions. Order is authoritative. Order matches the
- *  Tech Spec: Licence → Tour → Profile → Branding → Template → Hotkeys
- *  → Theme/Storage → Summary. In `none` mode Licence is filtered out,
- *  leaving 7. */
 export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = Object.freeze([
   {
     id: 'licence',

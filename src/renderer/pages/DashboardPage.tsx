@@ -3,20 +3,6 @@ import type { MetricsSummary, RecentProject } from '@shared/types/entities';
 import { useNavStore } from '../stores/nav-store';
 import { Skeleton } from '../components/Skeleton';
 
-/**
- * S-03 — Dashboard.
- *
- * Three zones per Tech Spec: metrics panel, quick links, recent
- * projects. The metrics IPC (`metrics:summary`) returns real
- * `activeProjects` (from recent_projects) and placeholder zeros for
- * the three session/capture/export counters — those wire up once the
- * project-DB is readable (Phase 2+).
- *
- * No session polling yet — SessionService is Phase 2 Wk7. The
- * "Session Active" pill renders only when a session-state query
- * returns one, so leaving it out today is safe.
- */
-
 export function DashboardPage(): JSX.Element {
   const [summary, setSummary] = useState<MetricsSummary | null>(null);
   const [recent, setRecent] = useState<RecentProject[] | null>(null);

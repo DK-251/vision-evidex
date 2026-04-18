@@ -38,13 +38,13 @@ export const IPC = {
   LICENCE_ACTIVATE: 'licence:activate',
   LICENCE_VALIDATE: 'licence:validate',
 
-  // Settings + branding + dialogs (Phase 1 Wk5 D22)
+  // Settings + branding + dialogs
   SETTINGS_GET: 'settings:get',
   SETTINGS_UPDATE: 'settings:update',
   BRANDING_SAVE: 'branding:save',
   DIALOG_SELECT_DIRECTORY: 'dialog:selectDirectory',
 
-  // Dashboard metrics + recent projects (Phase 1 Wk5 D23)
+  // Dashboard metrics + recent projects
   METRICS_SUMMARY: 'metrics:summary',
   RECENT_PROJECTS_LIST: 'recentProjects:list',
 } as const;

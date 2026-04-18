@@ -1,13 +1,5 @@
 import type { CSSProperties } from 'react';
 
-/**
- * Skeleton — animated placeholder block for async loading states.
- *
- * Uses Tailwind's built-in `animate-pulse` on a surface-secondary block.
- * Screen-readers see `aria-hidden` so the skeleton does not clutter
- * assistive output — callers should render a polite live region if
- * they need loading announcements.
- */
 export function Skeleton({
   className = '',
   style,
@@ -24,12 +16,6 @@ export function Skeleton({
   );
 }
 
-/**
- * BootSkeleton — full-viewport placeholder shown while the main window
- * waits for `settings:get` to return. Mirrors the onboarding card
- * silhouette so the shift to the real wizard feels like content
- * arriving rather than a layout jump.
- */
 export function BootSkeleton(): JSX.Element {
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-primary p-6">

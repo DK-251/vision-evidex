@@ -18,15 +18,6 @@ import { ThemeStorageStep } from '../onboarding/ThemeStorageStep';
 import { SummaryStep } from '../onboarding/SummaryStep';
 import { persistOnboarding } from '../onboarding/persist-onboarding';
 
-/**
- * S-02 — onboarding wizard.
- *
- * Phase 1 Wk5 D21: dispatches per `step.id` to the real step component,
- * gates the Next button via `isStepValid`. Steps 5–8 (naming, storage,
- * shortcuts, done) still render the generic placeholder body until D22
- * lands their components. Persistence to `settings.json` + app.db
- * happens at the Finish click on Step 8 and wires in D22.
- */
 export function OnboardingPage(): JSX.Element {
   const visible = useOnboardingStore(selectVisibleSteps);
   const step = useOnboardingStore(selectCurrentStep);
@@ -63,9 +54,6 @@ export function OnboardingPage(): JSX.Element {
           style={{ boxShadow: 'var(--shadow-neumorphic-out)' }}
         >
           <h1 className="text-2xl font-semibold text-text-primary mb-2">Onboarding complete</h1>
-          <p className="text-sm text-text-secondary">
-            Dashboard entry wires up in Wk5 D23. For now, re-run the wizard with Reset.
-          </p>
           <button
             type="button"
             onClick={() => useOnboardingStore.getState().reset()}

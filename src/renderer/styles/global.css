@@ -3,9 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Bundled Inter — Phase 1 Week 3 will add @font-face declarations
-   pointing to src/renderer/fonts/Inter-*.ttf. System fallback until then. */
-
 html, body, #root {
   height: 100%;
   margin: 0;

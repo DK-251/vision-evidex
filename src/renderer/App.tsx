@@ -6,20 +6,6 @@ import { useOnboardingStore } from './stores/onboarding-store';
 import { useNavStore } from './stores/nav-store';
 import { BootSkeleton } from './components/Skeleton';
 
-/**
- * Main window root.
- *
- * Routing gate: on mount we ask the main process for current settings.
- * If `onboardingComplete === true` → Dashboard (or AppSettings via
- * nav-store). Otherwise → OnboardingPage wizard. Fails open to the
- * wizard: any IPC error or preload-bridge absence routes to onboarding
- * rather than hanging forever on a blank screen.
- *
- * Includes a local error boundary so a render crash shows the error
- * rather than a white screen. The boundary is intentional — we want
- * the user (and our dev tools) to see the stack trace the moment
- * something throws.
- */
 export function App(): JSX.Element {
   return (
     <AppErrorBoundary>
