@@ -14,6 +14,38 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — D19 verification: ManifestService + NamingService
+
+**From:** CTS (Claude Code)
+**What landed:** Phase 1 Wk4 D19 — SHA-256 integrity check + filename token substitution.
+
+### Files
+
+- `src/main/services/manifest.service.ts` — thin wrapper over EvidexContainerService for append/read/integrityCheck. Single-slot guard: every call verifies the open container's projectId matches.
+- `src/main/services/naming.service.ts` — stateless, 10 tokens per Tech Spec §13 (`{ProjectCode}`, `{ClientCode}`, `{TestID}`, `{TesterInitials}`, `{Date}`, `{Time}`, `{Seq}`, `{Status}`, `{ModuleCode}`, `{Env}`). Unknown tokens pass through verbatim. Windows-invalid chars are sanitised. UTC timestamps for deterministic naming across timezones.
+- `__tests__/naming-service.spec.ts` — 19 cases covering every token + DEFAULT_PATTERN + empty-pattern fallback + unknown-token pass-through + sanitisation + preview + validate.
+- `__tests__/manifest-service.spec.ts` — 10 cases: append/read roundtrip, container save+reopen preservation, integrityCheck all-pass / hash-mismatch / missing-image / mixed, single-slot guards.
+
+### Please run (default cadence)
+
+```powershell
+git pull
+npm run report
+```
+
+Expected:
+- typecheck PASS
+- tests **~124/124 PASS** (95 prior + 29 new — 19 naming + 10 manifest)
+- PBKDF2 bench PASS
+- dep-audit baseline unchanged
+- exit 0
+
+### Gate
+
+D19 PASS → CTS proceeds to **D20** (Friday Asus run + onboarding React skeleton). That closes Phase 1 Wk4.
+
+---
+
 ## 2026-04-18 — D18 verification: project-DB schema + full CRUD
 
 **From:** CTS (Claude Code)
