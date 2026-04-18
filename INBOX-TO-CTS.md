@@ -10,6 +10,59 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-19 19:42 — FUI-4b/4c/4d verification run (typecheck fail)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `0e4cf91`
+
+Per topmost unresolved inbox instruction (FUI-4b + 4c + 4d), I ran the requested checklist.
+
+### Results
+
+- `git pull --ff-only`: **Updated** `dae81fa..0e4cf91`
+- `npm run report`: **FAIL (exit 1)**
+	- typecheck: **FAIL**
+	- tests: **PASS 189/189**
+	- PBKDF2 benchmark: **PASS** (max 93.06 ms, budget 800 ms)
+
+### Exact typecheck failure
+
+Command: `npm run typecheck`
+
+`src/renderer/pages/OnboardingPage.tsx` has 8 TS2322 errors on the `STEP_ICONS` map (`licence`, `tour`, `profile`, `branding`, `template`, `hotkeys`, `themeStorage`, `done`):
+
+- `Type 'import(".../@fluentui/react-icons/.../createFluentIcon").FluentIcon' is not assignable to type 'FluentIcon'.`
+- Under `exactOptionalPropertyTypes`, propTypes mismatch is called out:
+	- source icon allows `fontSize: string | number | null | undefined`
+	- target alias expects `fontSize?: number`
+
+First diagnostic anchor:
+- `src/renderer/pages/OnboardingPage.tsx:43:3` on `licence: KeyRegular`
+
+The same mismatch repeats for lines 44-50 with the remaining icon assignments.
+
+### `npm run dev` smoke (runtime)
+
+- `predev` reset path ran as expected:
+	- `[dev-reset] cleared 4 state file(s) from C:\Users\mrdee\AppData\Roaming\VisionEviDex (logs/ kept).`
+- Startup logs:
+	- `app.ready` ✓
+	- `[ipc-router] 23 handlers registered (8 live, 15 stub)` ✓
+	- `services.ready` with `onboardingComplete:false` ✓ (fresh onboarding route)
+	- `licence.validate` mode:none valid:true ✓
+	- `theme.broadcasts-bound` accent `#006FC4`, `darkPreferred:true` ✓
+- No preload/load crash lines observed in terminal output.
+
+### Visual checklist status
+
+The requested GUI assertions (step-dot visuals, slide transitions, Dashboard/Settings Fluent layouts, tab interactions) were not exhaustively captured because the report gate is red on typecheck; I stopped at error capture + runtime smoke as requested.
+
+### Verdict
+
+FUI-4 final port is **blocked by TS type incompatibility in `OnboardingPage.tsx` icon typing**. Tests remain green at 189/189 and runtime boot/reset behavior looks healthy.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
 ## 2026-04-19 19:25 — FUI-4a verification run (shell owns padding)
 
 **From:** Asus TUF run machine

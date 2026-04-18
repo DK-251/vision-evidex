@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-04-18T19:40:45.783Z",
+  "timestamp": "2026-04-18T19:23:32.887Z",
   "branch": "main",
-  "commitSha": "0e4cf91052ef6d7e60c0a2f0460a71edfca041f1",
-  "shortSha": "0e4cf910",
+  "commitSha": "8c474281d2336b0bb21b4f8de9e57ccde0d3df55",
+  "shortSha": "8c474281",
   "nodeVersion": "22.22.2",
   "electronVersion": "^30.4.0",
   "totalDurationMs": 0,
@@ -204,22 +204,12 @@
   },
   "prechecks": {
     "typecheck": {
-      "ok": false,
-      "duration_ms": 5755,
-      "errors": [
-        "src/renderer/pages/OnboardingPage.tsx(43,3): error TS2322: Type 'import(\"D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon\").FluentIcon' is not assignable to type 'FluentIcon'.\r",
-        "src/renderer/pages/OnboardingPage.tsx(44,3): error TS2322: Type 'import(\"D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon\").FluentIcon' is not assignable to type 'FluentIcon'.\r",
-        "src/renderer/pages/OnboardingPage.tsx(45,3): error TS2322: Type 'import(\"D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon\").FluentIcon' is not assignable to type 'FluentIcon'.\r",
-        "src/renderer/pages/OnboardingPage.tsx(46,3): error TS2322: Type 'import(\"D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon\").FluentIcon' is not assignable to type 'FluentIcon'.\r",
-        "src/renderer/pages/OnboardingPage.tsx(47,3): error TS2322: Type 'import(\"D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon\").FluentIcon' is not assignable to type 'FluentIcon'.\r",
-        "src/renderer/pages/OnboardingPage.tsx(48,3): error TS2322: Type 'import(\"D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon\").FluentIcon' is not assignable to type 'FluentIcon'.\r",
-        "src/renderer/pages/OnboardingPage.tsx(49,3): error TS2322: Type 'import(\"D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon\").FluentIcon' is not assignable to type 'FluentIcon'.\r",
-        "src/renderer/pages/OnboardingPage.tsx(50,3): error TS2322: Type 'import(\"D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon\").FluentIcon' is not assignable to type 'FluentIcon'.\r"
-      ]
+      "ok": true,
+      "duration_ms": 7004
     },
     "tests": {
       "ok": true,
-      "duration_ms": 8510,
+      "duration_ms": 8528,
       "total": 189,
       "passed": 189,
       "failed": 0,
@@ -228,9 +218,9 @@
   },
   "pbkdf2": {
     "ok": true,
-    "duration_ms": 560,
+    "duration_ms": 548,
     "record": {
-      "ts": "2026-04-18T19:41:00.777Z",
+      "ts": "2026-04-18T19:23:49.122Z",
       "node": "22.22.2",
       "platform": "win32-x64",
       "iterations": 310000,
@@ -238,15 +228,15 @@
       "salt_len_bytes": 16,
       "runs": 5,
       "samples_ms": [
-        93.06,
-        92.83,
-        92.57,
-        93.06,
-        92.66
+        90.72,
+        90.56,
+        91.24,
+        90.9,
+        90.73
       ],
-      "min_ms": 92.57,
-      "max_ms": 93.06,
-      "mean_ms": 92.84,
+      "min_ms": 90.56,
+      "max_ms": 91.24,
+      "mean_ms": 90.83,
       "budget_ms": 800,
       "passed": true
     }
@@ -261,10 +251,9 @@
       "critical": 0,
       "total": 8
     },
-    "duration_ms": 6877
+    "duration_ms": 5079
   },
   "next_actions": [
-    "PRECHECK [typecheck] FAIL — src/renderer/pages/OnboardingPage.tsx(43,3): error TS2322: Type 'import(\"D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon\").FluentIcon' is not assignable to type 'FluentIcon'.\r",
     "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
   ]
 }

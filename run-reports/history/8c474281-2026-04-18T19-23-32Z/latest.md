@@ -1,7 +1,7 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-18T19:40:45.783Z  
-**Branch:** `main` · **Commit:** `0e4cf910`  
+**Date:** 2026-04-18T19:23:32.887Z  
+**Branch:** `main` · **Commit:** `8c474281`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
 **Duration:** 0 ms
 
@@ -23,8 +23,8 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | FAIL | 5755 ms | src/renderer/pages/OnboardingPage.tsx(43,3): error TS2322: Type 'import("D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon").FluentIcon' is not assignable to  |
-| tests | PASS | 8510 ms | 189/189 passed |
+| typecheck | PASS | 7004 ms | — |
+| tests | PASS | 8528 ms | 189/189 passed |
 
 ## Module results
 
@@ -53,7 +53,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 92.57 ms | 92.84 ms | 93.06 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 90.56 ms | 90.83 ms | 91.24 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,5 +71,4 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
-- PRECHECK [typecheck] FAIL — src/renderer/pages/OnboardingPage.tsx(43,3): error TS2322: Type 'import("D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon").FluentIcon' is not assignable to type 'FluentIcon'.
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md
