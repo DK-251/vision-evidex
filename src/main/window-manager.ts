@@ -17,17 +17,17 @@ let regionWindow: BrowserWindow | undefined;
 const RENDERER_BASE_URL = process.env['ELECTRON_RENDERER_URL'];
 
 function loadRendererEntry(window: BrowserWindow, entry: 'main' | 'toolbar' | 'annotation' | 'region'): void {
+  // Each entry's HTML lives at `src/<dir>/index.html` where <dir> is the
+  // entry name, except `main` which lives at `src/renderer/index.html`.
+  // With `renderer.root: '.'` in electron.vite.config.ts the dev server
+  // serves every HTML at its relative path from the project root — there
+  // is nothing at `/`, so appending the sub-path is required for the
+  // main window too (otherwise we get a blank page from vite's 404).
+  const dir = entry === 'main' ? 'renderer' : entry;
   if (RENDERER_BASE_URL) {
-    // Dev mode — electron-vite serves renderers
-    const url = entry === 'main' ? RENDERER_BASE_URL : `${RENDERER_BASE_URL}/src/${entry}/index.html`;
-    window.loadURL(url);
+    window.loadURL(`${RENDERER_BASE_URL}/src/${dir}/index.html`);
   } else {
-    // Prod mode — load built HTML from out/renderer/
-    const htmlPath =
-      entry === 'main'
-        ? path.join(__dirname, '../renderer/index.html')
-        : path.join(__dirname, `../renderer/src/${entry}/index.html`);
-    window.loadFile(htmlPath);
+    window.loadFile(path.join(__dirname, `../renderer/src/${dir}/index.html`));
   }
 }
 

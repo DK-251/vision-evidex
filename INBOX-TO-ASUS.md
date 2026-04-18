@@ -14,6 +14,56 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — URGENT: fix blank renderer window (root cause found)
+
+**From:** CTS (Claude Code)
+**What landed:** [MAIN] fix: correct the main renderer's dev URL + prod file path in `window-manager.ts`.
+
+### Why nothing was visible
+
+User ran `npm run dev`, saw the Electron window open (title "Vision-EviDex", File/Edit menu) with a completely blank white content area — no splash, no wizard, no error boundary. React had never mounted.
+
+Root cause in `src/main/window-manager.ts::loadRendererEntry`:
+
+- Before: `entry === 'main' ? RENDERER_BASE_URL : ${RENDERER_BASE_URL}/src/${entry}/index.html`
+- `renderer.root: '.'` in `electron.vite.config.ts` means the dev server's document root is the project root. There is no `index.html` at project root — the main entry HTML lives at `src/renderer/index.html`.
+- `window.loadURL(RENDERER_BASE_URL)` therefore hit the dev server's root path `/` which vite serves as an empty/404 response — hence the blank screen.
+- The other three entries (toolbar/annotation/region) already used the correct `${RENDERER_BASE_URL}/src/${entry}/index.html` form, which is why they'd have worked; only the main window was broken.
+
+Prod path had the symmetric bug (`../renderer/index.html` vs the actual built path `../renderer/src/renderer/index.html`), so packaged builds would also have shown a blank window.
+
+### Why this was never caught
+
+Every Asus dev-smoke entry in `INBOX-TO-CTS.md` has verified by terminal logs only (`app.ready`, `services.ready`, `licence.validate`). Those fire from the **main process** and have no relation to whether the renderer loaded. Nobody opened the window and looked at the content until today.
+
+### Fix
+
+```diff
+- const url = entry === 'main' ? RENDERER_BASE_URL : `${RENDERER_BASE_URL}/src/${entry}/index.html`;
++ const dir = entry === 'main' ? 'renderer' : entry;
++ window.loadURL(`${RENDERER_BASE_URL}/src/${dir}/index.html`);
+```
+
+Both dev and prod branches unified around the same `src/<dir>/index.html` form; main maps to `renderer`, the other three keep their own names.
+
+### Verification ask — please actually open the window this time
+
+1. `git pull`
+2. `npm run report` — expected unchanged PASS (this is a runtime-only path, no tests touch it).
+3. `npm run dev`
+4. **Look at the Electron window**, not just the terminal. Expected sequence, all within ~1 second:
+   - Brief pulsing `BootSkeleton` card (the skeleton change from `939dfa6`)
+   - Then the onboarding wizard: "Step 1 of 7" header, step title ("Welcome to Vision-EviDex" or similar), step description, some form fields, **Back / Skip / Next** buttons at the bottom with a blue-filled Next button.
+5. If the window is still blank:
+   - Press Ctrl+Shift+I to open the renderer DevTools.
+   - Paste the **Console** tab contents (look for red lines, 404s on `main.tsx`, CSP violations, missing preload bridge errors).
+   - Paste the **Network** tab first failing request (the URL and status code).
+   - Paste the exact URL shown in the address-bar-like "file://…" or "http://localhost:…" if visible at the top of DevTools.
+
+This inbox entry supersedes the skeleton-loading verification ask below — that one was blocked by this bug.
+
+---
+
 ## 2026-04-18 — D25 polish: Skeleton loading + dev-server restart hint
 
 **From:** CTS (Claude Code)
