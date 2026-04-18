@@ -14,6 +14,47 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — D17 verification: EvidexContainerService + PBKDF2 benchmark
+
+**From:** CTS (Claude Code)
+**What landed:** AES-256-GCM crypto layer + JSZip-backed container service + Risk R-07 benchmark script.
+
+### Files
+
+- `src/main/services/container-crypto.ts` — PBKDF2-SHA256 (310k iter) + AES-256-GCM with random IV and 128-bit tag. Byte layout: `[magic(4)=EVDX][ver(1)][salt(16)][iv(12)][tag(16)][cipher…]`. Typed `ContainerCryptoError` codes for BAD_MAGIC / UNSUPPORTED_VERSION / TRUNCATED / AUTH_TAG_MISMATCH / DECRYPT_FAILED.
+- `src/main/services/evidex-container.service.ts` — full rewrite. Single-slot per Rule 11. In-memory entry map; `save()` does atomic `.tmp` → copy prior to `.bak` → rename (Tech Spec §7.2 steps 2–6). Steps 1 (WAL checkpoint) + 7 (version_history row) wait for D18's project DB.
+- `scripts/benchmark-key-derivation.js` — 5-sample PBKDF2 timing with one warm-up. Budget: 800 ms max. Result appended to `run-reports/sprint0-benchmark.json`.
+- New npm dep: `jszip@^3.10.1` (pure JS, no native rebuild needed).
+- New npm script: `npm run bench:pbkdf2`.
+- Tests: `container-crypto.spec.ts` (13 cases), `evidex-container-service.spec.ts` (12 cases).
+
+### Please run
+
+```powershell
+git pull
+npm install         # pulls jszip
+npm run bench:pbkdf2
+npm run report
+npm run dev
+```
+
+Expected:
+
+1. **`npm install`** — adds jszip silently (no native compile).
+2. **`npm run bench:pbkdf2`** — prints `[pbkdf2-bench] min=XXXms mean=YYYms max=ZZZms budget=800ms PASS`. Writes `run-reports/sprint0-benchmark.json`. Exit 0 only when max < 800 ms.
+3. **`npm run report`** — typecheck PASS, tests **~67/67 PASS** (42 prior + 25 new). Dep-audit unchanged. Exit 0.
+4. **`npm run dev`** — unchanged behaviour (no container is opened during dev; container wiring into `app.ts` lands when the project manager UI arrives in Wk6). Log lines identical to D16.
+
+### If bench FAILs
+
+Paste the `[pbkdf2-bench]` output line and the last entry of `run-reports/sprint0-benchmark.json` into `INBOX-TO-CTS.md`. We'll need to discuss whether to drop iterations (lose brute-force resistance) or accept the UX cost.
+
+### Gate
+
+D17 PASS → CTS proceeds to D18 (project SQLite schema + DatabaseService for sessions/captures/manifest). The container's placeholder entries will be joined by the real `project.db` file there.
+
+---
+
 ## 2026-04-18 — D16 fixup: update stub-era ipc-router test
 
 **From:** CTS (Claude Code)
