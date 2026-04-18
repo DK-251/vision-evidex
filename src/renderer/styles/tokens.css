@@ -1,81 +1,279 @@
 /**
- * Vision-EviDex design tokens — single source of truth for all visual styling.
- * Components must consume these tokens via Tailwind classes or var() — never
- * hardcode hex colours or pixel values.
+ * Vision-EviDex — Fluent UI design tokens.
+ * Source of truth: Docs MD/07-VisionEviDex-FluentUI-DesignSystem-v1_0.md §2.
+ *
+ * Every visual value in the renderer comes from one of these tokens.
+ * Never hardcode hex / px in component code. Dark theme is handled by
+ * the `[data-theme='dark']` block below — the `dark:` Tailwind prefix
+ * is banned (see tailwind.config.js `darkMode: false`).
  */
 
 :root {
-  /* Accent */
-  --color-accent:       #1A6FD4;
-  --color-accent-light: #D6E8FA;
-  --color-accent-dark:  #0D4A8F;
+  /* ── Layer tokens (background surfaces) ──────────────────────────── */
+  --color-layer-0:            #F3F3F3;              /* Mica base — app background */
+  --color-layer-1:            #FFFFFF;              /* Card / content surface */
+  --color-layer-2:            #FFFFFF;              /* Flyout / dropdown */
+  --color-layer-3:            #FFFFFF;              /* Modal / dialog */
+  --color-layer-acrylic:      rgba(243,243,243,0.85); /* Sidebar + toolbar */
+  --color-layer-acrylic-blur: 30px;
 
-  /* Status */
-  --color-pass:         #166534;
-  --color-pass-bg:      #DCFCE7;
-  --color-fail:         #991B1B;
-  --color-fail-bg:      #FEE2E2;
-  --color-blocked:      #B45309;
-  --color-blocked-bg:   #FEF3C7;
-  --color-untagged:     #475569;
-  --color-untagged-bg:  #F1F5F9;
+  /* ── Fill tokens (interactive element fills) ─────────────────────── */
+  --color-fill-transparent:   transparent;
+  --color-fill-subtle:        rgba(0,0,0,0.03);
+  --color-fill-secondary:     rgba(0,0,0,0.06);
+  --color-fill-tertiary:      rgba(0,0,0,0.09);
+  --color-fill-quaternary:    rgba(0,0,0,0.06);
+  --color-fill-accent:        var(--color-accent-default);
+  --color-fill-accent-subtle: rgba(0,120,212,0.08);
+  --color-fill-success:       rgba(15,157,88,0.10);
+  --color-fill-warning:       rgba(234,179,8,0.10);
+  --color-fill-danger:        rgba(220,38,38,0.10);
 
-  /* Surfaces */
-  --surface-primary:      #FFFFFF;
-  --surface-secondary:    #F8FAFC;
-  --surface-glass:        rgba(255, 255, 255, 0.72);
-  --surface-modal-glass:  rgba(255, 255, 255, 0.88);
-  --border-default:       rgba(0, 0, 0, 0.08);
+  /* ── Stroke tokens (borders) ─────────────────────────────────────── */
+  --color-stroke-default:     rgba(0,0,0,0.0605);
+  --color-stroke-surface:     rgba(255,255,255,0.70);
+  --color-stroke-focus:       var(--color-accent-default);
+  --color-stroke-divider:     rgba(0,0,0,0.0803);
+  --color-stroke-card-top:    rgba(255,255,255,0.70);
+  --color-stroke-control:     rgba(0,0,0,0.45);
 
-  /* Typography */
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --text-primary:    #0D1B2A;
-  --text-secondary:  #475569;
-  --text-hint:       #94A3B8;
+  /* ── Text tokens ─────────────────────────────────────────────────── */
+  --color-text-primary:       rgba(0,0,0,0.8956);
+  --color-text-secondary:     rgba(0,0,0,0.6063);
+  --color-text-tertiary:      rgba(0,0,0,0.4458);
+  --color-text-disabled:      rgba(0,0,0,0.3614);
+  --color-text-on-accent:     #FFFFFF;
+  --color-text-accent:        var(--color-accent-default);
+  --color-text-success:       #0E7A0D;
+  --color-text-warning:       #9D5D00;
+  --color-text-danger:        #C42B1C;
+  --color-text-inverse:       rgba(255,255,255,0.8956);
 
-  /* Spacing */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
+  /* ── Accent system (Windows Blue; runtime-overridden from OS) ────── */
+  --color-accent-default:     #0078D4;
+  --color-accent-light-1:     #429CE3;
+  --color-accent-light-2:     #76B9ED;
+  --color-accent-light-3:     #A9D3F2;
+  --color-accent-dark-1:      #006CBE;
+  --color-accent-dark-2:      #005BA1;
+  --color-accent-dark-3:      #004A84;
+  /* RGB components of the resolved accent, for rgba() composition */
+  --accent-r: 0;
+  --accent-g: 120;
+  --accent-b: 212;
 
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  /* ── Status colours ──────────────────────────────────────────────── */
+  --color-status-pass:         #0E7A0D;  --color-status-pass-bg:    #DFF6DD;
+  --color-status-fail:         #C42B1C;  --color-status-fail-bg:    #FDE7E9;
+  --color-status-blocked:      #9D5D00;  --color-status-blocked-bg: #FFF4CE;
+  --color-status-skip:         #616161;  --color-status-skip-bg:    #F0F0F0;
+  --color-status-untagged:     #616161;  --color-status-untagged-bg:#F0F0F0;
+  --color-status-suspect:      #7B3F00;  --color-status-suspect-bg: #FCEBD8;
 
-  /* Effects */
-  --glass-blur:        blur(12px);
-  --glass-blur-heavy:  blur(20px);
-  --shadow-neumorphic-out: 4px 4px 10px rgba(0, 0, 0, 0.12), -2px -2px 6px rgba(255, 255, 255, 0.7);
-  --shadow-neumorphic-in:  inset 2px 2px 6px rgba(0, 0, 0, 0.12), inset -2px -2px 4px rgba(255, 255, 255, 0.7);
+  /* ── Elevation shadows ───────────────────────────────────────────── */
+  --shadow-layer-2:  0 2px 4px rgba(0,0,0,0.04), 0 0 1px rgba(0,0,0,0.06);
+  --shadow-layer-3:  0 8px 16px rgba(0,0,0,0.10), 0 0 1px rgba(0,0,0,0.06);
+  --shadow-card:     0 1px 2px rgba(0,0,0,0.04);
 
-  /* Transitions */
-  --transition-fast:   150ms ease-out;
-  --transition-normal: 200ms ease-out;
-  --transition-slow:   300ms ease-out;
+  /* ── Border radius ───────────────────────────────────────────────── */
+  --radius-control:   4px;
+  --radius-card:      8px;
+  --radius-overlay:   8px;
+  --radius-dialog:    8px;
+  --radius-pill:      9999px;
+  --radius-circle:    50%;
+
+  /* ── Typography ──────────────────────────────────────────────────── */
+  --font-family: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-family-display: 'Segoe UI Variable Display', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:   'Cascadia Code', 'Cascadia Mono', 'Consolas', 'Courier New', monospace;
+
+  /* Type scale (role-based — every text element maps to exactly one role) */
+  --type-caption-size:       12px; --type-caption-weight:       400; --type-caption-height:       16px;
+  --type-body-size:          14px; --type-body-weight:          400; --type-body-height:          20px;
+  --type-body-strong-size:   14px; --type-body-strong-weight:   600; --type-body-strong-height:   20px;
+  --type-body-large-size:    16px; --type-body-large-weight:    400; --type-body-large-height:    24px;
+  --type-subtitle-size:      20px; --type-subtitle-weight:      600; --type-subtitle-height:      28px;
+  --type-title-size:         28px; --type-title-weight:         600; --type-title-height:         36px;
+  --type-title-large-size:   40px; --type-title-large-weight:   600; --type-title-large-height:   52px;
+  --type-display-size:       68px; --type-display-weight:       600; --type-display-height:       92px;
+
+  /* ── Spacing scale ───────────────────────────────────────────────── */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+
+  /* ── Motion ──────────────────────────────────────────────────────── */
+  --duration-ultra-fast:  83ms;
+  --duration-fast:       167ms;
+  --duration-normal:     250ms;
+  --easing-standard:     cubic-bezier(0.17, 0.17, 0, 1);
+  --easing-decelerate:   cubic-bezier(0.10, 0.90, 0.20, 1);   /* Entry */
+  --easing-accelerate:   cubic-bezier(0.90, 0.10, 1.00, 0.2); /* Exit */
+  --easing-point-to-point: cubic-bezier(0.80, 0, 0.20, 1);    /* Nav */
+
+  /* ── Icon sizes ──────────────────────────────────────────────────── */
+  --icon-xs: 16px;
+  --icon-sm: 20px;
+  --icon-md: 24px;
+  --icon-lg: 32px;
+  --icon-xl: 48px;
+
+  /* ── Skeleton shimmer highlight ──────────────────────────────────── */
+  --color-skeleton-highlight: rgba(0,0,0,0.07);
+
+  /* ═══════════════════════════════════════════════════════════════════
+   * FUI-1 TEMPORARY ALIASES — remove in FUI-5.
+   * Every line below maps a deprecated pre-Fluent token to its Fluent
+   * equivalent so existing D25 components (OnboardingPage, DashboardPage,
+   * AppSettingsPage, Skeleton) keep rendering during FUI-2/3/4. When
+   * FUI-5 cleanup runs, grep for `DEPRECATED` and delete everything.
+   * ═══════════════════════════════════════════════════════════════════ */
+
+  --color-accent:         var(--color-accent-default);  /* DEPRECATED — remove in FUI-5 */
+  --color-accent-light:   var(--color-fill-accent-subtle); /* DEPRECATED — remove in FUI-5 */
+  --color-accent-dark:    var(--color-accent-dark-1);   /* DEPRECATED — remove in FUI-5 */
+
+  --color-pass:           var(--color-status-pass);     /* DEPRECATED — remove in FUI-5 */
+  --color-pass-bg:        var(--color-status-pass-bg);  /* DEPRECATED — remove in FUI-5 */
+  --color-fail:           var(--color-status-fail);     /* DEPRECATED — remove in FUI-5 */
+  --color-fail-bg:        var(--color-status-fail-bg);  /* DEPRECATED — remove in FUI-5 */
+  --color-blocked:        var(--color-status-blocked);  /* DEPRECATED — remove in FUI-5 */
+  --color-blocked-bg:     var(--color-status-blocked-bg); /* DEPRECATED — remove in FUI-5 */
+  --color-untagged:       var(--color-status-untagged); /* DEPRECATED — remove in FUI-5 */
+  --color-untagged-bg:    var(--color-status-untagged-bg); /* DEPRECATED — remove in FUI-5 */
+
+  --surface-primary:      var(--color-layer-1);         /* DEPRECATED — remove in FUI-5 */
+  --surface-secondary:    var(--color-layer-0);         /* DEPRECATED — remove in FUI-5 */
+  --surface-glass:        var(--color-layer-acrylic);   /* DEPRECATED — remove in FUI-5 */
+  --surface-modal-glass:  var(--color-layer-3);         /* DEPRECATED — remove in FUI-5 */
+  --border-default:       var(--color-stroke-default);  /* DEPRECATED — remove in FUI-5 */
+
+  --text-primary:         var(--color-text-primary);    /* DEPRECATED — remove in FUI-5 */
+  --text-secondary:       var(--color-text-secondary);  /* DEPRECATED — remove in FUI-5 */
+  --text-hint:            var(--color-text-tertiary);   /* DEPRECATED — remove in FUI-5 */
+
+  --radius-sm:            var(--radius-control);        /* DEPRECATED — remove in FUI-5 */
+  --radius-md:            var(--radius-card);           /* DEPRECATED — remove in FUI-5 */
+  --radius-lg:            var(--radius-dialog);         /* DEPRECATED — remove in FUI-5 */
+
+  --shadow-neumorphic-out: var(--shadow-card);          /* DEPRECATED — remove in FUI-5 */
+  --shadow-neumorphic-in:  none;                        /* DEPRECATED — no Fluent equivalent; remove in FUI-5 */
+  --glass-blur:            blur(var(--color-layer-acrylic-blur)); /* DEPRECATED — remove in FUI-5 */
+  --glass-blur-heavy:      blur(40px);                  /* DEPRECATED — remove in FUI-5 */
+
+  --transition-fast:       var(--duration-ultra-fast) var(--easing-standard); /* DEPRECATED — remove in FUI-5 */
+  --transition-normal:     var(--duration-fast)       var(--easing-standard); /* DEPRECATED — remove in FUI-5 */
+  --transition-slow:       var(--duration-normal)     var(--easing-standard); /* DEPRECATED — remove in FUI-5 */
+
+  --font-sans:             var(--font-family);          /* DEPRECATED — remove in FUI-5 */
 }
 
 [data-theme='dark'] {
-  --surface-primary:     #0F172A;
-  --surface-secondary:   #1E293B;
-  --surface-glass:       rgba(15, 23, 42, 0.72);
-  --surface-modal-glass: rgba(15, 23, 42, 0.88);
-  --border-default:      rgba(255, 255, 255, 0.08);
-  --text-primary:        #F1F5F9;
-  --text-secondary:      #94A3B8;
-  --text-hint:           #64748B;
+  /* ── Layer tokens ────────────────────────────────────────────────── */
+  --color-layer-0:            #202020;
+  --color-layer-1:            #2C2C2C;
+  --color-layer-2:            #3C3C3C;
+  --color-layer-3:            #3C3C3C;
+  --color-layer-acrylic:      rgba(32,32,32,0.85);
 
-  --shadow-neumorphic-out: 4px 4px 10px rgba(0, 0, 0, 0.4), -2px -2px 6px rgba(255, 255, 255, 0.04);
-  --shadow-neumorphic-in:  inset 2px 2px 6px rgba(0, 0, 0, 0.4), inset -2px -2px 4px rgba(255, 255, 255, 0.04);
+  /* ── Fill tokens ─────────────────────────────────────────────────── */
+  --color-fill-subtle:        rgba(255,255,255,0.04);
+  --color-fill-secondary:     rgba(255,255,255,0.06);
+  --color-fill-tertiary:      rgba(255,255,255,0.09);
+  --color-fill-quaternary:    rgba(255,255,255,0.06);
+  --color-fill-accent-subtle: rgba(0,120,212,0.15);
+
+  /* ── Stroke tokens ───────────────────────────────────────────────── */
+  --color-stroke-default:     rgba(255,255,255,0.0837);
+  --color-stroke-surface:     rgba(255,255,255,0.18);
+  --color-stroke-divider:     rgba(255,255,255,0.0837);
+  --color-stroke-card-top:    rgba(255,255,255,0.08);
+  --color-stroke-control:     rgba(255,255,255,0.54);
+
+  /* ── Text tokens ─────────────────────────────────────────────────── */
+  --color-text-primary:       rgba(255,255,255,0.8956);
+  --color-text-secondary:     rgba(255,255,255,0.6063);
+  --color-text-tertiary:      rgba(255,255,255,0.4458);
+  --color-text-disabled:      rgba(255,255,255,0.3614);
+  --color-text-on-accent:     #FFFFFF;
+  --color-text-success:       #6CCB5F;
+  --color-text-warning:       #FCE100;
+  --color-text-danger:        #FF99A4;
+
+  /* ── Accent (dark mode uses lighter stops for WCAG AA text) ──────── */
+  --color-accent-default:     #60CDFF;
+  --color-accent-dark-1:      #4CC2FF;
+  --color-accent-dark-2:      #38B7FF;
+  --accent-r: 96; --accent-g: 205; --accent-b: 255;
+
+  /* ── Status colours (dark) ───────────────────────────────────────── */
+  --color-status-pass:        #6CCB5F;  --color-status-pass-bg:    rgba(108,203,95,0.15);
+  --color-status-fail:        #FF99A4;  --color-status-fail-bg:    rgba(255,153,164,0.15);
+  --color-status-blocked:     #FCE100;  --color-status-blocked-bg: rgba(252,225,0,0.12);
+  --color-status-skip:        #9D9D9D;  --color-status-skip-bg:    rgba(157,157,157,0.12);
+  --color-status-untagged:    #9D9D9D;  --color-status-untagged-bg:rgba(157,157,157,0.12);
+  --color-status-suspect:     #FFC48B;  --color-status-suspect-bg: rgba(255,196,139,0.12);
+
+  /* ── Shadows (deeper on dark) ────────────────────────────────────── */
+  --shadow-layer-2:  0 2px 4px rgba(0,0,0,0.26), 0 0 1px rgba(0,0,0,0.30);
+  --shadow-layer-3:  0 16px 32px rgba(0,0,0,0.40), 0 0 1px rgba(0,0,0,0.30);
+  --shadow-card:     0 1px 2px rgba(0,0,0,0.20);
+
+  /* ── Skeleton highlight ──────────────────────────────────────────── */
+  --color-skeleton-highlight: rgba(255,255,255,0.08);
 }
 
+/* ── Density & font-size variants ──────────────────────────────────── */
+[data-density='compact'] {
+  --space-2:  6px;
+  --space-3: 10px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 20px;
+}
+
+[data-font-size='large'] {
+  --type-caption-size:      13px;
+  --type-body-size:         15px;
+  --type-body-strong-size:  15px;
+  --type-body-large-size:   17px;
+  --type-subtitle-size:     22px;
+  --type-title-size:        30px;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --transition-fast:   0ms;
-    --transition-normal: 0ms;
-    --transition-slow:   0ms;
+    --duration-ultra-fast: 0ms;
+    --duration-fast:       0ms;
+    --duration-normal:     0ms;
+  }
+}
+
+/* ── High contrast (forced colours) ────────────────────────────────── */
+@media (forced-colors: active) {
+  :root {
+    --color-layer-0:            Canvas;
+    --color-layer-1:            Canvas;
+    --color-layer-acrylic:      Canvas;
+    --color-fill-secondary:     Highlight;
+    --color-stroke-default:     ButtonText;
+    --color-stroke-focus:       Highlight;
+    --color-text-primary:       CanvasText;
+    --color-text-secondary:     CanvasText;
+    --color-text-on-accent:     HighlightText;
+    --color-accent-default:     Highlight;
+    --shadow-layer-2:           none;
+    --shadow-layer-3:           none;
+  }
+  :focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: 2px !important;
   }
 }

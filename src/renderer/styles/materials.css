@@ -1,0 +1,69 @@
+/**
+ * Fluent materials — acrylic, mica, elevation, interactive states.
+ * Source: Docs MD/07-VisionEviDex-FluentUI-DesignSystem-v1_0.md §3.
+ *
+ * Acrylic is applied only to the navigation sidebar and capture toolbar.
+ * Every other surface is solid Layer-1..3 fill. Never put backdrop-filter
+ * on a modal backdrop or on content-area cards (kills compositor perf).
+ */
+
+/* ── Acrylic material ─────────────────────────────────────────────── */
+.material-acrylic {
+  background: var(--color-layer-acrylic);
+  backdrop-filter: blur(var(--color-layer-acrylic-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--color-layer-acrylic-blur)) saturate(180%);
+  border-top: 1px solid var(--color-stroke-surface);
+}
+
+.material-acrylic-thick {
+  background: var(--color-layer-acrylic);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid var(--color-stroke-default);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .material-acrylic,
+  .material-acrylic-thick {
+    background: var(--color-layer-1);
+  }
+}
+
+/* ── Mica approximation ───────────────────────────────────────────── */
+.material-mica {
+  position: relative;
+  background: var(--color-layer-0);
+}
+.material-mica::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.02) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Elevation (shadows for floating surfaces only) ───────────────── */
+.elevation-flyout { box-shadow: var(--shadow-layer-2); }
+.elevation-modal  { box-shadow: var(--shadow-layer-3); }
+.elevation-card   { box-shadow: var(--shadow-card); }
+
+/* ── Interactive element states (fill transitions, no shadows) ────── */
+.interactive-rest     { background: var(--color-fill-transparent); }
+.interactive-hover    { background: var(--color-fill-secondary); }
+.interactive-pressed  { background: var(--color-fill-tertiary); }
+.interactive-selected {
+  background: var(--color-fill-accent-subtle);
+  color: var(--color-accent-default);
+}
+
+/* ── Focus ring ───────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent-default);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}

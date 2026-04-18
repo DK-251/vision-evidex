@@ -1,7 +1,37 @@
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, nativeTheme } from 'electron';
 import path from 'node:path';
 import { baseWindowConfig } from './window-config';
 import { logger } from './logger';
+
+/**
+ * Fluent title-bar-overlay palette. The title bar is rendered by the OS
+ * as a 32px strip over our window; we pick its fill + symbol colour to
+ * match the current light/dark theme so the caption buttons stay legible.
+ */
+function titleBarOverlay(theme: 'light' | 'dark'): { color: string; symbolColor: string; height: number } {
+  return theme === 'dark'
+    ? { color: '#202020', symbolColor: 'rgba(255,255,255,0.8956)', height: 32 }
+    : { color: '#F3F3F3', symbolColor: 'rgba(0,0,0,0.8956)', height: 32 };
+}
+
+function applyWindowMaterial(win: BrowserWindow): void {
+  if (process.platform !== 'win32') return;
+  try {
+    win.setBackgroundMaterial('mica');
+  } catch (err) {
+    logger.warn('setBackgroundMaterial(mica) failed — falling back to solid fill', {
+      err: String(err),
+    });
+  }
+}
+
+export function updateTitleBarForTheme(win: BrowserWindow, theme: 'light' | 'dark'): void {
+  try {
+    win.setTitleBarOverlay(titleBarOverlay(theme));
+  } catch {
+    // Overlay is only supported when titleBarStyle === 'hidden'; safe to swallow.
+  }
+}
 
 let mainWindow: BrowserWindow | undefined;
 let toolbarWindow: BrowserWindow | undefined;
@@ -27,6 +57,7 @@ function loadRendererEntry(window: BrowserWindow, entry: 'main' | 'toolbar' | 'a
 }
 
 export function createMainWindow(): BrowserWindow {
+  const initialTheme: 'light' | 'dark' = nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
   mainWindow = new BrowserWindow({
     ...baseWindowConfig(),
     width: 1280,
@@ -34,10 +65,23 @@ export function createMainWindow(): BrowserWindow {
     minWidth: 1024,
     minHeight: 680,
     title: 'Vision-EviDex',
+    titleBarStyle: 'hidden',
+    titleBarOverlay: titleBarOverlay(initialTheme),
+    backgroundColor: '#00000000',
   });
+
+  applyWindowMaterial(mainWindow);
+
+  // Keep the caption button colours legible when the OS theme flips.
+  const onNativeThemeUpdate = (): void => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    updateTitleBarForTheme(mainWindow, nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
+  };
+  nativeTheme.on('updated', onNativeThemeUpdate);
 
   mainWindow.once('ready-to-show', () => mainWindow?.show());
   mainWindow.on('closed', () => {
+    nativeTheme.off('updated', onNativeThemeUpdate);
     mainWindow = undefined;
   });
   loadRendererEntry(mainWindow, 'main');

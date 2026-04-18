@@ -14,6 +14,76 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-19 — FUI-1: Fluent design foundation (tokens + materials + theme plumbing)
+
+**From:** CTS (Claude Code)
+**Why:** First of five phases porting the renderer to the Fluent UI design system specified in `Docs MD/07-VisionEviDex-FluentUI-DesignSystem-v1_0.md`. FUI-1 is **foundation only** — no component or screen is ported yet. Every pre-Fluent token has a deprecated alias so the three existing D25 screens (OnboardingPage, DashboardPage, AppSettingsPage) keep rendering byte-identically to `57d6814`.
+
+### What landed in this push
+
+**Design tokens (§2 of doc)**
+- `src/renderer/styles/tokens.css` — complete Fluent token set: layers 0–4, fills subtle/secondary/tertiary/quaternary/accent/success/warning/danger, strokes default/surface/focus/divider/card-top/control, text primary/secondary/tertiary/disabled/on-accent/accent/success/warning/danger/inverse, accent scale (Windows Blue `#0078D4` default, runtime-overridable), status pass/fail/blocked/skip/untagged/suspect, elevation shadows 2/3/card, radii control(4)/card(8)/overlay(8)/dialog(8)/pill/circle, type scale (caption through display), spacing 1–12, motion durations 83/167/250 with three easings, icon sizes xs–xl, skeleton highlight.
+- Dark theme block (`[data-theme='dark']`) with recalibrated accent (`#60CDFF`) per doc §2.3.
+- `[data-density='compact']` + `[data-font-size='large']` variant blocks.
+- `prefers-reduced-motion` zeroes all motion durations.
+- `forced-colors: active` maps tokens to `Canvas` / `CanvasText` / `Highlight` per doc §2.6.
+- **Deprecated alias layer** — every pre-Fluent token (`--surface-*`, `--text-*`, `--border-default`, `--color-accent`, `--color-pass`, `--radius-sm/md/lg`, `--shadow-neumorphic-*`, `--glass-blur*`, `--transition-*`, `--font-sans`) resolves to its Fluent equivalent with a `/* DEPRECATED — remove in FUI-5 */` marker on the same line. Grep `DEPRECATED` in FUI-5 to delete.
+
+**Materials (§3)**
+- `src/renderer/styles/materials.css` — new. `.material-acrylic`, `.material-acrylic-thick`, `.material-mica`, `.elevation-flyout/modal/card`, `.interactive-rest/hover/pressed/selected`, `:focus-visible` ring.
+
+**Loading (§13)**
+- `src/renderer/styles/loading.css` — new. `fluent-shimmer` 1.5s left-to-right sweep for `.skeleton`, `fluent-bar-slide` for indeterminate progress, determinate progress with warning/danger/success colour swaps, `fluent-ring-rotate`/`fluent-ring-arc` for progress ring, reduced-motion overrides.
+
+**Global styles + tailwind (§10.3, §10.4)**
+- `src/renderer/styles/global.css` — `@import` order is `tokens → materials → loading → tailwind`. Body font is `Segoe UI Variable Text`, heading font is `Segoe UI Variable Display`. Segoe UI Variable is a Windows system font; no bundling needed.
+- `tailwind.config.js` — `darkMode: false` (the `dark:` prefix is banned by doc §10.3); Tailwind now only owns spacing (1–12 mapped to 4–48px), radius (control/card/overlay/dialog), and font-family. Colour classes remain as deprecated aliases that resolve to Fluent tokens.
+
+**Main-process plumbing (§2.4, §8.1, §8.2, §9.3)**
+- `src/main/services/theme.service.ts` — new. `getSystemAccent()` reads `systemPreferences.getAccentColor()` on Windows (falls back to `#0078D4` elsewhere), `bindThemeBroadcasts()` installs a `nativeTheme.on('updated')` listener that broadcasts `theme:accentColourUpdate` + `theme:systemThemeChange` to every window.
+- `src/main/window-manager.ts` — main window now uses `titleBarStyle: 'hidden'` with a theme-aware `titleBarOverlay`, `backgroundColor: '#00000000'`, and `setBackgroundMaterial('mica')` on Windows (try-wrapped; Windows 10 no-ops gracefully).
+- `src/main/app.ts` — calls `bindThemeBroadcasts()` before `createMainWindow()` and pushes the initial accent + system theme once `did-finish-load` fires.
+- `src/shared/ipc-channels.ts` — `IPC_EVENTS.THEME_ACCENT_COLOUR_UPDATE` and `THEME_SYSTEM_CHANGE`.
+- `src/preload/preload.ts` — `window.evidexAPI.events.onAccentColourUpdate()` and `onSystemThemeChange()` bridge.
+
+**Renderer plumbing (§9.1, §9.2, §7.3, §7.4)**
+- `src/renderer/providers/ThemeProvider.tsx` — new. Reads persisted theme on mount, resolves `'system'` to actual `light`/`dark`, subscribes to accent + system-theme broadcasts, applies `data-theme` / `data-density` / `data-font-size` to document root, exposes `useThemeContext()` for components that need the resolved accent.
+- `src/renderer/lib/accent-scale.ts` — new. Computes light-1/2/3 and dark-1/2/3 stops from a base accent and writes `--accent-r/g/b` for rgba() composition.
+- `src/renderer/hooks/useReducedMotion.ts` — new. Reflects `prefers-reduced-motion: reduce` live.
+- `src/renderer/components/animations.ts` — new. All ten Fluent motion variants: `fadeIn`, `dialogEnter`, `flyoutEnter`, `toastEnter`, `pageForward`, `pageBack`, `captureFlash`, `sidebarCollapse`, `navLabelFade`, `counterBump`.
+- `src/renderer/App.tsx` — wraps shell in `<ThemeProvider>`.
+- `src/renderer/pages/AppSettingsPage.tsx::AppearanceTab` — removed the direct `document.documentElement.dataset.theme = settings.theme` write (ThemeProvider now owns that attribute). Theme change in settings requires a page reload until FUI-4 adds a settings-updated broadcast.
+
+**Dependency**
+- `package.json` — `@fluentui/react-icons: ^2.0.226` added to `dependencies`. Version pinned to ^2.0.226 per your note about icon renames between minor versions.
+
+### What did NOT change
+
+- No component rewrites — `Skeleton`, `OnboardingPage`, `DashboardPage`, `AppSettingsPage`, all 8 step components, and the 3 Phase-2 stubs (toolbar/annotation/region) are untouched.
+- No test changes — the existing 189 tests still assert against types and pure logic, not against Tailwind class names.
+- No breaking change to IPC contracts — two new push events, no request/response shapes modified.
+- No schema migration — `Settings.theme` is still `'light' | 'dark' | 'system'`.
+
+### Verification ask — this has to PASS before FUI-2 starts
+
+1. `git pull`
+2. `npm install` — picks up `@fluentui/react-icons@^2.0.226`.
+3. `npm run report` — expected:
+   - typecheck: **PASS**. Most at-risk files: `src/main/window-manager.ts` (new `nativeTheme` imports, `titleBarStyle/Overlay` options, `setBackgroundMaterial`), `src/main/services/theme.service.ts` (new), `src/renderer/providers/ThemeProvider.tsx` (new). If anything fails, paste the error verbatim.
+   - tests: **PASS 189/189** (unchanged — no tests touched).
+   - PBKDF2 + audit: unchanged.
+4. `npm run dev`:
+   - Wizard should render exactly as before (same 7 steps, same buttons, same skeleton splash) — tokens are aliased.
+   - **New**: on Windows 11, the main window should have the Mica tint on its background (subtle wallpaper-tinted fill under the content area). On Windows 10 you get a solid `#F3F3F3` fallback — that's expected, not a bug.
+   - **New**: the title bar should be a 32px blank strip with the close/minimise/maximise buttons at the right and no text on the left (React-rendered title bar content lands in FUI-3 Shell). The strip colour should match the theme (`#F3F3F3` light / `#202020` dark) and flip if you toggle Windows's light/dark preference in Settings → Personalisation while the app is running.
+   - **New**: in a renderer DevTools console, `getComputedStyle(document.documentElement).getPropertyValue('--color-accent-default')` should return your Windows system accent colour (e.g. `#0078D4` default, but whatever the user has set in Settings → Personalisation → Colours). If it does, the `systemPreferences.getAccentColor()` → IPC → `applyAccentScale()` chain works end-to-end.
+
+### If anything above fails
+
+Paste the exact error / observation into `INBOX-TO-CTS.md`. Do not start FUI-2 work locally — the foundation must be on a green run report first.
+
+---
+
 ## 2026-04-18 — Cleanup pass (pre UI-redesign)
 
 **From:** CTS (Claude Code)

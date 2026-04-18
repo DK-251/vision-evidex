@@ -144,6 +144,16 @@ const evidexAPI = {
       ipcRenderer.on(IPC_EVENTS.APP_UPDATE_AVAILABLE, listener);
       return () => ipcRenderer.removeListener(IPC_EVENTS.APP_UPDATE_AVAILABLE, listener);
     },
+    onAccentColourUpdate: (handler: (accent: string) => void): (() => void) => {
+      const listener = (_e: unknown, accent: string): void => handler(accent);
+      ipcRenderer.on(IPC_EVENTS.THEME_ACCENT_COLOUR_UPDATE, listener);
+      return () => ipcRenderer.removeListener(IPC_EVENTS.THEME_ACCENT_COLOUR_UPDATE, listener);
+    },
+    onSystemThemeChange: (handler: (shouldUseDark: boolean) => void): (() => void) => {
+      const listener = (_e: unknown, shouldUseDark: boolean): void => handler(shouldUseDark);
+      ipcRenderer.on(IPC_EVENTS.THEME_SYSTEM_CHANGE, listener);
+      return () => ipcRenderer.removeListener(IPC_EVENTS.THEME_SYSTEM_CHANGE, listener);
+    },
   },
 } as const;
 

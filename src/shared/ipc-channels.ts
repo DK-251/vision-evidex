@@ -55,6 +55,8 @@ export const IPC_EVENTS = {
   SESSION_STATUS_UPDATE: 'session:statusUpdate',
   STORAGE_WARNING: 'storage:warning',
   APP_UPDATE_AVAILABLE: 'app:updateAvailable',
+  THEME_ACCENT_COLOUR_UPDATE: 'theme:accentColourUpdate',
+  THEME_SYSTEM_CHANGE: 'theme:systemThemeChange',
 } as const;
 
 export type IpcChannel = typeof IPC[keyof typeof IPC];

@@ -234,10 +234,6 @@ function HotkeysTab({ settings, patch }: TabProps): JSX.Element {
 }
 
 function AppearanceTab({ settings, patch }: TabProps): JSX.Element {
-  useEffect(() => {
-    document.documentElement.dataset['theme'] = settings.theme;
-  }, [settings.theme]);
-
   return (
     <div className="space-y-3 text-sm">
       <Field label="Theme">

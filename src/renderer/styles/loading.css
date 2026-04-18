@@ -1,0 +1,94 @@
+/**
+ * Fluent loading — skeleton shimmer, progress bar (indeterminate +
+ * determinate), progress ring.
+ * Source: Docs MD/07-VisionEviDex-FluentUI-DesignSystem-v1_0.md §13.
+ *
+ * Shimmer is a left-to-right sweep at 1.5s — NOT the opacity pulse
+ * used in mobile design systems. When reduced-motion is active the
+ * shimmer freezes to a static fill (bottom of this file).
+ */
+
+/* ── Skeleton shimmer ─────────────────────────────────────────────── */
+@keyframes fluent-shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.skeleton {
+  border-radius: var(--radius-control);
+  background: linear-gradient(
+    90deg,
+    var(--color-fill-subtle)        25%,
+    var(--color-skeleton-highlight) 50%,
+    var(--color-fill-subtle)        75%
+  );
+  background-size: 1200px 100%;
+  animation: fluent-shimmer 1.5s ease-in-out infinite;
+}
+
+/* ── Indeterminate progress bar ───────────────────────────────────── */
+@keyframes fluent-bar-slide {
+  0%   { left: -35%; width: 35%; }
+  60%  { left: 100%; width: 35%; }
+  100% { left: 100%; width: 35%; }
+}
+
+.progress-bar-track {
+  position: relative;
+  overflow: hidden;
+  width:  100%;
+  height:  4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-fill-secondary);
+}
+
+.progress-bar-indeterminate {
+  position: absolute;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-default);
+  animation: fluent-bar-slide 1.5s var(--easing-standard) infinite;
+}
+
+.progress-bar-determinate {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-default);
+  transition:
+    width      var(--duration-normal) var(--easing-decelerate),
+    background var(--duration-fast)   var(--easing-standard);
+}
+.progress-bar-determinate.warning { background: var(--color-text-warning); }
+.progress-bar-determinate.danger  { background: var(--color-text-danger);  }
+.progress-bar-determinate.success { background: var(--color-status-pass);  }
+
+/* ── Progress ring (spinning arc) ─────────────────────────────────── */
+@keyframes fluent-ring-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes fluent-ring-arc {
+  0%   { stroke-dashoffset:    0; }
+  100% { stroke-dashoffset: -120; }
+}
+
+/* ── Reduced motion overrides ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--color-fill-subtle);
+  }
+
+  @keyframes fluent-bar-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+  }
+  .progress-bar-indeterminate {
+    animation: fluent-bar-pulse 2s ease-in-out infinite;
+    left: 0;
+    width: 100%;
+  }
+
+  .progress-bar-determinate { transition: none; }
+}

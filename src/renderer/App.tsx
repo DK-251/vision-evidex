@@ -5,11 +5,14 @@ import { AppSettingsPage } from './pages/AppSettingsPage';
 import { useOnboardingStore } from './stores/onboarding-store';
 import { useNavStore } from './stores/nav-store';
 import { BootSkeleton } from './components/Skeleton';
+import { ThemeProvider } from './providers/ThemeProvider';
 
 export function App(): JSX.Element {
   return (
     <AppErrorBoundary>
-      <AppShell />
+      <ThemeProvider>
+        <AppShell />
+      </ThemeProvider>
     </AppErrorBoundary>
   );
 }

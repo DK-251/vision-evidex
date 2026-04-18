@@ -5,3 +5,10 @@ export { NamingService } from './naming.service';
 export { ManifestService } from './manifest.service';
 export { MetricsService } from './metrics.service';
 export { SettingsService } from './settings.service';
+export {
+  getSystemAccent,
+  shouldUseDarkColors,
+  bindThemeBroadcasts,
+  pushAccentToAllWindows,
+  pushSystemThemeToAllWindows,
+} from './theme.service';

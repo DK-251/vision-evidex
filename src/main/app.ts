@@ -9,6 +9,7 @@ import { LicenceService } from './services/licence.service';
 import { SettingsService } from './services/settings.service';
 import { DatabaseService } from './services/database.service';
 import { MetricsService } from './services/metrics.service';
+import { bindThemeBroadcasts, pushAccentToAllWindows, pushSystemThemeToAllWindows } from './services/theme.service';
 
 export const isDev = !app.isPackaged;
 
@@ -108,7 +109,16 @@ function bootstrap(): void {
         reason: licence.reason,
       });
     }
-    createMainWindow();
+    bindThemeBroadcasts();
+    const mainWin = createMainWindow();
+
+    // Send the initial accent + light/dark once the renderer is ready so
+    // the ThemeProvider does not flash the default `#0078D4` before the
+    // system accent arrives.
+    mainWin.webContents.once('did-finish-load', () => {
+      pushAccentToAllWindows();
+      pushSystemThemeToAllWindows();
+    });
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
