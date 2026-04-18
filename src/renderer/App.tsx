@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { AppSettingsPage } from './pages/AppSettingsPage';
 import { useOnboardingStore } from './stores/onboarding-store';
+import { useNavStore } from './stores/nav-store';
 
 /**
  * Main window root.
@@ -35,12 +37,14 @@ export function App(): JSX.Element {
     };
   }, []);
 
+  const shellPage = useNavStore((s) => s.page);
+
   if (onboardedInSettings === null) {
     // Tiny placeholder — real splash UX is out of scope.
     return <div className="min-h-screen bg-surface-primary" />;
   }
   if (onboardedInSettings || completedInSession) {
-    return <DashboardPage />;
+    return shellPage === 'settings' ? <AppSettingsPage /> : <DashboardPage />;
   }
   return <OnboardingPage />;
 }

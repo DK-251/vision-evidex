@@ -47,34 +47,35 @@ export class LicenceService {
   }
 
   validate(): LicenceValidationResult {
-    if (this.config.mode === 'none') return { valid: true };
-    if (this.config.isDev) return { valid: true };
+    const mode = this.config.mode;
+    if (mode === 'none') return { valid: true, mode };
+    if (this.config.isDev) return { valid: true, mode };
 
     if (!fs.existsSync(this.config.licenceFilePath)) {
-      return { valid: false, reason: 'no licence file present' };
+      return { valid: false, reason: 'no licence file present', mode };
     }
     if (!this.config.publicKeyPem) {
-      return { valid: false, reason: 'server public key not configured' };
+      return { valid: false, reason: 'server public key not configured', mode };
     }
 
     const raw = fs.readFileSync(this.config.licenceFilePath, 'utf8');
     if (!verifyToken(raw, this.config.publicKeyPem)) {
-      return { valid: false, reason: 'signature verification failed' };
+      return { valid: false, reason: 'signature verification failed', mode };
     }
 
     const payload = parseToken(raw);
     if (!payload) {
-      return { valid: false, reason: 'licence token malformed' };
+      return { valid: false, reason: 'licence token malformed', mode };
     }
 
     const now = this.config.now ? this.config.now() : new Date();
     if (isExpired(payload, now)) {
-      return { valid: false, reason: 'licence expired' };
+      return { valid: false, reason: 'licence expired', mode };
     }
 
     const fingerprint = getMachineFingerprint();
     if (payload.fingerprint !== fingerprint) {
-      return { valid: false, reason: 'machine fingerprint mismatch' };
+      return { valid: false, reason: 'machine fingerprint mismatch', mode };
     }
 
     this.cachedInfo = {
@@ -84,7 +85,7 @@ export class LicenceService {
       machineFingerprint: fingerprint,
       ...(payload.expiresAt ? { expiresAt: payload.expiresAt } : {}),
     };
-    return { valid: true };
+    return { valid: true, mode };
   }
 
   async activate(request: LicenceActivateInput): Promise<ActivationResult> {

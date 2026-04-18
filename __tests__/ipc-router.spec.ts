@@ -35,11 +35,41 @@ import { registerAllHandlers, type ServiceRegistry } from '../src/main/ipc-route
 const mockServices: ServiceRegistry = {
   licence: {
     activate: async () => ({ success: true }),
-    validate: () => ({ valid: true }),
+    validate: () => ({ valid: true, mode: 'none' as const }),
     getLicenceInfo: () => null,
     deactivate: async () => undefined,
     getMode: () => 'none' as const,
   } as unknown as ServiceRegistry['licence'],
+  settings: {
+    getSettings: () => ({
+      schemaVersion: 1,
+      onboardingComplete: false,
+      theme: 'system' as const,
+      defaultStoragePath: '',
+      defaultTemplateId: '',
+    }),
+    saveSettings: (p: unknown) => ({
+      schemaVersion: 1,
+      onboardingComplete: false,
+      theme: 'system' as const,
+      defaultStoragePath: '',
+      defaultTemplateId: '',
+      ...(p as object),
+    }),
+  } as unknown as ServiceRegistry['settings'],
+  appDb: {
+    saveBrandingProfile: (p: unknown) => ({ ...(p as object), createdAt: 'ts' }),
+    getRecentProjects: () => [],
+  } as unknown as ServiceRegistry['appDb'],
+  metrics: {
+    summary: () => ({
+      activeProjects: 0,
+      sessionsToday: 0,
+      capturesThisWeek: 0,
+      exportsThisWeek: 0,
+    }),
+  } as unknown as ServiceRegistry['metrics'],
+  getMainWindow: () => undefined,
 };
 
 describe('ipc-router (Phase 1 Wk3 security gate)', () => {
@@ -90,8 +120,8 @@ describe('ipc-router (Phase 1 Wk3 security gate)', () => {
     const fn = handlers.get(IPC.LICENCE_VALIDATE)!;
     const result = (await fn({}, {})) as { ok: true; data: unknown };
     // D16 wired licence:validate to services.licence.validate() — mock
-    // returns { valid: true }. Previously (D13) this was a stub null.
-    expect(result).toEqual({ ok: true, data: { valid: true } });
+    // returns { valid: true, mode: 'none' } (mode added D24).
+    expect(result).toEqual({ ok: true, data: { valid: true, mode: 'none' } });
   });
 
   it('routes licence:activate with a valid key through the real service', async () => {

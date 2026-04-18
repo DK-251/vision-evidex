@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { MetricsSummary, RecentProject } from '@shared/types/entities';
+import { useNavStore } from '../stores/nav-store';
 
 /**
  * S-03 — Dashboard.
@@ -53,7 +54,16 @@ export function DashboardPage(): JSX.Element {
             <h1 className="text-2xl font-semibold text-text-primary">Dashboard</h1>
             <p className="text-sm text-text-secondary">Vision-EviDex overview</p>
           </div>
-          <span className="text-xs text-text-secondary font-mono">No session active</span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-text-secondary font-mono">No session active</span>
+            <button
+              type="button"
+              onClick={() => useNavStore.getState().goTo('settings')}
+              className="text-sm px-3 py-1.5 rounded-md border border-border-subtle"
+            >
+              Settings
+            </button>
+          </div>
         </header>
 
         {error && (

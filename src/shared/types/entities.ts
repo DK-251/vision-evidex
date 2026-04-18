@@ -424,6 +424,7 @@ export interface ActivationResult {
 export interface LicenceValidationResult {
   valid: boolean;
   reason?: string;
+  mode: LicenceMode;
 }
 
 // ─── Recent project (app.db) ────────────────────────────────────────────

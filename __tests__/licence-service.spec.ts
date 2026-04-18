@@ -41,7 +41,7 @@ describe('LicenceService', () => {
   describe('none mode', () => {
     it('validate returns valid without touching filesystem', () => {
       const svc = new LicenceService({ mode: 'none', licenceFilePath: licencePath });
-      expect(svc.validate()).toEqual({ valid: true });
+      expect(svc.validate()).toEqual({ valid: true, mode: 'none' });
       expect(fs.existsSync(licencePath)).toBe(false);
     });
 
@@ -65,7 +65,7 @@ describe('LicenceService', () => {
         isDev: true,
       });
       // No publicKeyPem, no file, yet validate returns valid because of dev bypass.
-      expect(svc.validate()).toEqual({ valid: true });
+      expect(svc.validate()).toEqual({ valid: true, mode: 'keygen' });
     });
   });
 
@@ -164,7 +164,7 @@ describe('LicenceService', () => {
         publicKeyPem,
         now: () => new Date('2026-04-18T00:00:00Z'),
       });
-      expect(svc.validate()).toEqual({ valid: true });
+      expect(svc.validate()).toEqual({ valid: true, mode: 'keygen' });
       const info = svc.getLicenceInfo();
       expect(info?.licenceKey).toBe('abc-123');
       expect(info?.status).toBe('active');
