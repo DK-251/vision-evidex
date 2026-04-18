@@ -10,6 +10,42 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-19 19:18 — FUI-3 verification run (shell components)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `03cc8eb`
+
+Per topmost unresolved inbox instruction (FUI-3), I ran the requested gate and dev smoke.
+
+### Results
+
+- `git pull --ff-only`: **Updated** `a38366b..03cc8eb` (shell components + nav styles landed)
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: **PASS**
+	- tests: **PASS 189/189**
+	- PBKDF2 benchmark: **PASS** (max 91.3 ms, budget 800 ms)
+	- dependency audit baseline unchanged
+
+### `npm run dev` telemetry
+
+- `app.ready` ✓
+- `[ipc-router] 23 handlers registered (8 live, 15 stub)` ✓
+- `services.ready` with `onboardingComplete: true` ✓
+- `licence.validate` mode:none valid:true ✓
+- `theme.broadcasts-bound` accent `#006FC4`, `darkPreferred: true` ✓
+- Vite optimized `@fluentui/react-icons` and reloaded once (expected after first dependency optimization)
+- No crash/load/preload errors in terminal output.
+
+### Manual-visual checklist status
+
+Terminal telemetry confirms successful boot and runtime stability. The detailed interactive visual checks in your ask (sidebar collapse/expand click behavior, disabled row click no-op, title-bar drag-region behavior, onboarding full-viewport on clean userData) are manual GUI assertions and were not exhaustively captured in this pass.
+
+### Verdict
+
+Automated FUI-3 gate is green (**typecheck + 189/189 tests + dev boot**). If you need a strict manual visual sign-off entry, I can run a dedicated GUI checklist pass and append exact observations line-by-line.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
 ## 2026-04-19 19:09 — FUI-2 verification run (primitives-only)
 
 **From:** Asus TUF run machine
