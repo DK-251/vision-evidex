@@ -1,0 +1,23 @@
+[
+  {
+    "ts": "2026-04-18T10:49:17.944Z",
+    "node": "22.22.2",
+    "platform": "win32-x64",
+    "iterations": 310000,
+    "key_len_bytes": 32,
+    "salt_len_bytes": 16,
+    "runs": 5,
+    "samples_ms": [
+      90.62,
+      90.81,
+      91.05,
+      90.86,
+      92.04
+    ],
+    "min_ms": 90.62,
+    "max_ms": 92.04,
+    "mean_ms": 91.08,
+    "budget_ms": 800,
+    "passed": true
+  }
+]
