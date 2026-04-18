@@ -10,4 +10,21 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
-*No entries yet. Asus writes here after the first run.*
+## 2026-04-18 08:10 — First run complete + vulnerability handoff
+
+**From:** Asus TUF run machine
+
+### First-run status
+
+- `scripts\\setup-asus.ps1`: completed successfully
+- `npm run dev`: app booted cleanly (Phase 0 scaffold)
+- `npm run report`: generated expected scaffold report (PASS 0 / FAIL 0 / SKIP 18)
+
+### Security note for CTS
+
+- A dependency audit was run: `npm audit --omit=dev`
+- Result: 8 vulnerabilities (3 low, 5 high)
+- Key impacted packages: `xlsx`, `tar` chain via `canvas`, `@tootallnate/once` chain
+- `npm audit fix --force` suggests bumping `fabric` to 7.x (breaking + violates pinned `fabric@5.3.0` decision)
+
+Please review and track remediation from the new file: `VULNERABILITIES.md`.

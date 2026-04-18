@@ -1,23 +1,21 @@
 <!--
   STATUS.md — auto-rewritten by `npm run report` on the Asus TUF.
-  Do not hand-edit on the CTS laptop. Merge conflicts resolved by merge=ours
-  (Asus version wins). For cross-machine messages, use INBOX-TO-ASUS.md and
-  INBOX-TO-CTS.md instead.
+  Do not hand-edit. Merge conflicts resolved by merge=ours (Asus wins).
+  For cross-machine messages, use INBOX-TO-ASUS.md and INBOX-TO-CTS.md.
 -->
 
 # Vision-EviDex — Live Status
 
 | Field | Value |
 |---|---|
-| Phase | 0 (scaffold) |
-| Sprint | Week 1 — Environment setup and project scaffold |
-| Last Asus run | *never* — no run report yet |
-| Last run commit | *none* |
-| Last run branch | — |
-| Node version | — |
-| Electron version | — |
+| Last Asus run | 2026-04-18T08:07:03.126Z |
+| Last run commit | `c09762a2` |
+| Last run branch | `main` |
+| Node | v22.22.2 |
+| Electron | ^30.4.0 |
+| Run duration | 1 ms |
 
-## Module results (latest run)
+## Module results
 
 | Status | Count |
 |---|---|
@@ -29,26 +27,37 @@
 
 ## Feature progress
 
-**0 / 92 P0 features merged + run-report PASS.** See [FEATURES.md](FEATURES.md) for the module-level checklist.
+**0 / 92** P0 features merged + PASS
+
+| Module | Done / Total |
+|---|---|
+| OB Onboarding & Licence | 0 / 13 |
+| DB Dashboard | 0 / 5 |
+| EC Evidence Capture | 0 / 17 |
+| PM Project Manager | 0 / 10 |
+| TE Template Engine | 0 / 11 |
+| RB Report Builder | 0 / 13 |
+| SR Status Reports | 0 / 4 |
+| AU Audit Pack | 0 / 7 |
+| WS Workspace Settings | 0 / 12 |
+
+See [FEATURES.md](FEATURES.md) for the full checklist.
 
 ## Open items
 
 ### FAIL (must fix before new feature work)
 
-*None — no run yet.*
+*No FAIL items.*
 
-### User action needed
+### Next actions
 
-- Install prerequisites on the Asus TUF (Node 22 LTS, VS Build Tools, Git). See [ASUS-FIRST-RUN.md](ASUS-FIRST-RUN.md).
-- Generate `EVIDEX_APP_SECRET` on CTS and store in Windows System Environment Variables + password manager.
-- Run `scripts\setup-asus.ps1` on the Asus TUF and produce the first real run report.
+- No failures — all modules SKIP (Phase 0 scaffold).
 
-## Cross-machine messages
+## Links
 
-- CTS → Asus: [INBOX-TO-ASUS.md](INBOX-TO-ASUS.md)
-- Asus → CTS: [INBOX-TO-CTS.md](INBOX-TO-CTS.md)
-
-## History
-
-Archived run reports: [run-reports/history/](run-reports/history/)
-Benchmark trend: [run-reports/benchmarks.jsonl](run-reports/benchmarks.jsonl)
+- Full report: [run-reports/latest.md](run-reports/latest.md)
+- Machine-readable: [run-reports/latest.json](run-reports/latest.json)
+- Run history: [run-reports/history/](run-reports/history/)
+- Benchmarks trend: [run-reports/benchmarks.jsonl](run-reports/benchmarks.jsonl)
+- Messages to Asus: [INBOX-TO-ASUS.md](INBOX-TO-ASUS.md)
+- Messages to CTS: [INBOX-TO-CTS.md](INBOX-TO-CTS.md)
