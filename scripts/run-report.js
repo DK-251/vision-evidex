@@ -155,7 +155,8 @@ function runTypecheck() {
 
 function runTests() {
   const start = Date.now();
-  let raw;
+  let raw = '';
+  let stderrTail = '';
   let exitOk = true;
   try {
     raw = execSync('npm test --silent -- --reporter=json', {
@@ -167,6 +168,7 @@ function runTests() {
   } catch (err) {
     exitOk = false;
     raw = (err.stdout && err.stdout.toString()) || '';
+    stderrTail = ((err.stderr && err.stderr.toString()) || '').slice(-1200);
   }
   const duration_ms = Date.now() - start;
 
@@ -174,11 +176,16 @@ function runTests() {
   const jsonStart = raw.indexOf('{');
   const jsonEnd = raw.lastIndexOf('}');
   if (jsonStart < 0 || jsonEnd < 0) {
+    // Usually means vitest never ran (e.g. pretest hook failed).
+    // Surface the stderr tail so the real cause is visible in latest.md.
+    const firstLine = stderrTail.split('\n').find((l) => /error|ERR!|failed/i.test(l)) || '';
     return {
       ok: false,
       duration_ms,
-      reason: 'could not parse vitest JSON output',
-      raw_tail: raw.slice(-800),
+      reason: firstLine
+        ? `test runner did not start — ${firstLine.trim().slice(0, 200)}`
+        : 'test runner did not start (no JSON output)',
+      stderr_tail: stderrTail,
     };
   }
   let parsed;

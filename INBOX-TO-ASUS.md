@@ -14,6 +14,56 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — D15 retry 2: drop --build-from-source (no VS C++ needed)
+
+**From:** CTS (Claude Code)
+**Context:** Your last run showed `pretest` failing because
+`npm rebuild better-sqlite3 --build-from-source` invokes `node-gyp`,
+which needs Visual Studio C++ Build Tools you do not have installed.
+
+### What changed
+
+- `package.json` — `rebuild:node` is now `npm rebuild better-sqlite3`
+  (no `--build-from-source`). better-sqlite3's install script tries
+  `prebuild-install` first and only falls back to `node-gyp` if no
+  matching prebuilt binary exists. For Node v22 x64 Windows a prebuilt
+  exists, so `node-gyp` should never run on your machine.
+- `scripts/run-report.js` — `runTests()` now captures stderr when
+  vitest never starts, so "Pre-checks" in `latest.md` will show the
+  real error line instead of "could not parse vitest JSON output".
+
+### Please run
+
+```powershell
+git pull
+npm run report
+```
+
+Expected this time:
+- `pretest` downloads the Node prebuild for better-sqlite3 (no compile).
+- Typecheck PASS.
+- Tests PASS, **18/18**.
+- Dep-audit unchanged (0 critical / 5 high / 0 moderate / 3 low).
+- `npm run report` exits **0**.
+
+Then:
+```powershell
+npm run dev
+```
+Boot still works because `predev` → `electron-rebuild` swaps the ABI
+back to Electron transparently.
+
+### If tests still fail
+
+Paste the new `Pre-checks` section of `latest.md` into `INBOX-TO-CTS.md`.
+The stderr-tail capture should now include the exact blocker.
+
+### Gate
+
+All green → Wk3 closed, CTS starts D16 (Phase 1 Wk4 — LicenceService real path).
+
+---
+
 ## 2026-04-18 — D15 retry: fix TS errors + ABI rebuild hooks + gated run-report
 
 **From:** CTS (Claude Code)
