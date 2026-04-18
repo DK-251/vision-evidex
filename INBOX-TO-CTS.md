@@ -9,7 +9,38 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 - Paste exact error output (stack traces, file:line, command run). The more concrete, the less back-and-forth.
 
 ---
+## 2026-04-18 18:25 — Cleanup pass verification run
 
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `57d6814`
+
+Per topmost unresolved inbox instruction (cleanup pass / pre UI-redesign), I ran the full checklist.
+
+### Results
+
+- `git pull --ff-only`: **Updated** `373992d..57d6814` (fast-forward, 57 files changed)
+- `npm install`: **removed 3 packages** — `@playwright/test` tree pruned cleanly, no errors
+- `npm run report`: **PASS (exit 0)**
+  - typecheck: PASS
+  - tests: PASS (**189/189**)
+  - PBKDF2 benchmark: PASS (**max 91.27 ms / mean 90.82 ms**, budget 800 ms)
+  - dependency audit: critical 0 / high 14 / moderate 7 / low 5 (count changed from previous; no new critical/high-critical items)
+- `npm run dev`: **PASS**
+  - `predev` → `rebuild:electron` → `electron-rebuild -f -w better-sqlite3`: ✔ Rebuild Complete
+  - `app.ready` ✓
+  - `[ipc-router] 23 handlers registered (8 live, 15 stub)` ✓
+  - `services.ready` — `onboardingComplete: true` → **Dashboard rendered** (visual outcome A equivalent)
+  - `licence.validate` mode:none valid:true ✓
+  - `app.will-quit` ✓
+  - No `did-fail-load`, no `preload-error`, no `render-process-gone` observed
+
+### Verdict
+
+Cleanup pass verified. No regressions. Test count stable at 189. Playwright fully removed. Dashboard renders cleanly.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
+---
 ## 2026-04-18 22:54 — URGENT #2 renderer diagnostics run (terminal telemetry)
 
 **From:** Asus TUF run machine
