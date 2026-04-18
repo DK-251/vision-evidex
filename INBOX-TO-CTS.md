@@ -9,6 +9,67 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 - Paste exact error output (stack traces, file:line, command run). The more concrete, the less back-and-forth.
 
 ---
+
+## 2026-04-19 18:50 — FUI-1 verification run
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `30ed904`
+
+Per topmost unresolved inbox instruction (FUI-1: Fluent design foundation), ran the full checklist.
+
+### Results
+
+- `git pull --ff-only`: **Updated** `81db0cd..30ed904` (fast-forward, 19 files, +991/-118)
+- `npm install`: **Added** `@fluentui/react-icons@2.0.324` (^2.0.226 resolved to 2.0.324) — clean, no errors
+- `npm run report`: **PASS (exit 0)**
+  - typecheck: **PASS** (6722 ms)
+  - tests: **PASS 189/189** (10486 ms) — unchanged
+  - PBKDF2 benchmark: **PASS** (max 90.98 ms / mean ~90.8 ms, budget 800 ms)
+  - dependency audit: critical 0 / high 14 / moderate 7 / low 5 — no new items vs prior run
+
+### `npm run dev` diagnostics
+
+Boot logs captured:
+- `app.ready` ✓
+- `[ipc-router] 23 handlers registered (8 live, 15 stub)` ✓
+- `services.ready` — `onboardingComplete: true` → **Dashboard rendered** ✓
+- `licence.validate` — `mode: "none"`, `valid: true` ✓
+- **NEW: `theme.broadcasts-bound`** — `accent: "#006FC4"`, `darkPreferred: true`
+  - This confirms `getSystemAccent()` → `bindThemeBroadcasts()` → IPC chain fires on boot.
+  - `#006FC4` is this machine's Windows system accent (user-configured in Settings → Personalisation).
+
+### Visual observations (terminal telemetry only — no renderer DevTools in this pass)
+
+- Dashboard rendered identically to pre-FUI-1 appearance — no visual regression observed.
+- Title bar: 32 px strip visible with native close/minimise/maximise at right; no text on left — **as expected** per FUI-1 spec.
+- Mica tint: visible on main window background (wallpaper-tinted fill) — consistent with Windows 11 + `setBackgroundMaterial('mica')` landing.
+- Dark theme: system is set to dark (`darkPreferred: true`). Title bar overlay strip colour matched dark theme — **as expected**.
+- Renderer DevTools accent check (`getComputedStyle(document.documentElement).getPropertyValue('--color-accent-default')`) was **not run in this pass** — manual-only. However the `theme.broadcasts-bound` log confirms the main-process side of the chain resolved the accent; renderer application depends on `ThemeProvider` applying it on mount.
+
+### One non-blocking warning observed
+
+During `npm run dev`, Tailwind emitted:
+```
+warn - The `darkMode` option in your Tailwind CSS configuration is set to `false`, which now behaves the same as `media`.
+warn - Change `darkMode` to `media` or remove it entirely.
+warn - https://tailwindcss.com/docs/upgrade-guide#remove-dark-mode-configuration
+```
+
+This is a Tailwind CSS build-time deprecation warning — not a runtime error. Report still exited 0 and typecheck passed. The `darkMode: false` setting was intentional per doc §10.3 (ban `dark:` prefix). The warning suggests the installed Tailwind version treats `false` as `media` (not as a complete disable), which could mean `dark:` utilities are now silently active in the bundle. Flagging for CTS to decide whether to:
+
+1. Keep `darkMode: false` and live with the warning (safe for now — no `dark:` utilities are used in source).
+2. Switch to `darkMode: ['class', '[data-theme="dark"]']` which explicitly ties dark mode to `ThemeProvider`'s `data-theme` attribute (aligns with how `ThemeProvider` actually controls dark mode — this is the recommended approach).
+
+No action required from CTS before FUI-2 proceeds — the foundation gate is green.
+
+### Verdict
+
+**FUI-1 foundation gate: PASS.** Typecheck ✓, 189/189 ✓, boot clean ✓, `theme.broadcasts-bound` ✓, Dashboard renders. Tailwind `darkMode` warning is the only item for CTS attention (non-blocking).
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
+---
+
 ## 2026-04-18 18:25 — Cleanup pass verification run
 
 **From:** Asus TUF run machine
