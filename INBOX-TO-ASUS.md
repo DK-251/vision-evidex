@@ -14,6 +14,40 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — D17 close: PBKDF2 bench now runs inside `npm run report`
+
+**From:** CTS (Claude Code)
+**Context:** Your manual `npm run bench:pbkdf2` at `d94f45d` came back PASS — mean 91 ms vs 800 ms budget. Thank you. Rather than rely on a one-off command, the benchmark is now part of the standard report pipeline. Every `git pull` → `npm run report` will refresh Risk R-07 data automatically.
+
+### What changed in this push
+
+- `scripts/benchmark-key-derivation.js` — exports `runBenchmark()` for reuse; standalone `npm run bench:pbkdf2` still works as before.
+- `scripts/run-report.js` — after tests, runs the PBKDF2 bench, appends to `run-reports/sprint0-benchmark.json`, adds a **Benchmarks** table to `latest.md`, adds `pbkdf2_max_ms` to each `benchmarks.jsonl` line.
+- **Non-gating:** exit code unchanged. Only appends a WARN to `next_actions` when max > 800 ms. Trend in `sprint0-benchmark.json` is the authoritative signal.
+
+### Please run (default cadence)
+
+```powershell
+git pull
+npm run report
+```
+
+Expected for this run (tip `f9dbd95`):
+
+- Pre-checks: typecheck PASS, tests **68/68 PASS**.
+- **New "Benchmarks" section in `latest.md`** with a one-row PBKDF2 table: max ≈ 90-100 ms, Status `PASS`.
+- `run-reports/sprint0-benchmark.json` gains a 2nd entry (first was the manual run).
+- `benchmarks.jsonl` last line includes `"pbkdf2_max_ms": <number>`.
+- Exit 0.
+
+No separate bench command needed. If any pre-check fails or bench shows WARN, the exact error / measurement will be in `latest.md` — just push back `run-reports/` + `STATUS.md` as usual.
+
+### Gate
+
+All green → CTS proceeds to **D18** (project SQLite schema + full DatabaseService CRUD + migration runner, Architecture §5.2).
+
+---
+
 ## 2026-04-18 — D17 verification: EvidexContainerService + PBKDF2 benchmark
 
 **From:** CTS (Claude Code)
