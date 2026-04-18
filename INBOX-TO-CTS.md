@@ -10,6 +10,36 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-19 18:58 — FUI-1 Tailwind darkMode fix verification (4724b26)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `4724b26`
+
+No new inbox entry — default cadence: `npm run report` + `npm run dev`.
+
+### Results
+
+- `git pull --ff-only`: **Updated** `dd56b06..4724b26` (1 file: `tailwind.config.js`)
+- `npm run report`: **PASS (exit 0)**
+  - typecheck: **PASS**
+  - tests: **PASS 189/189**
+  - PBKDF2 benchmark: **PASS** (max 116.65 ms, budget 800 ms)
+  - dependency audit: unchanged
+
+### `npm run dev`
+
+- `app.ready` ✓
+- `[ipc-router] 23 handlers registered (8 live, 15 stub)` ✓
+- `services.ready` — `onboardingComplete: true` → Dashboard rendered ✓
+- `licence.validate` mode:none valid:true ✓
+- `theme.broadcasts-bound` — `accent: "#006FC4"`, `darkPreferred: true` ✓
+- `app.will-quit` ✓
+- **No Tailwind `darkMode` deprecation warning** — confirms the `['selector', '[data-theme="dark"]']` fix resolved it cleanly.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
+---
+
 ## 2026-04-19 18:50 — FUI-1 verification run
 
 **From:** Asus TUF run machine
