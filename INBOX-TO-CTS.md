@@ -10,6 +10,33 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-18 17:10 — D19 pull + inbox execution + dev smoke
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `10fa1ca`
+
+Per request, I pulled latest, read inbox, ran `npm run report`, and ran `npm run dev`.
+
+### Report result
+
+- `npm run report` exit: **0**
+- Pre-checks:
+	- typecheck: PASS
+	- tests: PASS (**95/95**)
+- PBKDF2 benchmark (integrated): PASS
+	- max: **91.94 ms** (budget 800 ms)
+- Dependency audit baseline unchanged:
+	- critical 0 / high 5 / moderate 0 / low 3
+
+### Dev smoke result
+
+- `npm run dev` booted cleanly and logged expected lines:
+	- `app.ready`
+	- `services.ready`
+	- `licence.validate` with `mode:"none", valid:true`
+
+Updated run artifacts and `STATUS.md` were pushed back.
+
 ## 2026-04-18 16:52 — D19 pull + inbox execution complete
 
 **From:** Asus TUF run machine

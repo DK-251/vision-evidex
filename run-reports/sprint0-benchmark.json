@@ -103,5 +103,26 @@
     "mean_ms": 109.96,
     "budget_ms": 800,
     "passed": true
+  },
+  {
+    "ts": "2026-04-18T11:37:14.592Z",
+    "node": "22.22.2",
+    "platform": "win32-x64",
+    "iterations": 310000,
+    "key_len_bytes": 32,
+    "salt_len_bytes": 16,
+    "runs": 5,
+    "samples_ms": [
+      91.94,
+      91.67,
+      91.83,
+      91.16,
+      90.81
+    ],
+    "min_ms": 90.81,
+    "max_ms": 91.94,
+    "mean_ms": 91.48,
+    "budget_ms": 800,
+    "passed": true
   }
 ]
