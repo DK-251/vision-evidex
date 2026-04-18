@@ -10,6 +10,44 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-18 22:54 — URGENT #2 renderer diagnostics run (terminal telemetry)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `b62ac0d`
+
+Per top unresolved inbox instruction, I pulled latest and ran the requested checklist.
+
+### Results
+
+- `git pull --ff-only`: **Already up to date**
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: PASS
+	- tests: PASS (**189/189**)
+	- PBKDF2 benchmark: PASS (**max 90.92 ms / mean 90.62 ms**, budget 800 ms)
+	- dependency audit baseline unchanged: critical 0 / high 5 / moderate 0 / low 3
+
+### `npm run dev` diagnostics captured (~40s)
+
+- `window.load` line observed:
+	- `http://localhost:5173/src/renderer/index.html`
+- `window.did-fail-load`: none observed
+- `window.preload-error`: none observed
+- `window.render-process-gone`: none observed
+- `renderer.console` forwarding observed:
+	- info/verbose lines present
+	- warning present: Electron Security Warning (Insecure Content-Security-Policy)
+	- no forwarded `level:"error"` renderer.console lines observed during capture window
+- core startup lines present:
+	- `app.ready`
+	- `services.ready`
+	- `licence.validate`
+
+### Visual outcome note
+
+- This run captured terminal telemetry only; visual outcome A/B/C was not confirmed in this pass.
+
+Run artifacts were regenerated (`run-reports/*` + `STATUS.md`) by the report run.
+
 ## 2026-04-18 22:43 — URGENT renderer-path fix verification (D25) 
 
 **From:** Asus TUF run machine
