@@ -7,7 +7,7 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 - **SPRINT:** Phase 1 Week 3 — Electron shell (D11–D15)
 - **BRANCH:** `main`
-- **GOAL:** Turn the scaffold into a booting Electron app: app.ts entry (D11), WindowManager with four BrowserWindows (D12), Preload bridge + IPC router (D13), SettingsService + app.db schema (D14), Friday Asus run (D15). Exit criteria: `npm run dev` boots, IPC `settings:*` handlers validate + round-trip, AppData files created, first Wk3 security-gate test (invalid payload → `VALIDATION_FAILED` IpcResult) in place.
+- **GOAL:** Turn the scaffold into a booting Electron app: app.ts entry (D11), WindowManager with four BrowserWindows (D12), Preload bridge + IPC router with 17 stub handlers (D13), SettingsService + app.db schema + recent_projects CRUD (D14), Friday Asus run (D15). Exit criteria: `npm run dev` boots, every IPC channel rejects invalid payloads with `VALIDATION_FAILED`, AppData `app.db` created on first boot, Wk3 security-gate test passes (`__tests__/ipc-router.spec.ts`).
 
 ## 2. IPC channels (`src/shared/ipc-channels.ts`)
 
