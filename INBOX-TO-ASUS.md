@@ -14,6 +14,61 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — Cleanup + Playwright e2e suite (resolves blank-screen epic)
+
+**From:** CTS (Claude Code)
+**Summary:** User confirmed the UI renders after `b62ac0d`. The real fixes were the renderer URL correction (`3a62e86`) and the dev CSP split (`b62ac0d`). This commit strips the diagnostic scaffolding that was added to triage the blank screen, and lands a Playwright end-to-end test suite so no future UI regression reaches a push undetected.
+
+### Cleanup — kept vs reverted
+
+- **Kept (real fixes):**
+  - `window-manager.ts::loadRendererEntry` — unified path to `src/<dir>/index.html` for all four entries (dev + prod).
+  - `window-config.ts` — `DEV_CSP` / `PROD_CSP` split, `app.isPackaged` selects.
+  - `window-manager.ts` — one `did-fail-load` listener at error level (useful operationally, not debug noise).
+  - `Skeleton` component + `BootSkeleton` + wiring in App/Dashboard/AppSettings.
+- **Reverted (debug-only):**
+  - Auto-open DevTools on `dom-ready` in non-packaged.
+  - Verbose `render-process-gone`, `preload-error`, `renderer.console` forwarders.
+  - Visible HTML fallback text inside `#root` in `src/renderer/index.html`.
+
+### Playwright e2e suite
+
+Five spec files, 19 tests, running against the **built** main-process entry (`out/main/app.js`) with an isolated tmp `userData` dir per test (honored by new `EVIDEX_APPDATA_ROOT` env var in `src/main/app-paths.ts`).
+
+- `e2e/fixtures.ts` — base test fixture: launches Electron, mints a tmp userData dir, exposes `seedSettings()` for pre-onboarded scenarios.
+- `e2e/app-boot.spec.ts` — window mounts, title correct, preload bridge exposed, `settings:get` round-trip, zero renderer console errors.
+- `e2e/onboarding.spec.ts` — Step 1/7 visible, Next/Back navigation, profile-step validation gating (Next disabled until name + role filled), Skip visible on optional steps only.
+- `e2e/dashboard-settings.spec.ts` — post-onboarding dashboard renders 4 metric cards + empty-state copy + Settings button nav; AppSettingsPage shows 6 tabs (Licence → "About" in `none` mode), tab clicks don't throw.
+- `e2e/theme-appearance.spec.ts` — `data-theme` attribute reflects settings.theme, light/dark radios toggle it, CSS variables resolve to concrete colour / px values, skeleton animation visible on boot.
+- `e2e/visual.spec.ts` — screenshot baselines for onboarding Step 1 / dashboard empty / settings-appearance dark. Baselines must be **regenerated on Asus** (the canonical render machine) via `npm run test:e2e:update-snapshots`.
+
+### One-time Asus setup
+
+1. `git pull`
+2. `npm install` — adds `@playwright/test@^1.48.0`.
+3. `npx playwright install chromium` (one-time per machine; Playwright needs its own browser binary even though we're driving Electron — this is how Playwright's tracing/snapshot tooling works).
+4. Verify: `npm run typecheck` + `npm test` still PASS (no existing tests touched).
+
+### First e2e run
+
+1. `npm run build` — Playwright's `pretest:e2e` already runs this, but the first run on a new machine is faster if you kick the build manually.
+2. `npm run test:e2e` — should show 19 tests, visual tests will FAIL the first time (no baseline snapshots exist yet).
+3. `npm run test:e2e:update-snapshots` — generate baselines on Asus. Commit the `e2e/*-snapshots/` directory back.
+4. Future runs: `npm run test:e2e` — expect PASS 19/19.
+
+### Cadence integration
+
+- Not yet wired into `npm run report` as a gating precheck. Once you've confirmed e2e runs green on Asus once, I'll extend `scripts/run-report.js` to call it. Keeping them decoupled today so the first run can fail visibly without blocking the existing report pipeline.
+
+### Expected failures on first run
+
+- **Visual specs** — no baselines exist yet. Run the update command above.
+- **Any spec referencing `out/main/app.js` not built** — the `pretest:e2e` hook handles this, but if it skips for any reason the fixture throws a clear error message.
+
+No action required beyond the setup + first run + snapshot commit. If any non-visual spec fails, paste the Playwright output into `INBOX-TO-CTS.md` and I'll fix from CTS.
+
+---
+
 ## 2026-04-18 — URGENT #2: renderer diagnostics (blank screen still after 3a62e86)
 
 **From:** CTS (Claude Code)

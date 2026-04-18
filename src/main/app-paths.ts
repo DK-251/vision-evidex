@@ -14,6 +14,10 @@ import fs from 'node:fs';
 const APP_DIR_NAME = 'VisionEviDex';
 
 function appDataRoot(): string {
+  // Tests set EVIDEX_APPDATA_ROOT to a tmp dir so they do not collide
+  // with a developer's real settings.json / app.db on the same machine.
+  const override = process.env['EVIDEX_APPDATA_ROOT'];
+  if (override) return override;
   return path.join(app.getPath('appData'), APP_DIR_NAME);
 }
 
