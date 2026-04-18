@@ -6,6 +6,7 @@ import { useOnboardingStore } from './stores/onboarding-store';
 import { useNavStore } from './stores/nav-store';
 import { BootSkeleton } from './components/Skeleton';
 import { ThemeProvider } from './providers/ThemeProvider';
+import { Shell } from './components/shell';
 
 export function App(): JSX.Element {
   return (
@@ -50,21 +51,31 @@ function AppShell(): JSX.Element {
     return <BootSkeleton />;
   }
 
+  const onboarded = onboardedInSettings || completedInSession;
+  const bootBanner = bootError ? (
+    <div
+      role="alert"
+      className="fixed top-2 left-1/2 -translate-x-1/2 z-50 max-w-xl text-xs text-accent-error bg-surface-primary border border-accent-error px-3 py-1.5 rounded-md"
+    >
+      Boot warning: {bootError}
+    </div>
+  ) : null;
+
+  if (!onboarded) {
+    return (
+      <>
+        {bootBanner}
+        <OnboardingPage />
+      </>
+    );
+  }
+
   return (
     <>
-      {bootError && (
-        <div
-          role="alert"
-          className="fixed top-2 left-1/2 -translate-x-1/2 z-50 max-w-xl text-xs text-accent-error bg-surface-primary border border-accent-error px-3 py-1.5 rounded-md"
-        >
-          Boot warning: {bootError}
-        </div>
-      )}
-      {onboardedInSettings || completedInSession ? (
-        shellPage === 'settings' ? <AppSettingsPage /> : <DashboardPage />
-      ) : (
-        <OnboardingPage />
-      )}
+      {bootBanner}
+      <Shell>
+        {shellPage === 'settings' ? <AppSettingsPage /> : <DashboardPage />}
+      </Shell>
     </>
   );
 }

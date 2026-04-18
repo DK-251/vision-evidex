@@ -14,6 +14,60 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-19 — FUI-3: Shell (Sidebar + TitleBar + NavItem)
+
+**From:** CTS (Claude Code)
+**Why:** Third of five phases. Adds the application shell — the 32px draggable title bar strip and the 220/48px collapsible acrylic sidebar — that every post-onboarding screen renders inside. Onboarding still renders full-viewport per doc §15 S-02 ("Full-window, no sidebar").
+
+### What landed
+
+**Shell components** — `src/renderer/components/shell/`:
+- `Shell.tsx` — composes `TitleBar` + `Sidebar` + scrollable content area on a mica-tinted root.
+- `TitleBar.tsx` — 32px strip with Fluent shield icon + "Vision-EviDex" title. Draggable (`-webkit-app-region: drag`) except icon/title region (which is no-drag). Reserves 140px on the right for the OS caption buttons that `titleBarOverlay` renders.
+- `Sidebar.tsx` — six nav destinations in doc §5.6 order (Dashboard, Sessions, Templates, Reports, Audit Pack, Settings-in-footer). Dashboard and Settings are live; the four middle destinations render **disabled** with tertiary text until their screens land in Wk6 / Phase 2+. Collapse toggle at the top (Menu icon); 220px expanded, 48px collapsed, `sidebarCollapse` animation via CSS transition on `width`.
+- `NavItem.tsx` — single nav row with icon + label, active state (3px accent left bar via `::before` + accent-tinted background + accent text), hover / pressed / disabled states. `aria-current="page"` on active. Collapsed mode hides the label and uses `title={label}` for OS tooltip.
+- `index.ts` barrel.
+
+**Icons** — imported from `@fluentui/react-icons` (version `^2.0.226`, already present):
+`DataBarVerticalRegular`, `ImageMultipleRegular`, `DocumentBulletListRegular`, `DocumentTextRegular`, `ShieldCheckmarkRegular`, `SettingsRegular`, `NavigationRegular`, `ShieldCheckmarkFilled` (title-bar icon).
+
+**CSS** — appended to `src/renderer/styles/components.css`:
+- `.shell-root` / `.shell-main` / `.shell-content` layout
+- `.title-bar` / `.title-bar-icon` / `.title-bar-title` with drag regions + OS-caption reserve
+- `.nav-sidebar` (220px default, `.collapsed` → 48px) with acrylic material + backdrop-filter + border-right divider
+- `.nav-item` with active / hover / pressed / disabled / collapsed states + 3px accent bar
+- `.nav-sidebar-toggle` for the top collapse button, `.nav-sidebar-spacer` between main + footer groups
+
+**Store** — `src/renderer/stores/nav-store.ts` expanded with `sidebarCollapsed: boolean` + `toggleSidebar()` + `setSidebarCollapsed()`. Still only two pages: `'dashboard' | 'settings'`.
+
+**App.tsx** — Onboarding still rendered full-viewport (unchanged). Dashboard and AppSettings now render inside `<Shell>`.
+
+### Deliberate non-change (FUI-4 will fix)
+
+- `DashboardPage` and `AppSettingsPage` keep their existing `min-h-screen bg-surface-primary p-6 md:p-10` outer wrappers for now. The Shell's `.shell-content` therefore has **no inherent padding** — the pages own their own. FUI-4 screen ports move page-level padding into the shell per doc §4.5 (24px all sides).
+- Dashboard still renders its own "Settings" button next to the nav pill; AppSettings still has its "← Dashboard" back link. These are redundant with the Sidebar but harmless; both paths converge on the same `goTo()`. FUI-4 cleanup removes the in-page buttons.
+
+### Verification ask
+
+1. `git pull`
+2. `npm run report` — expected **PASS 189/189**. Most at-risk: the `@fluentui/react-icons` imports in `Sidebar.tsx` + `TitleBar.tsx` (seven icon names). If any name doesn't resolve in 2.0.324, paste the exact error — Fluent icons occasionally rename between minor versions even though we pinned 2.0.226 minimum.
+3. `npm run dev` — expected sequence:
+   - **Onboarding route unchanged** (still full-viewport wizard; if `settings.json` has `onboardingComplete=false` — e.g. first run on a clean userData dir).
+   - **Dashboard route shows the Shell**: 32px title bar at top, 220px acrylic sidebar on the left with six rows (Dashboard active with accent bar + text; Sessions/Templates/Reports/Audit Pack greyed out; Settings at the bottom). Dashboard content renders in the remaining area exactly as before (same metric cards, quick links, recent projects).
+   - **Clicking the Settings nav row** switches the content to AppSettingsPage — shell persists; title bar + sidebar remain.
+   - **Clicking the Menu toggle** at the top of the sidebar collapses to 48px (labels hide; icons remain). Click again to expand.
+   - **Clicking a disabled nav row** (Sessions/Templates/Reports/Audit Pack) does nothing — the button is `disabled`; hover is flat; collapsed-mode tooltip shows the label.
+   - Title bar is drag-region across the icon + title area. The OS caption buttons (close/min/max) still occupy the right 140px and respond as normal.
+4. Tests: **189/189 PASS** (unchanged — no existing spec imports from the shell).
+
+Known cosmetic (not to fix in FUI-3):
+- The Dashboard + AppSettings pages look slightly oversized because their `min-h-screen` runs past the shell's visible area by ~32px (the title bar height). Triggers a single screen-scroll. FUI-4 fixes by moving padding into Shell and removing page-level `min-h-screen`.
+- Dashboard header shows a redundant "Settings" button next to the Sidebar's Settings row. FUI-4 removes it.
+
+If all green I'll start FUI-4 (port OnboardingPage, DashboardPage, AppSettingsPage to doc §15 specs).
+
+---
+
 ## 2026-04-19 — FUI-2: Fluent UI component library (primitives only)
 
 **From:** CTS (Claude Code)
