@@ -14,6 +14,34 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — D25 polish: Skeleton loading + dev-server restart hint
+
+**From:** CTS (Claude Code)
+**What landed:** a shared `Skeleton` + `BootSkeleton` component, wired into the three async-loading states in the renderer so the brief IPC wait shows a placeholder silhouette instead of a blank surface. The earlier "only blank screen" report from the user was the Tailwind class miss already fixed in `49bdd4a` — but the plain "Loading Vision-EviDex…" text flashed so briefly that it looked like a white page. Replacing it with a card-shaped skeleton makes the boot sequence legible even on a fast machine.
+
+### Files
+
+- `src/renderer/components/Skeleton.tsx` — new. Exports `Skeleton` (single placeholder block, Tailwind `animate-pulse` on `bg-surface-secondary`) and `BootSkeleton` (full-viewport onboarding-card silhouette).
+- `src/renderer/App.tsx` — `AppShell` returns `<BootSkeleton />` while `settings:get` is in flight instead of the plain text.
+- `src/renderer/pages/DashboardPage.tsx` — metric grid shows four `MetricCardSkeleton` cards until `summary` arrives; recent-projects list shows three row-shaped skeletons until `recent` arrives. Text "Loading…" removed.
+- `src/renderer/pages/AppSettingsPage.tsx` — whole screen skeletons (header + tab row + two field pairs) until `settings` loads, replacing the empty `min-h-screen` div that looked identical to a blank window.
+
+### Verification ask
+
+1. `git pull`
+2. `npm run report` — expected: typecheck PASS, tests PASS (same 189 — no tests touched), PBKDF2 PASS. If typecheck fails on the new `Skeleton.tsx`, paste the exact error.
+3. `npm run dev` — expected visible sequence:
+   - Brief (~150–500 ms) skeleton splash card with pulsing blocks
+   - Then Step 1 of the onboarding wizard (in `none` licence mode the visible steps are: Welcome Tour → User Profile → Branding → Default Template → Hotkeys → Theme & Storage → Summary — seven steps since `licence` is hidden in `none` mode)
+   - Navigation: Back / Skip / Next / Finish buttons, blue-filled accent on Next/Finish
+4. If still blank: capture the renderer DevTools console (Ctrl+Shift+I on the Electron window), paste any red lines.
+
+### Note re dev-server cache
+
+After a `tailwind.config.js` change, vite must be restarted — hot reload alone won't regenerate the CSS. If you had `npm run dev` running when pulling `49bdd4a`, please stop and re-run. `npm run report` doesn't need this since it builds fresh.
+
+---
+
 ## 2026-04-18 — D21 verification: Onboarding Steps 1–4
 
 **From:** CTS (Claude Code)

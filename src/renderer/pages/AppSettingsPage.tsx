@@ -9,6 +9,7 @@ import type { SettingsUpdateInput } from '@shared/schemas';
 import { BUILTIN_TEMPLATES } from '../onboarding/DefaultTemplateStep';
 import { DEFAULT_HOTKEYS, HOTKEY_ACTIONS, detectHotkeyConflicts, formatKeyEvent } from '../onboarding/hotkey-utils';
 import { useNavStore } from '../stores/nav-store';
+import { Skeleton } from '../components/Skeleton';
 
 /**
  * S-23 — App settings with 6 tabs.
@@ -69,7 +70,27 @@ export function AppSettingsPage(): JSX.Element {
   }
 
   if (settings === null) {
-    return <div className="min-h-screen bg-surface-primary" />;
+    return (
+      <div className="min-h-screen bg-surface-primary p-6 md:p-10">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-7 w-40" />
+            <Skeleton className="h-8 w-24" />
+          </div>
+          <div className="flex gap-2 border-b border-border-subtle pb-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-6 w-20" />
+            ))}
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full max-w-md" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full max-w-md" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

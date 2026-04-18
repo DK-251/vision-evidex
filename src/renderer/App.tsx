@@ -4,6 +4,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { AppSettingsPage } from './pages/AppSettingsPage';
 import { useOnboardingStore } from './stores/onboarding-store';
 import { useNavStore } from './stores/nav-store';
+import { BootSkeleton } from './components/Skeleton';
 
 /**
  * Main window root.
@@ -57,11 +58,7 @@ function AppShell(): JSX.Element {
   }, []);
 
   if (onboardedInSettings === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-surface-primary">
-        <div className="text-sm text-text-secondary">Loading Vision-EviDex…</div>
-      </div>
-    );
+    return <BootSkeleton />;
   }
 
   return (

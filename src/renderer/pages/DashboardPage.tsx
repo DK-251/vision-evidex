@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { MetricsSummary, RecentProject } from '@shared/types/entities';
 import { useNavStore } from '../stores/nav-store';
+import { Skeleton } from '../components/Skeleton';
 
 /**
  * S-03 — Dashboard.
@@ -79,10 +80,21 @@ export function DashboardPage(): JSX.Element {
           aria-label="Key metrics"
           className="grid grid-cols-2 md:grid-cols-4 gap-4"
         >
-          <MetricCard label="Active projects" value={summary?.activeProjects ?? 0} />
-          <MetricCard label="Sessions today" value={summary?.sessionsToday ?? 0} />
-          <MetricCard label="Captures this week" value={summary?.capturesThisWeek ?? 0} />
-          <MetricCard label="Exports this week" value={summary?.exportsThisWeek ?? 0} />
+          {summary === null ? (
+            <>
+              <MetricCardSkeleton />
+              <MetricCardSkeleton />
+              <MetricCardSkeleton />
+              <MetricCardSkeleton />
+            </>
+          ) : (
+            <>
+              <MetricCard label="Active projects" value={summary.activeProjects} />
+              <MetricCard label="Sessions today" value={summary.sessionsToday} />
+              <MetricCard label="Captures this week" value={summary.capturesThisWeek} />
+              <MetricCard label="Exports this week" value={summary.exportsThisWeek} />
+            </>
+          )}
         </section>
 
         <section aria-label="Quick links" className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -95,7 +107,11 @@ export function DashboardPage(): JSX.Element {
         <section aria-label="Recent projects" className="space-y-2">
           <h2 className="text-sm font-semibold text-text-primary">Recent projects</h2>
           {recent === null ? (
-            <p className="text-sm text-text-secondary">Loading…</p>
+            <div className="space-y-2">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
           ) : recent.length === 0 ? (
             <div className="rounded-md border border-dashed border-border-subtle p-6 text-center">
               <p className="text-text-primary">No projects yet.</p>
@@ -132,6 +148,18 @@ function MetricCard({ label, value }: { label: string; value: number }): JSX.Ele
     >
       <div className="text-xs uppercase tracking-wide text-text-secondary">{label}</div>
       <div className="mt-1 text-2xl font-semibold text-text-primary">{value}</div>
+    </div>
+  );
+}
+
+function MetricCardSkeleton(): JSX.Element {
+  return (
+    <div
+      className="p-4 rounded-lg space-y-2"
+      style={{ boxShadow: 'var(--shadow-neumorphic-out)' }}
+    >
+      <Skeleton className="h-3 w-20" />
+      <Skeleton className="h-7 w-10" />
     </div>
   );
 }
