@@ -30,12 +30,22 @@ vi.mock('electron', () => ({
 
 import { IPC } from '@shared/ipc-channels';
 import { EvidexErrorCode } from '@shared/types/ipc';
-import { registerAllHandlers } from '../src/main/ipc-router';
+import { registerAllHandlers, type ServiceRegistry } from '../src/main/ipc-router';
+
+const mockServices: ServiceRegistry = {
+  licence: {
+    activate: async () => ({ success: true }),
+    validate: () => ({ valid: true }),
+    getLicenceInfo: () => null,
+    deactivate: async () => undefined,
+    getMode: () => 'none' as const,
+  } as unknown as ServiceRegistry['licence'],
+};
 
 describe('ipc-router (Phase 1 Wk3 security gate)', () => {
   beforeEach(() => {
     handlers.clear();
-    registerAllHandlers();
+    registerAllHandlers(mockServices);
   });
 
   it('registers every IPC invoke channel', () => {

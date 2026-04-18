@@ -1,62 +1,170 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import type {
   ActivationResult,
   LicenceActivateInput,
   LicenceInfo,
   LicenceValidationResult,
 } from '@shared/types/entities';
+import { getMachineFingerprint } from './machine-fingerprint';
+import { parseToken, verifyToken, isExpired } from './licence-token';
 
 /**
  * LicenceService — Keygen.sh activation + local validation.
  *
- * Locked decision: `EVIDEX_LICENCE_MODE` is a build-time constant read from
- * process.env. In `none` mode every method is a no-op returning success.
- * In `keygen` mode the real Keygen.sh flow runs, but for all of Phase 0
- * and Phase 1 we short-circuit to `{ valid: true }` unconditionally —
- * the real network path is wired only in Phase 1 Week 4 when the
- * Keygen.sh account exists.
+ * Two modes, selected at construction time:
+ *   - `none`   → no-op, every call returns success; licence.sig never
+ *                created. Phase 0–1 default and `dist:enterprise` mode.
+ *   - `keygen` → real path: activate via Keygen.sh REST, persist the
+ *                returned JWT-style token to `licence.sig`, verify the
+ *                Ed25519 signature + machine fingerprint binding +
+ *                expiration on every launch.
  *
- * `licence.sig` format: plain UTF-8 text file containing the JWT-style
- * token returned by Keygen.sh activation (base64url payload + RSA sig).
- * Read with fs.readFileSync(path, 'utf-8'). Never created in `none` mode.
+ * Dev bypass: when `isDev === true` (non-packaged build), `validate()`
+ * short-circuits to `{ valid: true }` so local dev does not require
+ * a real Keygen account. `activate()` still runs its real path so
+ * contributors can exercise it when they have credentials.
  */
 
-const LICENCE_MODE = (process.env['EVIDEX_LICENCE_MODE'] ?? 'none') as 'keygen' | 'none';
+export interface LicenceServiceConfig {
+  mode: 'keygen' | 'none';
+  licenceFilePath: string;
+  publicKeyPem?: string;
+  keygenAccountId?: string;
+  isDev?: boolean;
+  now?: () => Date; // injectable for tests
+}
 
-// Phase 0-1 short-circuit: always return valid regardless of mode.
-const PHASE_0_1_STUB = true;
+const KEYGEN_API = 'https://api.keygen.sh/v1';
 
 export class LicenceService {
-  async activate(_request: LicenceActivateInput): Promise<ActivationResult> {
-    if (LICENCE_MODE === 'none' || PHASE_0_1_STUB) {
-      return {
-        success: true,
-        licenceInfo: {
-          licenceKey: 'stub',
-          status: 'active',
-          activatedAt: new Date().toISOString(),
-          machineFingerprint: 'stub',
-        },
-      };
-    }
-    throw new Error('LicenceService.activate real path — Phase 1 Week 4');
+  private cachedInfo: LicenceInfo | null = null;
+
+  constructor(private readonly config: LicenceServiceConfig) {}
+
+  getMode(): 'keygen' | 'none' {
+    return this.config.mode;
   }
 
   validate(): LicenceValidationResult {
-    if (LICENCE_MODE === 'none' || PHASE_0_1_STUB) {
-      return { valid: true };
+    if (this.config.mode === 'none') return { valid: true };
+    if (this.config.isDev) return { valid: true };
+
+    if (!fs.existsSync(this.config.licenceFilePath)) {
+      return { valid: false, reason: 'no licence file present' };
     }
-    throw new Error('LicenceService.validate real path — Phase 1 Week 4');
+    if (!this.config.publicKeyPem) {
+      return { valid: false, reason: 'server public key not configured' };
+    }
+
+    const raw = fs.readFileSync(this.config.licenceFilePath, 'utf8');
+    if (!verifyToken(raw, this.config.publicKeyPem)) {
+      return { valid: false, reason: 'signature verification failed' };
+    }
+
+    const payload = parseToken(raw);
+    if (!payload) {
+      return { valid: false, reason: 'licence token malformed' };
+    }
+
+    const now = this.config.now ? this.config.now() : new Date();
+    if (isExpired(payload, now)) {
+      return { valid: false, reason: 'licence expired' };
+    }
+
+    const fingerprint = getMachineFingerprint();
+    if (payload.fingerprint !== fingerprint) {
+      return { valid: false, reason: 'machine fingerprint mismatch' };
+    }
+
+    this.cachedInfo = {
+      licenceKey: payload.key,
+      status: 'active',
+      activatedAt: payload.activatedAt,
+      machineFingerprint: fingerprint,
+      ...(payload.expiresAt ? { expiresAt: payload.expiresAt } : {}),
+    };
+    return { valid: true };
+  }
+
+  async activate(request: LicenceActivateInput): Promise<ActivationResult> {
+    if (this.config.mode === 'none') {
+      return { success: true };
+    }
+    if (!this.config.keygenAccountId) {
+      return { success: false, reason: 'keygen account id not configured' };
+    }
+
+    const fingerprint = getMachineFingerprint();
+    const url =
+      `${KEYGEN_API}/accounts/${this.config.keygenAccountId}` +
+      `/licenses/${encodeURIComponent(request.licenceKey)}/actions/validate-key`;
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/vnd.api+json',
+          Accept: 'application/vnd.api+json',
+        },
+        body: JSON.stringify({ meta: { scope: { fingerprint } } }),
+      });
+    } catch (err) {
+      return { success: false, reason: `network error: ${String(err)}` };
+    }
+
+    if (!response.ok) {
+      return { success: false, reason: `keygen http ${response.status}` };
+    }
+
+    const data = (await response.json()) as {
+      meta?: { valid?: boolean; code?: string };
+      data?: { attributes?: { expiry?: string | null } };
+      signedKey?: string;
+    };
+    if (!data.meta?.valid) {
+      return { success: false, reason: `keygen rejected: ${data.meta?.code ?? 'unknown'}` };
+    }
+    if (!data.signedKey) {
+      return { success: false, reason: 'keygen response missing signed token' };
+    }
+
+    // Verify before persisting — reject malformed responses.
+    if (this.config.publicKeyPem && !verifyToken(data.signedKey, this.config.publicKeyPem)) {
+      return { success: false, reason: 'returned token failed signature verification' };
+    }
+
+    this.atomicWrite(data.signedKey);
+
+    const now = this.config.now ? this.config.now() : new Date();
+    const licenceInfo: LicenceInfo = {
+      licenceKey: request.licenceKey,
+      status: 'active',
+      activatedAt: now.toISOString(),
+      machineFingerprint: fingerprint,
+      ...(data.data?.attributes?.expiry ? { expiresAt: data.data.attributes.expiry } : {}),
+    };
+    this.cachedInfo = licenceInfo;
+    return { success: true, licenceInfo };
   }
 
   getLicenceInfo(): LicenceInfo | null {
-    return null;
+    return this.cachedInfo ? { ...this.cachedInfo } : null;
   }
 
   async deactivate(): Promise<void> {
-    // no-op in both modes during Phase 0-1
+    if (this.config.mode === 'none') return;
+    if (fs.existsSync(this.config.licenceFilePath)) {
+      fs.unlinkSync(this.config.licenceFilePath);
+    }
+    this.cachedInfo = null;
   }
 
-  getMode(): 'keygen' | 'none' {
-    return LICENCE_MODE;
+  private atomicWrite(content: string): void {
+    fs.mkdirSync(path.dirname(this.config.licenceFilePath), { recursive: true });
+    const tmp = `${this.config.licenceFilePath}.tmp`;
+    fs.writeFileSync(tmp, content, { encoding: 'utf8' });
+    fs.renameSync(tmp, this.config.licenceFilePath);
   }
 }

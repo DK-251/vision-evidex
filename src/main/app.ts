@@ -3,7 +3,7 @@ import path from 'node:path';
 import { createMainWindow, destroyAllWindows } from './window-manager';
 import { CSP_HEADER } from './window-config';
 import { registerAllHandlers } from './ipc-router';
-import { getAppDataRoot, getSettingsPath } from './app-paths';
+import { getAppDataRoot, getLicencePath, getSettingsPath } from './app-paths';
 import { logger } from './logger';
 import { LicenceService } from './services/licence.service';
 import { SettingsService } from './services/settings.service';
@@ -29,7 +29,11 @@ import { DatabaseService } from './services/database.service';
 
 export const isDev = !app.isPackaged;
 
-const licenceService = new LicenceService();
+const LICENCE_MODE = ((process.env['EVIDEX_LICENCE_MODE'] ?? 'none') === 'keygen'
+  ? 'keygen'
+  : 'none') as 'keygen' | 'none';
+
+let licenceService: LicenceService | undefined;
 let settingsService: SettingsService | undefined;
 let appDb: DatabaseService | undefined;
 
@@ -77,7 +81,18 @@ function bootstrap(): void {
 
     setAppUserModelId();
     applyCSP();
-    registerAllHandlers();
+
+    licenceService = new LicenceService({
+      mode: LICENCE_MODE,
+      licenceFilePath: getLicencePath(),
+      isDev,
+      ...(process.env['EVIDEX_KEYGEN_PUBLIC_KEY']
+        ? { publicKeyPem: process.env['EVIDEX_KEYGEN_PUBLIC_KEY'] }
+        : {}),
+      ...(process.env['EVIDEX_KEYGEN_ACCOUNT_ID']
+        ? { keygenAccountId: process.env['EVIDEX_KEYGEN_ACCOUNT_ID'] }
+        : {}),
+    });
 
     settingsService = new SettingsService(getSettingsPath());
     settingsService.loadSettings();
@@ -85,14 +100,26 @@ function bootstrap(): void {
     appDb = new DatabaseService(path.join(appDataRoot, 'app.db'));
     appDb.initAppSchema();
 
+    registerAllHandlers({ licence: licenceService });
+
     logger.info('services.ready', {
       onboardingComplete: settingsService.isOnboardingComplete(),
       appDbPath: path.join(appDataRoot, 'app.db'),
     });
 
     const licence = licenceService.validate();
-    logger.info('licence.validate', { mode: licenceService.getMode(), valid: licence.valid });
-    // Week 4 adds: if (!licence.valid) return windowManager.showActivationWindow();
+    logger.info('licence.validate', {
+      mode: licenceService.getMode(),
+      valid: licence.valid,
+      ...(licence.valid ? {} : { reason: licence.reason }),
+    });
+    if (!licence.valid) {
+      // Activation window lands D20 — for now we log the gate miss
+      // and fall through to the main window so dev can still boot.
+      logger.warn('licence.gate-miss — falling through to main window (D20 will route to activation)', {
+        reason: licence.reason,
+      });
+    }
     // Week 5 adds: if (!settingsService.isOnboardingComplete()) return windowManager.showOnboardingWindow();
     createMainWindow();
 

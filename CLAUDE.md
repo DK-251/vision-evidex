@@ -5,9 +5,9 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Phase 1 Week 3 — Electron shell (D11–D15)
+- **SPRINT:** Phase 1 Week 4 — Licence, container, DB (D16–D20)
 - **BRANCH:** `main`
-- **GOAL:** Turn the scaffold into a booting Electron app: app.ts entry (D11), WindowManager with four BrowserWindows (D12), Preload bridge + IPC router with 17 stub handlers (D13), SettingsService + app.db schema + recent_projects CRUD (D14), Friday Asus run (D15). Exit criteria: `npm run dev` boots, every IPC channel rejects invalid payloads with `VALIDATION_FAILED`, AppData `app.db` created on first boot, Wk3 security-gate test passes (`__tests__/ipc-router.spec.ts`).
+- **GOAL:** Replace the PHASE_0_1_STUB licence with the real keygen path + local validation (D16), land EvidexContainerService AES-256-GCM crypto (D17), project SQLite schema + full DatabaseService (D18), Manifest/Naming services (D19), Friday Asus run + onboarding React skeleton (D20). Exit criteria: Phase 1 gate — `none` mode still short-circuits, `keygen` mode activates + persists `licence.sig` + rejects tampered/expired/fingerprint-mismatched tokens; `.evidex` containers round-trip encrypt→decrypt with auth-tag verification; `DatabaseService` has prepared statements for all 30+ query methods with tests.
 
 ## 2. IPC channels (`src/shared/ipc-channels.ts`)
 
@@ -99,7 +99,7 @@ Write to [INBOX-TO-ASUS.md](INBOX-TO-ASUS.md) when CTS needs the Asus to verify,
 
 - Scaffold root: `c:\Users\2072940\Vision-EviDex\vision-evidex\`
 - GHE remote: `https://github.com/DK-251/vision-evidex.git`
-- Phase 0+1 licence mode: `EVIDEX_LICENCE_MODE=none`; `LicenceService` returns `{ valid: true }` unconditionally until Phase 1 Week 4
+- Default dev licence mode: `EVIDEX_LICENCE_MODE=none` → `LicenceService` returns `{ valid: true }` without touching disk. `keygen` mode landed D16 and reads `EVIDEX_KEYGEN_PUBLIC_KEY` (PEM Ed25519 SPKI) + `EVIDEX_KEYGEN_ACCOUNT_ID`; `isDev` still short-circuits validate so unpackaged builds never require an activation flow.
 - Single active project at a time; `EvidexContainerService` uses a single-slot pattern
 - Feature ID tables (not the "82" header count) are the implementation checklist
 - `fabric@5.3.0` exact pin + `fabricVersion` stored per annotation layer

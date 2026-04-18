@@ -19,6 +19,16 @@ import {
   LicenceActivateSchema,
   LicenceValidateSchema,
 } from '@shared/schemas';
+import type { LicenceService } from './services/licence.service';
+
+/**
+ * Service registry injected into `registerAllHandlers`. Additional
+ * services join this shape as they land (Wk 4 container, Wk 6
+ * project, Phase 2 session/capture, …).
+ */
+export interface ServiceRegistry {
+  licence: LicenceService;
+}
 
 /**
  * Central IPC router — registers every invoke channel with Zod validation
@@ -78,18 +88,19 @@ export function registerHandler<TSchema extends z.ZodTypeAny, TOutput>(
  * Register all IPC handlers.
  *
  * Phase 1 Week 3 (D13): every channel is registered with its real Zod
- * schema. Handlers are no-op stubs returning `null` until the owning
- * service lands — Zod rejection paths are live immediately, so the
- * validation envelope works end-to-end from the first app boot.
+ * schema. Unwired handlers return `null` until the owning service
+ * lands — Zod rejection paths are live immediately, so the validation
+ * envelope works end-to-end from the first app boot.
  *
- * Replacement schedule:
- *   - Wk 4 → licence:activate, licence:validate, project:* (via DB)
+ * Phase 1 Week 4 (D16): `licence:activate` / `licence:validate` now
+ * route through `services.licence`. Remaining stubs replace per phase:
+ *   - Wk 4 → project:* (via DB, D18)
  *   - Wk 6 → project:create, project:open, project:close
  *   - Ph 2 → session:*, capture:*
  *   - Ph 3 → export:*, metrics:import, template:save
  *   - Ph 4 → signoff:submit
  */
-export function registerAllHandlers(): void {
+export function registerAllHandlers(services: ServiceRegistry): void {
   const stub = async (): Promise<null> => null;
 
   registerHandler(IPC.SESSION_CREATE, SessionIntakeSchema, stub);
@@ -107,11 +118,16 @@ export function registerAllHandlers(): void {
   registerHandler(IPC.METRICS_IMPORT, MetricsImportSchema, stub);
   registerHandler(IPC.TEMPLATE_SAVE, TemplateSaveSchema, stub);
   registerHandler(IPC.SIGNOFF_SUBMIT, SignOffSubmitSchema, stub);
-  registerHandler(IPC.LICENCE_ACTIVATE, LicenceActivateSchema, stub);
-  registerHandler(IPC.LICENCE_VALIDATE, LicenceValidateSchema, stub);
+
+  registerHandler(IPC.LICENCE_ACTIVATE, LicenceActivateSchema, (input) =>
+    services.licence.activate(input)
+  );
+  registerHandler(IPC.LICENCE_VALIDATE, LicenceValidateSchema, async () =>
+    services.licence.validate()
+  );
 
   // eslint-disable-next-line no-console
-  console.info(`[ipc-router] ${Object.values(IPC).length} stub handlers registered`);
+  console.info(`[ipc-router] ${Object.values(IPC).length} handlers registered (2 live, 15 stub)`);
 }
 
 /**

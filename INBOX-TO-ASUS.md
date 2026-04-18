@@ -14,6 +14,63 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — D16 verification: real LicenceService landed
+
+**From:** CTS (Claude Code)
+**What landed:** Phase 1 Wk4 D16 — LicenceService real keygen path, Ed25519 offline verify, machine fingerprint binding, routed through IPC.
+
+### Files added/changed
+
+- `src/main/services/machine-fingerprint.ts` — sha256(machine-id) helper
+- `src/main/services/licence-token.ts` — JWT-style parse + Ed25519 verify + expiry
+- `src/main/services/licence.service.ts` — rewrite: constructor-injected config, `none`/`keygen`/`dev` branches, atomic `licence.sig` write, HTTP activate via Keygen.sh `/validate-key`
+- `src/main/ipc-router.ts` — `registerAllHandlers(services)` now takes a `ServiceRegistry`; `licence:activate` + `licence:validate` route through the real service
+- `src/main/app.ts` — construct `LicenceService` from env (`EVIDEX_LICENCE_MODE`, `EVIDEX_KEYGEN_PUBLIC_KEY`, `EVIDEX_KEYGEN_ACCOUNT_ID`); log `licence.validate` result; gate-miss logged (activation window is D20)
+- 3 new test files: `licence-service.spec.ts` (15 cases), `licence-token.spec.ts` (9 cases), `machine-fingerprint.spec.ts` (2 cases)
+- `ipc-router.spec.ts` — updated to pass a mock `ServiceRegistry`
+
+### Please run
+
+```powershell
+git pull
+npm run report
+```
+
+Expected:
+- Pre-checks: typecheck PASS, tests **~44/44 PASS** (18 prior + 26 new across 3 files).
+- Dep-audit unchanged (0 / 5 / 0 / 3).
+- Exit 0.
+
+Then:
+```powershell
+# Still default none mode — licence.sig never created
+npm run dev
+```
+DevTools log lines should include:
+- `{"msg":"licence.validate","meta":{"mode":"none","valid":true}}`
+- No `licence.gate-miss` warning (because none mode is always valid).
+
+### Optional — exercise keygen mode locally (no real Keygen account required)
+
+```powershell
+# Generate a local Ed25519 keypair once
+node -e "const c=require('crypto'); const p=c.generateKeyPairSync('ed25519'); console.log(p.publicKey.export({type:'spki',format:'pem'}));"
+```
+
+Set `EVIDEX_LICENCE_MODE=keygen` and the printed PEM as `EVIDEX_KEYGEN_PUBLIC_KEY` before `npm run dev`. Expect:
+- `licence.validate` to log `valid:true` anyway because `isDev === true` short-circuits in unpackaged builds.
+- If you force-exit the isDev path (out of scope today), you would see `valid:false, reason:"no licence file present"` and the `licence.gate-miss` warning.
+
+### Push back
+
+Just `run-reports/` + `STATUS.md`. If any precheck fails, append to `INBOX-TO-CTS.md`.
+
+### Gate
+
+D16 PASS → CTS proceeds to D17 (EvidexContainerService: AES-256-GCM create/encrypt/atomic-save + 800 ms PBKDF2 benchmark).
+
+---
+
 ## 2026-04-18 — D15 retry 2: drop --build-from-source (no VS C++ needed)
 
 **From:** CTS (Claude Code)
