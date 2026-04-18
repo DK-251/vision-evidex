@@ -1,9 +1,9 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-18T11:03:19.789Z  
-**Branch:** `main` · **Commit:** `44705050`  
+**Date:** 2026-04-18T10:50:17.460Z  
+**Branch:** `main` · **Commit:** `43b447e8`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
-**Duration:** 0 ms
+**Duration:** 1 ms
 
 ## Summary
 
@@ -23,8 +23,8 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 4869 ms | — |
-| tests | PASS | 7642 ms | 68/68 passed |
+| typecheck | PASS | 4834 ms | — |
+| tests | PASS | 7788 ms | 68/68 passed |
 
 ## Module results
 
@@ -48,14 +48,6 @@
 | audit_pack | SKIP | Phase 4 |
 | sign_off | SKIP | Phase 4 |
 | settings | SKIP | Phase 1 Week 3 |
-
-## Benchmarks
-
-| Benchmark | min | mean | max | budget | Status |
-|---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 90.33 ms | 90.65 ms | 90.88 ms | 800 ms | PASS |
-
-Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
 ## Dependency audit (prod)
 
