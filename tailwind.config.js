@@ -9,12 +9,15 @@ module.exports = {
   /**
    * Fluent-era config: dark mode is driven by `[data-theme='dark']` CSS
    * variable overrides in tokens.css — the `dark:` Tailwind prefix is
-   * banned (doc §10.3). Colour values are not mapped into Tailwind at
-   * all; components consume them via `style={{ color: 'var(--color-…)' }}`
-   * or via the ui/* primitives that land in FUI-2. Tailwind's remaining
-   * job is spacing, flex/grid, and radius.
+   * banned (doc §10.3). We still have to declare *something* here so
+   * Tailwind does not silently fall back to `media` (the default when
+   * `false` is passed in 3.4+). Tying `dark:` to our own
+   * `[data-theme='dark']` selector keeps any accidental usage aligned
+   * with ThemeProvider rather than with the OS preference — and makes
+   * stray `dark:` utilities surface under the same flip as the rest
+   * of the theme, not randomly based on `prefers-color-scheme`.
    */
-  darkMode: false,
+  darkMode: ['selector', '[data-theme="dark"]'],
   theme: {
     extend: {
       fontFamily: {
