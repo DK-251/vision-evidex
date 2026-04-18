@@ -3,6 +3,22 @@ import type { z } from 'zod';
 import { IPC, type IpcChannel } from '@shared/ipc-channels';
 import { EvidexError, isEvidexError } from '@shared/types/errors';
 import { EvidexErrorCode, type IpcResult } from '@shared/types/ipc';
+import {
+  SessionIntakeSchema,
+  SessionEndSchema,
+  CaptureRequestSchema,
+  AnnotationSaveSchema,
+  CaptureTagUpdateSchema,
+  ProjectCreateSchema,
+  ProjectOpenSchema,
+  ProjectCloseSchema,
+  ExportOptionsSchema,
+  MetricsImportSchema,
+  TemplateSaveSchema,
+  SignOffSubmitSchema,
+  LicenceActivateSchema,
+  LicenceValidateSchema,
+} from '@shared/schemas';
 
 /**
  * Central IPC router — registers every invoke channel with Zod validation
@@ -55,19 +71,43 @@ export function registerHandler<TSchema extends z.ZodTypeAny, TOutput>(
 }
 
 /**
- * Register all IPC handlers. Phase 0 stub — each channel is registered
- * in Phase 1–4 as its owning service lands. For now the router only
- * logs that it was wired so the app boots without handler warnings.
+ * Register all IPC handlers.
+ *
+ * Phase 1 Week 3 (D13): every channel is registered with its real Zod
+ * schema. Handlers are no-op stubs returning `null` until the owning
+ * service lands — Zod rejection paths are live immediately, so the
+ * validation envelope works end-to-end from the first app boot.
+ *
+ * Replacement schedule:
+ *   - Wk 4 → licence:activate, licence:validate, project:* (via DB)
+ *   - Wk 6 → project:create, project:open, project:close
+ *   - Ph 2 → session:*, capture:*
+ *   - Ph 3 → export:*, metrics:import, template:save
+ *   - Ph 4 → signoff:submit
  */
 export function registerAllHandlers(): void {
-  // Phase 1 Week 4 → licence handlers
-  // Phase 1 Week 6 → project handlers
-  // Phase 2       → session, capture, annotation handlers
-  // Phase 3       → export, metrics, template handlers
-  // Phase 4       → signoff handler
-  const channels = Object.values(IPC);
+  const stub = async (): Promise<null> => null;
+
+  registerHandler(IPC.SESSION_CREATE, SessionIntakeSchema, stub);
+  registerHandler(IPC.SESSION_END, SessionEndSchema, stub);
+  registerHandler(IPC.CAPTURE_SCREENSHOT, CaptureRequestSchema, stub);
+  registerHandler(IPC.CAPTURE_ANNOTATE_SAVE, AnnotationSaveSchema, stub);
+  registerHandler(IPC.CAPTURE_TAG_UPDATE, CaptureTagUpdateSchema, stub);
+  registerHandler(IPC.PROJECT_CREATE, ProjectCreateSchema, stub);
+  registerHandler(IPC.PROJECT_OPEN, ProjectOpenSchema, stub);
+  registerHandler(IPC.PROJECT_CLOSE, ProjectCloseSchema, stub);
+  registerHandler(IPC.EXPORT_WORD, ExportOptionsSchema, stub);
+  registerHandler(IPC.EXPORT_PDF, ExportOptionsSchema, stub);
+  registerHandler(IPC.EXPORT_HTML, ExportOptionsSchema, stub);
+  registerHandler(IPC.EXPORT_AUDIT_BUNDLE, ExportOptionsSchema, stub);
+  registerHandler(IPC.METRICS_IMPORT, MetricsImportSchema, stub);
+  registerHandler(IPC.TEMPLATE_SAVE, TemplateSaveSchema, stub);
+  registerHandler(IPC.SIGNOFF_SUBMIT, SignOffSubmitSchema, stub);
+  registerHandler(IPC.LICENCE_ACTIVATE, LicenceActivateSchema, stub);
+  registerHandler(IPC.LICENCE_VALIDATE, LicenceValidateSchema, stub);
+
   // eslint-disable-next-line no-console
-  console.info(`[ipc-router] ${channels.length} channels declared; handlers wired per phase.`);
+  console.info(`[ipc-router] ${Object.values(IPC).length} stub handlers registered`);
 }
 
 /**

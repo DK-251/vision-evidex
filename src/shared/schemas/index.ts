@@ -204,6 +204,8 @@ export const LicenceActivateSchema = z.object({
   licenceKey: z.string().min(1),
 });
 
+export const LicenceValidateSchema = z.object({});
+
 // ─── Type inference ─────────────────────────────────────────────────────
 
 export type SessionIntakeInput = z.infer<typeof SessionIntakeSchema>;
