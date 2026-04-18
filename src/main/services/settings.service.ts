@@ -33,7 +33,10 @@ export class SettingsService {
   loadSettings(): Settings {
     try {
       const raw = fs.readFileSync(this.filePath, 'utf8');
-      this.settings = SettingsSchema.parse(JSON.parse(raw));
+      // Zod's .optional() infers `T | undefined` which is incompatible
+      // with bare `T?: U` under exactOptionalPropertyTypes. Cast via
+      // `unknown` — Zod has already validated the shape, so this is safe.
+      this.settings = SettingsSchema.parse(JSON.parse(raw)) as unknown as Settings;
     } catch {
       this.settings = { ...DEFAULT_SETTINGS };
     }

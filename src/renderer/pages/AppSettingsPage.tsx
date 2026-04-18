@@ -261,7 +261,7 @@ function StorageTab({ settings, patch }: TabProps): JSX.Element {
   async function pickFolder(): Promise<void> {
     const result = await window.evidexAPI.dialog.selectDirectory({
       title: 'Default storage folder',
-      defaultPath: settings.defaultStoragePath || undefined,
+      ...(settings.defaultStoragePath ? { defaultPath: settings.defaultStoragePath } : {}),
     });
     if (result.ok && result.data.path) {
       await patch({ defaultStoragePath: result.data.path });

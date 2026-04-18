@@ -15,8 +15,10 @@ module.exports = {
       colors: {
         accent: {
           DEFAULT: 'var(--color-accent)',
+          primary: 'var(--color-accent)',
           light: 'var(--color-accent-light)',
           dark: 'var(--color-accent-dark)',
+          error: 'var(--color-fail)',
         },
         status: {
           pass: 'var(--color-pass)',
@@ -38,6 +40,10 @@ module.exports = {
           primary: 'var(--text-primary)',
           secondary: 'var(--text-secondary)',
           hint: 'var(--text-hint)',
+        },
+        border: {
+          DEFAULT: 'var(--border-default)',
+          subtle: 'var(--border-default)',
         },
       },
       borderRadius: {

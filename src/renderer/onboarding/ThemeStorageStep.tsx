@@ -38,7 +38,7 @@ export function ThemeStorageStep(): JSX.Element {
     setPickError(null);
     const result = await window.evidexAPI.dialog.selectDirectory({
       title: 'Default storage folder',
-      defaultPath: storagePath || undefined,
+      ...(storagePath ? { defaultPath: storagePath } : {}),
     });
     if (!result.ok) {
       setPickError(result.error.message);

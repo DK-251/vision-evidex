@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from 'react';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AppSettingsPage } from './pages/AppSettingsPage';
@@ -8,43 +8,111 @@ import { useNavStore } from './stores/nav-store';
 /**
  * Main window root.
  *
- * Phase 1 Wk5 D23: first real routing gate. On mount we ask the main
- * process for the current settings. If `onboardingComplete === true`
- * we render the Dashboard; otherwise the onboarding wizard. The
- * wizard's own `completed` flag short-circuits to the Dashboard when
- * the user clicks Finish, so there's no reload required.
+ * Routing gate: on mount we ask the main process for current settings.
+ * If `onboardingComplete === true` → Dashboard (or AppSettings via
+ * nav-store). Otherwise → OnboardingPage wizard. Fails open to the
+ * wizard: any IPC error or preload-bridge absence routes to onboarding
+ * rather than hanging forever on a blank screen.
  *
- * Design notes:
- *   - Fails closed: any IPC error keeps the wizard showing. Better to
- *     force a fresh onboarding than to render Dashboard against a
- *     half-valid settings file.
- *   - No React Router yet — we have exactly two destinations. Adding
- *     routing infrastructure is Phase 2 work when deeper navigation
- *     (sessions, captures, reports) lands.
+ * Includes a local error boundary so a render crash shows the error
+ * rather than a white screen. The boundary is intentional — we want
+ * the user (and our dev tools) to see the stack trace the moment
+ * something throws.
  */
 export function App(): JSX.Element {
+  return (
+    <AppErrorBoundary>
+      <AppShell />
+    </AppErrorBoundary>
+  );
+}
+
+function AppShell(): JSX.Element {
   const [onboardedInSettings, setOnboardedInSettings] = useState<boolean | null>(null);
+  const [bootError, setBootError] = useState<string | null>(null);
   const completedInSession = useOnboardingStore((s) => s.completed);
+  const shellPage = useNavStore((s) => s.page);
 
   useEffect(() => {
     let cancelled = false;
-    window.evidexAPI.settings.get().then((result) => {
-      if (cancelled) return;
-      setOnboardedInSettings(result.ok ? result.data.onboardingComplete : false);
-    });
+    async function load(): Promise<void> {
+      try {
+        if (!window.evidexAPI?.settings?.get) {
+          throw new Error('preload bridge missing — window.evidexAPI.settings is undefined');
+        }
+        const result = await window.evidexAPI.settings.get();
+        if (cancelled) return;
+        setOnboardedInSettings(result.ok ? result.data.onboardingComplete : false);
+      } catch (err) {
+        if (cancelled) return;
+        setBootError(err instanceof Error ? err.message : String(err));
+        // Fail open: show onboarding so the app is usable.
+        setOnboardedInSettings(false);
+      }
+    }
+    void load();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const shellPage = useNavStore((s) => s.page);
-
   if (onboardedInSettings === null) {
-    // Tiny placeholder — real splash UX is out of scope.
-    return <div className="min-h-screen bg-surface-primary" />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface-primary">
+        <div className="text-sm text-text-secondary">Loading Vision-EviDex…</div>
+      </div>
+    );
   }
-  if (onboardedInSettings || completedInSession) {
-    return shellPage === 'settings' ? <AppSettingsPage /> : <DashboardPage />;
+
+  return (
+    <>
+      {bootError && (
+        <div
+          role="alert"
+          className="fixed top-2 left-1/2 -translate-x-1/2 z-50 max-w-xl text-xs text-accent-error bg-surface-primary border border-accent-error px-3 py-1.5 rounded-md"
+        >
+          Boot warning: {bootError}
+        </div>
+      )}
+      {onboardedInSettings || completedInSession ? (
+        shellPage === 'settings' ? <AppSettingsPage /> : <DashboardPage />
+      ) : (
+        <OnboardingPage />
+      )}
+    </>
+  );
+}
+
+interface BoundaryState {
+  error: Error | null;
+}
+
+class AppErrorBoundary extends Component<{ children: ReactNode }, BoundaryState> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { error: null };
   }
-  return <OnboardingPage />;
+  static getDerivedStateFromError(error: Error): BoundaryState {
+    return { error };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    // eslint-disable-next-line no-console
+    console.error('[AppErrorBoundary]', error, info);
+  }
+  override render(): ReactNode {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div className="min-h-screen bg-surface-primary p-6">
+        <div className="max-w-2xl mx-auto rounded-md border border-accent-error p-4">
+          <h1 className="text-lg font-semibold text-accent-error">Vision-EviDex failed to render</h1>
+          <p className="mt-2 text-sm text-text-primary">
+            {this.state.error.message}
+          </p>
+          <pre className="mt-3 text-xs text-text-secondary overflow-auto whitespace-pre-wrap">
+            {this.state.error.stack}
+          </pre>
+        </div>
+      </div>
+    );
+  }
 }

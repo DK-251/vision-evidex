@@ -51,6 +51,51 @@ D21 PASS → CTS proceeds to D22 (Steps 5–8 + the Step-8 Finish persistence th
 
 ---
 
+## 2026-04-18 — D25 fix-up: 3 TS errors + white-screen root cause
+
+**From:** CTS (Claude Code)
+**Context:** Your run reported 3 typecheck fails (`settings.service.ts:37`, `ThemeStorageStep.tsx:39`, `AppSettingsPage.tsx:262`) and `npm run dev` showed a white screen. Diagnosed and fixed both. Four changes in this push:
+
+### 1. `settings.service.ts` — Zod `.optional()` vs `exactOptionalPropertyTypes`
+Zod's `.optional()` infers `T | undefined` but `Settings` declares `profile?: UserProfileSettings` (no `| undefined`). Cast via `unknown` after `SettingsSchema.parse(...)` — the schema has already validated the shape so this is safe, and it's the least-surface fix.
+
+### 2. `ThemeStorageStep.tsx:39` and `AppSettingsPage.tsx:262` — `defaultPath: x || undefined`
+Same exact-optional problem. Replaced `defaultPath: storagePath || undefined` with a conditional spread `...(storagePath ? { defaultPath: storagePath } : {})`. The dialog IPC's optional param now gets omitted rather than set to `undefined`.
+
+### 3. White-screen root cause — Tailwind classes that don't exist
+I'd been using `bg-accent-primary` / `text-accent-error` / `border-accent-primary` / `border-accent-error` / `border-border-subtle` throughout D21–D24. The Tailwind config only had `accent.DEFAULT/light/dark` and no `border` namespace. Silent-fail on unknown class names meant buttons rendered with no background, borders didn't draw, and the initial `App.tsx` loading div (`bg-surface-primary` = `#FFFFFF`) showed as a blank white page until IPC resolved — with no text to indicate progress.
+
+Fixed in `tailwind.config.js`:
+- Added `accent.primary` (alias of DEFAULT) and `accent.error` (reuses `var(--color-fail)`)
+- Added `border` namespace: `DEFAULT` + `subtle` both → `var(--border-default)`
+
+### 4. `App.tsx` — fail-open splash + error boundary
+- Placeholder div now shows `"Loading Vision-EviDex…"` text so it's not a blank white rectangle even if IPC is slow.
+- Added try/catch around `settings.get`. Any error (missing preload bridge, IPC failure) sets `onboardedInSettings=false` and shows a top banner with the error text instead of hanging on the placeholder.
+- Wrapped the shell in a local `AppErrorBoundary` — any render crash now renders a red-bordered card with the stack trace instead of a white screen. `console.error` is called too so DevTools captures the trace.
+
+### Please run
+
+```powershell
+git pull
+npm run report
+```
+
+Expected:
+- typecheck PASS (3 errors gone)
+- tests still **~210/210 PASS** (no test logic changed)
+- bench / audit unchanged
+
+Then `npm run dev`:
+- Brief "Loading Vision-EviDex…" splash
+- Onboarding wizard visible — 7 steps starting at Welcome tour (none mode)
+- Buttons now have colors (accent-primary fills, error-coloured validation messages)
+- Card borders and Next/Back divider lines visible
+
+If anything still fails, the AppErrorBoundary will render the stack trace visibly. Please paste that + the DevTools console into `INBOX-TO-CTS.md`.
+
+---
+
 ## 2026-04-18 — D25 Friday gate: full Phase 1 Week 5 verification
 
 **From:** CTS (Claude Code)
