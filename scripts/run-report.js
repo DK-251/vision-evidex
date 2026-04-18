@@ -21,6 +21,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { execSync } = require('node:child_process');
+const { runBenchmark: runPbkdf2Benchmark, BUDGET_MS: PBKDF2_BUDGET_MS } = require('./benchmark-key-derivation');
 
 const ROOT = path.resolve(__dirname, '..');
 const REPORTS_DIR = path.join(ROOT, 'run-reports');
@@ -213,6 +214,22 @@ function runTests() {
   return { ok: exitOk && failed === 0, duration_ms, total, passed, failed, failures };
 }
 
+// ─── PBKDF2 benchmark (Risk R-07, non-gating) ───────────────────────────
+
+function runPbkdf2() {
+  const start = Date.now();
+  try {
+    const record = runPbkdf2Benchmark({ persist: true });
+    return { ok: true, duration_ms: Date.now() - start, record };
+  } catch (err) {
+    return {
+      ok: false,
+      duration_ms: Date.now() - start,
+      reason: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 // ─── Dependency audit (prod only) ───────────────────────────────────────
 //
 // Non-blocking visibility check. Records counts from `npm audit --omit=dev`
@@ -321,6 +338,15 @@ async function main() {
     }
   }
 
+  const pbkdf2 = runPbkdf2();
+  if (pbkdf2.ok && !pbkdf2.record.passed) {
+    nextActions.push(
+      `BENCH [pbkdf2] WARN — max ${pbkdf2.record.max_ms} ms exceeds ${PBKDF2_BUDGET_MS} ms budget (Risk R-07)`
+    );
+  } else if (!pbkdf2.ok) {
+    nextActions.push(`BENCH [pbkdf2] failed to run: ${pbkdf2.reason}`);
+  }
+
   const dependencyAudit = runDependencyAudit();
   if (dependencyAudit.ok && (dependencyAudit.counts.high > 0 || dependencyAudit.counts.critical > 0)) {
     nextActions.push(
@@ -343,6 +369,7 @@ async function main() {
     summary,
     features,
     prechecks,
+    pbkdf2,
     dependencyAudit,
     next_actions: nextActions.length > 0 ? nextActions : ['No failures — all modules SKIP (Phase 0 scaffold).'],
   };
@@ -412,6 +439,18 @@ async function main() {
     `|---|---|---|`,
     moduleRows,
     ``,
+    `## Benchmarks`,
+    ``,
+    ...(pbkdf2.ok
+      ? [
+          `| Benchmark | min | mean | max | budget | Status |`,
+          `|---|---|---|---|---|---|`,
+          `| PBKDF2 (310k iter, SHA-256) | ${pbkdf2.record.min_ms} ms | ${pbkdf2.record.mean_ms} ms | ${pbkdf2.record.max_ms} ms | ${PBKDF2_BUDGET_MS} ms | ${pbkdf2.record.passed ? 'PASS' : 'WARN'} |`,
+          ``,
+          `Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).`,
+        ]
+      : [`*PBKDF2 benchmark did not run: ${pbkdf2.reason}.*`]),
+    ``,
     `## Dependency audit (prod)`,
     ``,
     ...depAuditSection,
@@ -438,6 +477,7 @@ async function main() {
     tests: tests.ok
       ? { ok: true, total: tests.total, passed: tests.passed }
       : { ok: false, total: tests.total ?? 0, failed: tests.failed ?? 0 },
+    pbkdf2_max_ms: pbkdf2.ok ? pbkdf2.record.max_ms : null,
   }) + '\n';
   fs.appendFileSync(BENCHMARKS_FILE, benchLine);
 
@@ -450,8 +490,11 @@ async function main() {
   }
 
   console.log(`[run-report] wrote latest.json, latest.md, STATUS.md, benchmarks.jsonl`);
+  const pbkdf2Label = pbkdf2.ok
+    ? `pbkdf2=${pbkdf2.record.max_ms}ms/${PBKDF2_BUDGET_MS}ms`
+    : `pbkdf2=ERR`;
   console.log(
-    `[run-report] typecheck=${typecheck.ok ? 'PASS' : 'FAIL'}  tests=${tests.ok ? 'PASS' : 'FAIL'}  modules: PASS ${summary.pass}  FAIL ${summary.fail}  WARN ${summary.warn}  SKIP ${summary.skip}`
+    `[run-report] typecheck=${typecheck.ok ? 'PASS' : 'FAIL'}  tests=${tests.ok ? 'PASS' : 'FAIL'}  ${pbkdf2Label}  modules: PASS ${summary.pass}  FAIL ${summary.fail}  WARN ${summary.warn}  SKIP ${summary.skip}`
   );
   const gateFailed = summary.fail > 0 || !typecheck.ok || !tests.ok;
   process.exit(gateFailed ? 1 : 0);
