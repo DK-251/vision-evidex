@@ -10,6 +10,7 @@ import {
   PaintBrushRegular,
   CheckmarkCircleRegular,
 } from '@fluentui/react-icons';
+import type { FluentIconsProps } from '@fluentui/react-icons';
 import {
   useOnboardingStore,
   selectVisibleSteps,
@@ -37,7 +38,7 @@ import { pageBack, pageForward } from '../components/animations';
  * pageForward/pageBack transitions between steps via Framer Motion.
  */
 
-type FluentIcon = ComponentType<{ fontSize?: number; primaryFill?: string }>;
+type FluentIcon = ComponentType<FluentIconsProps>;
 
 const STEP_ICONS: Record<string, FluentIcon> = {
   licence:      KeyRegular,

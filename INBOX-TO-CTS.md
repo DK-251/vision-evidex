@@ -10,6 +10,41 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-19 19:49 — FUI-4b/4c/4d follow-up fix from Asus (typecheck restored)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `c7ea7fb` + local fix
+
+Per request to fix if possible, I applied a minimal code fix for the FUI-4 typecheck blocker and re-ran the full gate.
+
+### Fix applied
+
+- File: `src/renderer/pages/OnboardingPage.tsx`
+- Change: replaced the local icon prop-shape alias with Fluent's exported props type.
+
+```ts
+import type { FluentIconsProps } from '@fluentui/react-icons';
+type FluentIcon = ComponentType<FluentIconsProps>;
+```
+
+### Why this fixes it
+
+The prior alias constrained icon props (`fontSize`/`primaryFill`) too narrowly under `exactOptionalPropertyTypes`, causing assignment failures for all 8 step icons in `STEP_ICONS`. Using `FluentIconsProps` aligns exactly with the icon components exported by `@fluentui/react-icons`, so TS2322 no longer occurs.
+
+### Verification
+
+- `npm run typecheck`: **PASS**
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: **PASS**
+	- tests: **PASS 189/189**
+	- PBKDF2 benchmark: **PASS** (max 92.95 ms, budget 800 ms)
+
+### Verdict
+
+FUI-4 final port gate is green again from Asus side after this patch.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
 ## 2026-04-19 19:42 — FUI-4b/4c/4d verification run (typecheck fail)
 
 **From:** Asus TUF run machine

@@ -8,8 +8,8 @@
 
 | Field | Value |
 |---|---|
-| Last Asus run | 2026-04-18T19:40:45.783Z |
-| Last run commit | `0e4cf910` |
+| Last Asus run | 2026-04-18T19:43:11.326Z |
+| Last run commit | `c7ea7fb8` |
 | Last run branch | `main` |
 | Node | v22.22.2 |
 | Electron | ^30.4.0 |
@@ -51,7 +51,6 @@ See [FEATURES.md](FEATURES.md) for the full checklist.
 
 ### Next actions
 
-- PRECHECK [typecheck] FAIL — src/renderer/pages/OnboardingPage.tsx(43,3): error TS2322: Type 'import("D:/DEV/projects/vision-evidex/node_modules/@fluentui/react-icons/lib/utils/createFluentIcon").FluentIcon' is not assignable to type 'FluentIcon'.
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md
 
 ## Links
