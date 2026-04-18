@@ -1,6 +1,21 @@
 import { useEffect, useState } from 'react';
 import type { MetricsSummary, RecentProject } from '@shared/types/entities';
-import { Skeleton } from '../components/Skeleton';
+import {
+  CameraRegular,
+  AddRegular,
+  ArrowUploadRegular,
+  DocumentTextRegular,
+  FolderRegular,
+  SparkleRegular,
+} from '@fluentui/react-icons';
+import { Button, Card, FluentSkeleton } from '../components/ui';
+
+/**
+ * S-03 — Dashboard. Port of the D25 page to doc §15 S-03.
+ * Three zones: metric cards, quick actions, recent projects.
+ * Session-active side card is gated on real SessionService which lands
+ * in Phase 2 Wk7 — omitted here rather than rendered as a stub.
+ */
 
 export function DashboardPage(): JSX.Element {
   const [summary, setSummary] = useState<MetricsSummary | null>(null);
@@ -33,83 +48,97 @@ export function DashboardPage(): JSX.Element {
   }, []);
 
   return (
-    <div className="shell-content-column" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
-      <header className="flex items-baseline justify-between">
+    <div
+      className="shell-content-column"
+      style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}
+    >
+      <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
         <div>
-          <h1 className="text-2xl font-semibold text-text-primary">Dashboard</h1>
-          <p className="text-sm text-text-secondary">Vision-EviDex overview</p>
+          <h1
+            style={{
+              fontFamily:   'var(--font-family-display)',
+              fontSize:     'var(--type-title-size)',
+              fontWeight:   'var(--type-title-weight)',
+              lineHeight:   'var(--type-title-height)',
+              color:        'var(--color-text-primary)',
+              margin:       0,
+            }}
+          >
+            Dashboard
+          </h1>
+          <p
+            style={{
+              fontSize: 'var(--type-body-size)',
+              color:    'var(--color-text-secondary)',
+              margin:   'var(--space-1) 0 0',
+            }}
+          >
+            Vision-EviDex overview
+          </p>
         </div>
-        <span className="text-xs text-text-secondary font-mono">No session active</span>
+        <span
+          className="mono"
+          style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)' }}
+        >
+          No session active
+        </span>
       </header>
 
-        {error && (
-          <div
-            role="alert"
-            className="rounded-md border border-accent-error p-3 text-sm text-accent-error"
-          >
-            Failed to load dashboard: {error}
-          </div>
-        )}
-
-        <section
-          aria-label="Key metrics"
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+      {error && (
+        <div
+          role="alert"
+          style={{
+            border:       '1px solid var(--color-text-danger)',
+            borderRadius: 'var(--radius-card)',
+            padding:      'var(--space-3) var(--space-4)',
+            color:        'var(--color-text-danger)',
+            fontSize:     'var(--type-body-size)',
+          }}
         >
-          {summary === null ? (
-            <>
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-            </>
-          ) : (
-            <>
-              <MetricCard label="Active projects" value={summary.activeProjects} />
-              <MetricCard label="Sessions today" value={summary.sessionsToday} />
-              <MetricCard label="Captures this week" value={summary.capturesThisWeek} />
-              <MetricCard label="Exports this week" value={summary.exportsThisWeek} />
-            </>
-          )}
-        </section>
+          Failed to load dashboard: {error}
+        </div>
+      )}
 
-        <section aria-label="Quick links" className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <QuickLink label="Create project" hint="Start a new .evidex" />
-          <QuickLink label="Open project" hint="Browse existing files" />
-          <QuickLink label="Import metrics" hint="Load an XLSX into a project" />
-          <QuickLink label="Replay tour" hint="Re-run the 3-screen intro" />
-        </section>
+      <section
+        aria-label="Key metrics"
+        style={{
+          display:            'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap:                'var(--space-3)',
+        }}
+      >
+        {summary === null ? (
+          <>
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+          </>
+        ) : (
+          <>
+            <MetricCard label="Active projects"     value={summary.activeProjects} />
+            <MetricCard label="Sessions today"      value={summary.sessionsToday} />
+            <MetricCard label="Captures this week"  value={summary.capturesThisWeek} />
+            <MetricCard label="Exports this week"   value={summary.exportsThisWeek} />
+          </>
+        )}
+      </section>
 
-        <section aria-label="Recent projects" className="space-y-2">
-          <h2 className="text-sm font-semibold text-text-primary">Recent projects</h2>
-          {recent === null ? (
-            <div className="space-y-2">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : recent.length === 0 ? (
-            <div className="rounded-md border border-dashed border-border-subtle p-6 text-center">
-              <p className="text-text-primary">No projects yet.</p>
-              <p className="text-sm text-text-secondary mt-1">
-                Create your first project to start capturing evidence.
-              </p>
-            </div>
-          ) : (
-            <ul className="divide-y divide-border-subtle border border-border-subtle rounded-md">
-              {recent.map((p) => (
-                <li key={p.projectId} className="p-3 flex items-center justify-between">
-                  <div>
-                    <div className="text-text-primary">{p.name}</div>
-                    <div className="text-xs font-mono text-text-secondary">{p.filePath}</div>
-                  </div>
-                  <time className="text-xs text-text-secondary" dateTime={p.lastOpenedAt}>
-                    {p.lastOpenedAt.slice(0, 10)}
-                  </time>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+      <section
+        aria-label="Quick actions"
+        style={{
+          display:             'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap:                 'var(--space-2)',
+        }}
+      >
+        <Button variant="standard" startIcon={<CameraRegular />}       style={{ justifyContent: 'flex-start' }}>New session</Button>
+        <Button variant="standard" startIcon={<AddRegular />}          style={{ justifyContent: 'flex-start' }}>New project</Button>
+        <Button variant="standard" startIcon={<ArrowUploadRegular />}  style={{ justifyContent: 'flex-start' }}>Import metrics</Button>
+        <Button variant="standard" startIcon={<DocumentTextRegular />} style={{ justifyContent: 'flex-start' }}>Recent reports</Button>
+      </section>
+
+      <RecentProjectsSection recent={recent} />
     </div>
   );
 }
@@ -117,11 +146,34 @@ export function DashboardPage(): JSX.Element {
 function MetricCard({ label, value }: { label: string; value: number }): JSX.Element {
   return (
     <div
-      className="p-4 rounded-lg"
-      style={{ boxShadow: 'var(--shadow-neumorphic-out)' }}
+      style={{
+        background:    'var(--color-fill-subtle)',
+        borderRadius:  'var(--radius-card)',
+        padding:       'var(--space-4)',
+      }}
     >
-      <div className="text-xs uppercase tracking-wide text-text-secondary">{label}</div>
-      <div className="mt-1 text-2xl font-semibold text-text-primary">{value}</div>
+      <div
+        style={{
+          fontSize:    'var(--type-caption-size)',
+          color:       'var(--color-text-secondary)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.04em',
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontFamily:  'var(--font-family-display)',
+          fontSize:    'var(--type-title-size)',
+          fontWeight:  'var(--type-title-weight)',
+          lineHeight:  'var(--type-title-height)',
+          color:       'var(--color-text-primary)',
+          marginTop:   'var(--space-1)',
+        }}
+      >
+        {value}
+      </div>
     </div>
   );
 }
@@ -129,23 +181,147 @@ function MetricCard({ label, value }: { label: string; value: number }): JSX.Ele
 function MetricCardSkeleton(): JSX.Element {
   return (
     <div
-      className="p-4 rounded-lg space-y-2"
-      style={{ boxShadow: 'var(--shadow-neumorphic-out)' }}
+      style={{
+        background:   'var(--color-fill-subtle)',
+        borderRadius: 'var(--radius-card)',
+        padding:      'var(--space-4)',
+      }}
     >
-      <Skeleton className="h-3 w-20" />
-      <Skeleton className="h-7 w-10" />
+      <FluentSkeleton height={12} width={96} />
+      <div style={{ marginTop: 'var(--space-2)' }}>
+        <FluentSkeleton height={28} width={56} />
+      </div>
     </div>
   );
 }
 
-function QuickLink({ label, hint }: { label: string; hint: string }): JSX.Element {
+function RecentProjectsSection({ recent }: { recent: RecentProject[] | null }): JSX.Element {
   return (
-    <button
-      type="button"
-      className="p-3 rounded-md border border-border-subtle text-left hover:border-accent-primary"
+    <Card variant="default">
+      <div
+        style={{
+          display:        'flex',
+          alignItems:     'center',
+          justifyContent: 'space-between',
+          marginBottom:   'var(--space-3)',
+        }}
+      >
+        <h2
+          style={{
+            fontSize:   'var(--type-body-strong-size)',
+            fontWeight: 'var(--type-body-strong-weight)',
+            color:      'var(--color-text-primary)',
+            margin:     0,
+          }}
+        >
+          Recent projects
+        </h2>
+        <a
+          href="#view-all"
+          onClick={(e) => e.preventDefault()}
+          style={{
+            fontSize:       'var(--type-caption-size)',
+            color:          'var(--color-accent-default)',
+            textDecoration: 'none',
+          }}
+        >
+          View all
+        </a>
+      </div>
+
+      {recent === null ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+          <FluentSkeleton height={48} />
+          <FluentSkeleton height={48} />
+          <FluentSkeleton height={48} />
+        </div>
+      ) : recent.length === 0 ? (
+        <EmptyProjectsState />
+      ) : (
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+          {recent.map((p) => (
+            <li key={p.projectId} className="recent-project-row">
+              <span style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }} aria-hidden>
+                <FolderRegular fontSize={16} />
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize:     'var(--type-body-size)',
+                    color:        'var(--color-text-primary)',
+                    overflow:     'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace:   'nowrap',
+                  }}
+                >
+                  {p.name}
+                </div>
+                <div
+                  className="mono"
+                  style={{
+                    fontSize:     'var(--type-caption-size)',
+                    color:        'var(--color-text-secondary)',
+                    overflow:     'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace:   'nowrap',
+                  }}
+                >
+                  {p.filePath}
+                </div>
+              </div>
+              <time
+                dateTime={p.lastOpenedAt}
+                style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-tertiary)' }}
+              >
+                {p.lastOpenedAt.slice(0, 10)}
+              </time>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+function EmptyProjectsState(): JSX.Element {
+  return (
+    <div
+      style={{
+        textAlign:       'center',
+        padding:         'var(--space-12) var(--space-4)',
+        display:         'flex',
+        flexDirection:   'column',
+        alignItems:      'center',
+        gap:             'var(--space-3)',
+      }}
     >
-      <div className="text-text-primary">{label}</div>
-      <div className="text-xs text-text-secondary mt-0.5">{hint}</div>
-    </button>
+      <span style={{ color: 'var(--color-text-tertiary)' }} aria-hidden>
+        <SparkleRegular fontSize={48} />
+      </span>
+      <div>
+        <div
+          style={{
+            fontSize:   'var(--type-subtitle-size)',
+            fontWeight: 'var(--type-subtitle-weight)',
+            lineHeight: 'var(--type-subtitle-height)',
+            color:      'var(--color-text-primary)',
+          }}
+        >
+          Welcome to Vision-EviDex
+        </div>
+        <div
+          style={{
+            fontSize:  'var(--type-body-size)',
+            color:     'var(--color-text-secondary)',
+            marginTop: 'var(--space-1)',
+          }}
+        >
+          Create your first project to start capturing evidence.
+        </div>
+      </div>
+      <Button variant="accent" startIcon={<AddRegular />}>
+        Create project
+      </Button>
+    </div>
   );
 }

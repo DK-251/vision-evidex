@@ -361,6 +361,189 @@
 
 /* ── ProgressBar + ProgressRing: styles live in loading.css ──────── */
 
+/* ── Dashboard recent-projects list row (§15 S-03) ───────────────── */
+
+.recent-project-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 48px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  transition: background var(--duration-ultra-fast) var(--easing-standard);
+}
+.recent-project-row:hover { background: var(--color-fill-secondary); }
+
+/* ── Onboarding step indicator (§15 S-02) ────────────────────────── */
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.step-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-circle);
+  border: 1px solid var(--color-stroke-default);
+  background: transparent;
+  transition:
+    background   var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    transform    var(--duration-fast) var(--easing-standard);
+  flex-shrink: 0;
+}
+.step-dot.done {
+  background: var(--color-accent-default);
+  border-color: var(--color-accent-default);
+}
+.step-dot.current {
+  background: var(--color-accent-default);
+  border-color: var(--color-accent-default);
+  box-shadow: 0 0 0 2px var(--color-layer-0), 0 0 0 3px var(--color-accent-default);
+}
+.step-connector {
+  width: var(--space-4);
+  height: 1px;
+  background: var(--color-stroke-divider);
+  flex-shrink: 0;
+}
+
+/* ── Pivot tabs (§15 S-23 — pill-style, not underline) ──────────── */
+
+.pivot-tabs {
+  display: inline-flex;
+  gap: var(--space-1);
+  padding: 3px;
+  background: var(--color-fill-secondary);
+  border-radius: var(--radius-control);
+}
+.pivot-tab {
+  height: 30px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-weight);
+  cursor: pointer;
+  transition: background var(--duration-ultra-fast) var(--easing-standard),
+              box-shadow var(--duration-ultra-fast) var(--easing-standard);
+}
+.pivot-tab:hover { background: var(--color-fill-tertiary); }
+.pivot-tab.active {
+  background: var(--color-layer-1);
+  box-shadow: var(--shadow-card);
+  font-weight: var(--type-body-strong-weight);
+}
+
+/* ── Setting rows (§15 S-23) ─────────────────────────────────────── */
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 44px;
+  padding: var(--space-2) 0;
+}
+.setting-row-label {
+  font-size: var(--type-body-size);
+  color: var(--color-text-primary);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.setting-row-control {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 240px;
+  justify-content: flex-end;
+}
+.setting-group-label {
+  font-size: var(--type-caption-size);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: var(--space-3) 0 var(--space-1);
+}
+
+/* ── Avatar (§15 S-23 Profile) ───────────────────────────────────── */
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-circle);
+  background: var(--color-fill-accent-subtle);
+  color: var(--color-accent-default);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--type-body-strong-size);
+  font-weight: var(--type-body-strong-weight);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+/* ── Segmented control (§15 S-23 Appearance theme) ───────────────── */
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--color-stroke-default);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+  background: var(--color-fill-secondary);
+}
+.segmented-option {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  font-size: var(--type-body-size);
+  padding: 0 var(--space-3);
+  height: 30px;
+  cursor: pointer;
+  border-right: 1px solid var(--color-stroke-default);
+  transition: background var(--duration-ultra-fast) var(--easing-standard);
+}
+.segmented-option:last-child { border-right: 0; }
+.segmented-option:hover { background: var(--color-fill-tertiary); }
+.segmented-option.active {
+  background: var(--color-accent-default);
+  color: var(--color-text-on-accent);
+  font-weight: var(--type-body-strong-weight);
+}
+
+/* ── Key chip (§15 S-23 Hotkeys + §2 Onboarding Step 6) ──────────── */
+
+.key-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  height: 28px;
+  padding: 0 var(--space-2);
+  background: var(--color-fill-secondary);
+  border: 1px solid var(--color-stroke-default);
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: var(--type-caption-size);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background var(--duration-ultra-fast) var(--easing-standard),
+              border-color var(--duration-ultra-fast) var(--easing-standard);
+}
+.key-chip:hover { background: var(--color-fill-tertiary); }
+.key-chip.conflict {
+  background: var(--color-status-fail-bg);
+  border-color: var(--color-status-fail);
+  color: var(--color-status-fail);
+}
+
 /* ── Shell layout — title bar + sidebar + content (§4.5, §5.6, §8.1) */
 
 .shell-root {

@@ -8,15 +8,26 @@ import type {
 import type { SettingsUpdateInput } from '@shared/schemas';
 import { BUILTIN_TEMPLATES } from '../onboarding/DefaultTemplateStep';
 import { DEFAULT_HOTKEYS, HOTKEY_ACTIONS, detectHotkeyConflicts, formatKeyEvent } from '../onboarding/hotkey-utils';
-import { Skeleton } from '../components/Skeleton';
+import {
+  Button,
+  Card,
+  CardDivider,
+  Input,
+  FluentSkeleton,
+} from '../components/ui';
+
+/**
+ * S-23 — App Settings with 6 tabs, ported to doc §15. Tab strip is the
+ * Fluent pivot pill style, not underline. Content card max-width 640px.
+ */
 
 const TABS = [
-  { id: 'profile', label: 'Profile' },
-  { id: 'hotkeys', label: 'Hotkeys' },
+  { id: 'profile',    label: 'Profile' },
+  { id: 'hotkeys',    label: 'Hotkeys' },
   { id: 'appearance', label: 'Appearance' },
-  { id: 'storage', label: 'Storage' },
-  { id: 'defaults', label: 'Defaults' },
-  { id: 'licence', label: 'Licence' },
+  { id: 'storage',    label: 'Storage' },
+  { id: 'defaults',   label: 'Defaults' },
+  { id: 'licence',    label: 'Licence' },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -60,118 +71,124 @@ export function AppSettingsPage(): JSX.Element {
 
   if (settings === null) {
     return (
-      <div className="shell-content-column space-y-6">
-        <Skeleton className="h-7 w-40" />
-        <div className="flex gap-2 border-b border-border-subtle pb-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-6 w-20" />
-          ))}
-        </div>
-        <div className="space-y-3">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-10 w-full max-w-md" />
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-10 w-full max-w-md" />
-        </div>
+      <div className="shell-content-column" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+        <FluentSkeleton height={36} width={160} />
+        <FluentSkeleton height={36} width={320} />
+        <FluentSkeleton height={240} borderRadius="var(--radius-card)" />
       </div>
     );
   }
 
   return (
-    <div className="shell-content-column">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-text-primary">Settings</h1>
+    <div className="shell-content-column" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+      <h1
+        style={{
+          fontFamily: 'var(--font-family-display)',
+          fontSize:   'var(--type-title-size)',
+          fontWeight: 'var(--type-title-weight)',
+          lineHeight: 'var(--type-title-height)',
+          color:      'var(--color-text-primary)',
+          margin:     0,
+        }}
+      >
+        Settings
+      </h1>
+
+      <div role="tablist" className="pivot-tabs">
+        {TABS.map((t) => {
+          const label = t.id === 'licence' && mode === 'none' ? 'About' : t.label;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === t.id}
+              className={`pivot-tab ${activeTab === t.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(t.id)}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
-        <div className="flex gap-1 border-b border-border-subtle">
-          {TABS.map((t) => {
-            const label = t.id === 'licence' && mode === 'none' ? 'About' : t.label;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setActiveTab(t.id)}
-                className={`px-4 py-2 text-sm ${
-                  activeTab === t.id
-                    ? 'text-text-primary border-b-2 border-accent-primary -mb-px'
-                    : 'text-text-secondary'
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
+      {error && (
+        <div
+          role="alert"
+          style={{
+            border:       '1px solid var(--color-text-danger)',
+            borderRadius: 'var(--radius-card)',
+            padding:      'var(--space-3) var(--space-4)',
+            color:        'var(--color-text-danger)',
+            fontSize:     'var(--type-body-size)',
+          }}
+        >
+          {error}
         </div>
+      )}
 
-        {error && (
-          <div
-            role="alert"
-            className="mt-4 rounded-md border border-accent-error p-3 text-sm text-accent-error"
-          >
-            {error}
-          </div>
-        )}
-
-        <div className="mt-6">
-          {activeTab === 'profile' && <ProfileTab settings={settings} patch={patch} />}
-          {activeTab === 'hotkeys' && <HotkeysTab settings={settings} patch={patch} />}
-          {activeTab === 'appearance' && <AppearanceTab settings={settings} patch={patch} />}
-          {activeTab === 'storage' && <StorageTab settings={settings} patch={patch} />}
-          {activeTab === 'defaults' && <DefaultsTab settings={settings} patch={patch} />}
-          {activeTab === 'licence' && <LicenceTab mode={mode} />}
-        </div>
+      <Card variant="default" style={{ maxWidth: 640, width: '100%' }}>
+        {activeTab === 'profile'    && <ProfileTab    settings={settings} patch={patch} />}
+        {activeTab === 'hotkeys'    && <HotkeysTab    settings={settings} patch={patch} />}
+        {activeTab === 'appearance' && <AppearanceTab settings={settings} patch={patch} />}
+        {activeTab === 'storage'    && <StorageTab    settings={settings} patch={patch} />}
+        {activeTab === 'defaults'   && <DefaultsTab   settings={settings} patch={patch} />}
+        {activeTab === 'licence'    && <LicenceTab    mode={mode} />}
+      </Card>
     </div>
   );
 }
 
 type TabProps = { settings: Settings; patch: (u: SettingsUpdateInput) => Promise<void> };
 
+/* ── Profile tab ──────────────────────────────────────────────────── */
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
+}
+
 function ProfileTab({ settings, patch }: TabProps): JSX.Element {
   const profile = settings.profile ?? { name: '', role: '' };
   function onChange(field: keyof UserProfileSettings, value: string): void {
     const next: UserProfileSettings = { ...profile, [field]: value };
-    // Strip empty optional fields so SettingsSchema stays clean.
-    if (next.team === '') delete next.team;
+    if (next.team === '')  delete next.team;
     if (next.email === '') delete next.email;
     void patch({ profile: next });
   }
   return (
-    <div className="space-y-3 text-sm max-w-md">
-      <Field label="Full name">
-        <input
-          type="text"
-          value={profile.name}
-          onChange={(e) => onChange('name', e.target.value)}
-          className="w-full rounded-md border border-border-subtle px-3 py-2 text-text-primary"
-        />
-      </Field>
-      <Field label="Role">
-        <input
-          type="text"
-          value={profile.role}
-          onChange={(e) => onChange('role', e.target.value)}
-          className="w-full rounded-md border border-border-subtle px-3 py-2 text-text-primary"
-        />
-      </Field>
-      <Field label="Team">
-        <input
-          type="text"
-          value={profile.team ?? ''}
-          onChange={(e) => onChange('team', e.target.value)}
-          className="w-full rounded-md border border-border-subtle px-3 py-2 text-text-primary"
-        />
-      </Field>
-      <Field label="Email">
-        <input
-          type="email"
-          value={profile.email ?? ''}
-          onChange={(e) => onChange('email', e.target.value)}
-          className="w-full rounded-md border border-border-subtle px-3 py-2 text-text-primary"
-        />
-      </Field>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+        <span className="avatar" aria-hidden>{initialsOf(profile.name)}</span>
+        <div>
+          <div style={{ fontSize: 'var(--type-body-strong-size)', fontWeight: 'var(--type-body-strong-weight)', color: 'var(--color-text-primary)' }}>
+            {profile.name || 'Your name'}
+          </div>
+          <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)' }}>
+            {profile.role || '—'}
+          </div>
+        </div>
+      </div>
+      <CardDivider />
+      <SettingRow label="Full name">
+        <Input value={profile.name} onChange={(e) => onChange('name', e.target.value)} style={{ width: 240 }} />
+      </SettingRow>
+      <SettingRow label="Role">
+        <Input value={profile.role} onChange={(e) => onChange('role', e.target.value)} style={{ width: 240 }} />
+      </SettingRow>
+      <SettingRow label="Team">
+        <Input value={profile.team ?? ''} onChange={(e) => onChange('team', e.target.value)} style={{ width: 240 }} />
+      </SettingRow>
+      <SettingRow label="Email">
+        <Input type="email" value={profile.email ?? ''} onChange={(e) => onChange('email', e.target.value)} style={{ width: 240 }} />
+      </SettingRow>
     </div>
   );
 }
+
+/* ── Hotkeys tab ──────────────────────────────────────────────────── */
 
 function HotkeysTab({ settings, patch }: TabProps): JSX.Element {
   const hotkeys = settings.hotkeys ?? { ...DEFAULT_HOTKEYS };
@@ -188,66 +205,67 @@ function HotkeysTab({ settings, patch }: TabProps): JSX.Element {
   }
 
   return (
-    <div className="space-y-2 text-sm">
+    <div>
+      <div className="setting-group-label">Capture + session</div>
       {HOTKEY_ACTIONS.map((a) => (
-        <div
+        <SettingRow
           key={a.id}
-          className={`flex items-center justify-between p-2 rounded-md border ${
-            conflicts.has(a.id) ? 'border-accent-error' : 'border-border-subtle'
-          }`}
+          label={a.label}
+          hint={a.description}
         >
-          <div>
-            <div className="text-text-primary">{a.label}</div>
-            <div className="text-xs text-text-secondary">{a.description}</div>
-          </div>
           <button
             type="button"
+            className={`key-chip ${conflicts.has(a.id) ? 'conflict' : ''}`}
             onClick={() => remap(a.id)}
-            className="font-mono text-text-primary px-3 py-1 rounded-md border border-border-subtle"
           >
             {hotkeys[a.id] ?? '(unset)'}
           </button>
-        </div>
+        </SettingRow>
       ))}
       {conflicts.size > 0 && (
-        <p className="text-xs text-accent-error" role="alert">
+        <div
+          role="alert"
+          style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-status-fail)', marginTop: 'var(--space-2)' }}
+        >
           Duplicate binding — each shortcut must be unique.
-        </p>
+        </div>
       )}
     </div>
   );
 }
 
+/* ── Appearance tab ───────────────────────────────────────────────── */
+
 function AppearanceTab({ settings, patch }: TabProps): JSX.Element {
+  const theme: ThemePreference = settings.theme;
   return (
-    <div className="space-y-3 text-sm">
-      <Field label="Theme">
-        <div className="flex gap-2">
-          {(['light', 'dark', 'system'] as ThemePreference[]).map((t) => (
-            <label
+    <div>
+      <SettingRow label="Theme" hint="Change when the app follows Windows (System) or a fixed appearance">
+        <div role="radiogroup" aria-label="Theme" className="segmented">
+          {(['light', 'system', 'dark'] as ThemePreference[]).map((t) => (
+            <button
               key={t}
-              className={`px-3 py-1.5 rounded-md border capitalize cursor-pointer ${
-                settings.theme === t
-                  ? 'border-accent-primary text-text-primary'
-                  : 'border-border-subtle text-text-secondary'
-              }`}
+              type="button"
+              role="radio"
+              aria-checked={theme === t}
+              className={`segmented-option ${theme === t ? 'active' : ''}`}
+              onClick={() => void patch({ theme: t })}
+              style={{ textTransform: 'capitalize' }}
             >
-              <input
-                type="radio"
-                name="app-theme"
-                value={t}
-                checked={settings.theme === t}
-                onChange={() => void patch({ theme: t })}
-                className="sr-only"
-              />
               {t}
-            </label>
+            </button>
           ))}
         </div>
-      </Field>
+      </SettingRow>
+      <CardDivider />
+      <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)' }}>
+        Theme changes take effect on next app launch until a settings-updated broadcast lands (FUI-5+). Restart the app after switching.
+      </div>
     </div>
   );
 }
+
+/* ── Storage tab ──────────────────────────────────────────────────── */
 
 function StorageTab({ settings, patch }: TabProps): JSX.Element {
   async function pickFolder(): Promise<void> {
@@ -260,95 +278,130 @@ function StorageTab({ settings, patch }: TabProps): JSX.Element {
     }
   }
   return (
-    <Field label="Default storage folder">
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={settings.defaultStoragePath}
-          readOnly
-          placeholder="Pick a folder…"
-          className="flex-1 rounded-md border border-border-subtle px-3 py-2 font-mono text-text-primary"
-        />
-        <button
-          type="button"
-          onClick={pickFolder}
-          className="px-3 py-2 rounded-md border border-border-subtle"
-        >
-          Browse…
-        </button>
-      </div>
-    </Field>
-  );
-}
-
-function DefaultsTab({ settings, patch }: TabProps): JSX.Element {
-  return (
-    <div className="space-y-2">
-      <p className="text-sm text-text-secondary">Default report template for new projects</p>
-      {BUILTIN_TEMPLATES.map((t) => (
-        <label
-          key={t.id}
-          className={`block p-3 rounded-md cursor-pointer border ${
-            settings.defaultTemplateId === t.id ? 'border-accent-primary' : 'border-border-subtle'
-          }`}
-        >
-          <div className="flex items-start gap-3">
-            <input
-              type="radio"
-              name="default-template"
-              value={t.id}
-              checked={settings.defaultTemplateId === t.id}
-              onChange={() => void patch({ defaultTemplateId: t.id })}
-              className="mt-1"
-            />
-            <div>
-              <div className="font-medium text-text-primary">{t.name}</div>
-              <div className="text-xs text-text-secondary mt-0.5">{t.description}</div>
-            </div>
-          </div>
-        </label>
-      ))}
+    <div>
+      <SettingRow
+        label="Default storage folder"
+        hint="Where new .evidex projects are saved unless overridden per project"
+      >
+        <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', minWidth: 0 }}>
+          <Input
+            type="text"
+            value={settings.defaultStoragePath}
+            readOnly
+            placeholder="Pick a folder…"
+            className="mono"
+            style={{ width: 260 }}
+          />
+          <Button variant="standard" size="compact" onClick={pickFolder}>Browse…</Button>
+        </div>
+      </SettingRow>
     </div>
   );
 }
+
+/* ── Defaults tab ─────────────────────────────────────────────────── */
+
+function DefaultsTab({ settings, patch }: TabProps): JSX.Element {
+  return (
+    <div>
+      <div className="setting-group-label">Default report template</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+        {BUILTIN_TEMPLATES.map((t) => {
+          const selected = settings.defaultTemplateId === t.id;
+          return (
+            <label
+              key={t.id}
+              style={{
+                display:      'flex',
+                alignItems:   'flex-start',
+                gap:          'var(--space-3)',
+                padding:      'var(--space-3)',
+                border:       `1px solid ${selected ? 'var(--color-accent-default)' : 'var(--color-stroke-default)'}`,
+                borderRadius: 'var(--radius-card)',
+                cursor:       'pointer',
+              }}
+            >
+              <input
+                type="radio"
+                name="default-template"
+                value={t.id}
+                checked={selected}
+                onChange={() => void patch({ defaultTemplateId: t.id })}
+                style={{ marginTop: 2 }}
+              />
+              <div>
+                <div style={{ fontSize: 'var(--type-body-size)', fontWeight: 'var(--type-body-strong-weight)', color: 'var(--color-text-primary)' }}>
+                  {t.name}
+                </div>
+                <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)', marginTop: 2 }}>
+                  {t.description}
+                </div>
+              </div>
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Licence / About tab ──────────────────────────────────────────── */
 
 function LicenceTab({ mode }: { mode: LicenceMode }): JSX.Element {
   if (mode === 'none') {
     return (
-      <div className="space-y-2 text-sm">
-        <dl className="space-y-1">
-          <Row label="Licence Mode" value="Enterprise (No-licence)" />
-          <Row label="Enterprise ID" value="(not set)" />
-        </dl>
-        <p className="text-xs text-text-secondary">
+      <div>
+        <SettingRow label="Licence mode">
+          <span className="status-badge pass" style={{ background: 'var(--color-fill-accent-subtle)', color: 'var(--color-accent-default)' }}>
+            Enterprise (No-licence)
+          </span>
+        </SettingRow>
+        <SettingRow label="Enterprise ID">
+          <span className="mono" style={{ color: 'var(--color-text-secondary)' }}>(not set)</span>
+        </SettingRow>
+        <CardDivider />
+        <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)' }}>
           This build does not require a Keygen.sh activation. All licence checks short-circuit to valid.
-        </p>
+        </div>
       </div>
     );
   }
   return (
-    <div className="space-y-2 text-sm">
-      <dl className="space-y-1">
-        <Row label="Licence Mode" value="Standard (Keygen.sh)" />
-      </dl>
+    <div>
+      <SettingRow label="Licence mode">
+        <span>Standard (Keygen.sh)</span>
+      </SettingRow>
+      <SettingRow label="Status">
+        <span style={{ color: 'var(--color-text-secondary)' }}>
+          see dashboard — deactivate UI lands in a later phase
+        </span>
+      </SettingRow>
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }): JSX.Element {
-  return (
-    <div className="flex justify-between border-b border-border-subtle py-1">
-      <dt className="text-text-secondary">{label}</dt>
-      <dd className="text-text-primary font-mono">{value}</dd>
-    </div>
-  );
-}
+/* ── Helper ───────────────────────────────────────────────────────── */
 
-function Field({ label, children }: { label: string; children: React.ReactNode }): JSX.Element {
+function SettingRow({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}): JSX.Element {
   return (
-    <label className="block">
-      <span className="text-text-secondary">{label}</span>
-      <div className="mt-1">{children}</div>
-    </label>
+    <div className="setting-row">
+      <div className="setting-row-label">
+        <div>{label}</div>
+        {hint && (
+          <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)', marginTop: 2 }}>
+            {hint}
+          </div>
+        )}
+      </div>
+      <div className="setting-row-control">{children}</div>
+    </div>
   );
 }

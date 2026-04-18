@@ -14,6 +14,91 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-19 — FUI-4b + 4c + 4d: D25 screens ported to doc §15
+
+**From:** CTS (Claude Code)
+**Why:** Final FUI-4 push. All three existing D25 screens now render under the Fluent design system per doc §15 specs (S-02, S-03, S-23). After this, the user-visible surface area matches the design doc end-to-end. FUI-5 is the mechanical cleanup of the `DEPRECATED` alias layer.
+
+### FUI-4b — DashboardPage → S-03
+
+- Header title uses `type-title` (28/600) + display font; subtitle uses `type-body secondary`; right side shows "No session active" in caption mono until SessionService lands in Phase 2.
+- 4 metric cards redesigned: `--color-fill-subtle` tile, `--radius-card`, no border, no shadow. Label = caption + uppercase + tracking; value = `type-title` in display font.
+- Quick-action row replaces the old 4 custom buttons with 4 Fluent `Button` primitives (`variant="standard"`) + leading 20px Fluent icons: `CameraRegular` (New session), `AddRegular` (New project), `ArrowUploadRegular` (Import metrics), `DocumentTextRegular` (Recent reports). Auto-fit grid.
+- Recent projects is now a `Card` with a flex header row ("Recent projects" in `type-body-strong` + "View all" link in accent caption), 48px rows with `FolderRegular` 16px icon + project name + mono path + timestamp tertiary. New `.recent-project-row` CSS class gives the fill-secondary hover.
+- Empty state: centred card interior with `SparkleRegular` 48px tertiary, subtitle "Welcome to Vision-EviDex", body copy, accent "Create project" button with `AddRegular`.
+- Metric skeletons redesigned to match the new tile layout.
+
+### FUI-4c — AppSettingsPage → S-23
+
+- Title "Settings" (title role, display font).
+- **Pivot pill tabs** — new `.pivot-tabs` + `.pivot-tab` CSS. 32px strip in `--color-fill-secondary`, active tab gets `--color-layer-1` + `shadow-card` + body-strong weight. Exactly the Fluent WinUI 3 pivot look, not underline.
+- All six tabs inside a single `<Card>` max-width 640px. Each setting rendered as a `SettingRow` (new helper inside the file) — 44px flex, label left + optional hint caption, control right.
+- **Profile tab**: avatar circle (new `.avatar` class — 44px, `--color-fill-accent-subtle` bg, `--color-accent-default` text, initials via `initialsOf()`) + name/role readout above the Name / Role / Team / Email inputs. Empty-profile initials fall back to "?".
+- **Hotkeys tab**: each action row uses the new `.key-chip` class (mono, fill-secondary, 56px min-width) with remap click handler intact. Conflict rows get `.key-chip.conflict` (fail colours).
+- **Appearance tab**: 3-option **segmented control** (light / system / dark) using new `.segmented` + `.segmented-option.active` CSS. Selected segment takes `--color-accent-default` fill with white text. Hint below explains theme changes take effect on next launch until a settings-updated broadcast is wired in FUI-5+.
+- **Storage tab**: kept single `defaultStoragePath` (schema has one path today; doc mentions two but that's future). Path input in mono + "Browse…" compact standard button.
+- **Defaults tab**: template radio rows restyled with proper border colours (accent when selected) + caption body typography.
+- **Licence / About tab**: mode-aware. `none` mode shows Enterprise badge + explanatory caption under a divider. `keygen` mode shows "Standard (Keygen.sh)" + placeholder status.
+- Skeleton loader simplified to three Fluent shimmer blocks.
+
+### FUI-4d — OnboardingPage → S-02
+
+- Full-viewport mica background — no sidebar, no shell, per doc ("Full-window, no sidebar").
+- **Step indicator** at the top: 6px dots, 16px connectors, `.step-dot.done` (accent fill) / `.step-dot.current` (accent fill + 2px ring) / stroke-default outline otherwise. Indicator announces `Step N of M` via aria-label.
+- **Step card** is `card-elevated` with `padding: 32px 32px 24px` + `--radius-dialog`.
+- **Per-step icon** (32px, accent colour) at the top of the card — a typed `FluentIcon` component map:
+
+| Step | Icon |
+|---|---|
+| licence | `KeyRegular` |
+| tour | `SparkleRegular` |
+| profile | `PersonRegular` |
+| branding | `BuildingRegular` |
+| template | `DocumentTextRegular` |
+| hotkeys | `KeyboardRegular` |
+| themeStorage | `PaintBrushRegular` |
+| done | `CheckmarkCircleRegular` |
+
+- **Title** in display-font `type-title`; **description** in `type-body secondary`.
+- **Motion**: step body wrapped in `AnimatePresence mode="wait"` with `pageForward` / `pageBack` variants. Direction tracked locally — `next()`/`skip()` set forward, `back()` sets back. `key={step.id}` on the motion div triggers the exit-then-enter cycle. Framer Motion durations respect the `prefers-reduced-motion` zeroing in tokens.css.
+- **Nav row** outside the card: `Button` primitives. Back (subtle, disabled on first step), Skip-for-now (subtle, only on optional non-last steps), Next (accent), final step shows **"Get Started"** (accent) instead of "Next".
+- **Completed state** gets its own centred card-elevated with a 48px `CheckmarkCircleRegular` in success colour + "Onboarding complete" title + "Reset" standard button.
+- Step body components (`LicenceStep`, `UserProfileStep`, `BrandingStep`, etc.) are **unchanged** — they still render via the existing `renderStepBody` dispatch. Their internal forms still use native inputs; swapping them to Fluent primitives is a follow-up if you want it in FUI-5, otherwise the per-step polish lands alongside the real form behaviour (e.g. file upload, colour picker).
+
+### Supporting CSS added to `components.css`
+
+- `.pivot-tabs` / `.pivot-tab(.active)` — Fluent pivot pill style.
+- `.setting-row` / `.setting-row-label` / `.setting-row-control` / `.setting-group-label` — 44px setting rows.
+- `.avatar` — 44px initials circle.
+- `.segmented` / `.segmented-option(.active)` — 3-option Appearance control.
+- `.key-chip(.conflict)` — hotkey binding chip.
+- `.recent-project-row` — Dashboard list row with hover.
+- `.step-indicator` / `.step-dot(.done|.current)` / `.step-connector` — onboarding step dots.
+
+### Barrel fix that bit us late
+
+`ui/index.ts` re-exports `Skeleton as FluentSkeleton`. My first pass on DashboardPage and AppSettingsPage wrote `import { Skeleton as FluentSkeleton } from '../components/ui'` — which tried to import a `Skeleton` the barrel never exports. Caught by IDE diagnostics; fixed both call sites to `import { FluentSkeleton }` directly before push. Worth a look on your end if the typecheck surfaces any other drift from the rename.
+
+### Dev behaviour
+
+This commit is orthogonal to the `dev:reset` + `dev:keep` scripts you just verified. Use `npm run dev` to exercise the onboarding flow fresh; `npm run dev:keep` after you've completed it once to iterate on Dashboard + AppSettings without re-doing onboarding.
+
+### Verification ask
+
+1. `git pull`
+2. `npm run report` — expected **PASS 189/189**. Most at-risk:
+   - Fluent icon names in OnboardingPage / DashboardPage (KeyRegular, SparkleRegular, PersonRegular, BuildingRegular, KeyboardRegular, PaintBrushRegular, CameraRegular, AddRegular, ArrowUploadRegular, DocumentTextRegular, FolderRegular, CheckmarkCircleRegular). Paste any unresolved name verbatim.
+   - The ported `AppSettingsPage` kept the same schema contract (`settings:update` payload shapes) but restructured internal components — if any of the onboarding utility imports (`HOTKEY_ACTIONS`, `DEFAULT_HOTKEYS`, `BUILTIN_TEMPLATES`, `detectHotkeyConflicts`, `formatKeyEvent`) has silently changed since D22 please flag.
+3. `npm run dev`:
+   - Onboarding renders with: 8 step dots across the top (current is accent+ring, future are outlined), a coloured step icon above the title, card-elevated styling, Back/Skip/Next/Get Started buttons. Step transitions should slide horizontally.
+   - After Finish → Dashboard appears inside the Shell with 4 Fluent metric tiles, 4 quick-action buttons with icons, and either the recent-projects card or the empty state depending on your `app.db`.
+   - Sidebar → Settings opens the pivot-tab page with 6 tabs; each tab content lives in a 640px card. Appearance's segmented control should highlight the active option in accent.
+4. Tests: expected **189/189 PASS**. No test imports from the ported pages.
+
+If all green, FUI-5 is next: grep the repo for `DEPRECATED` and delete every matching line from `tokens.css` + `tailwind.config.js`. That cleanup should be entirely mechanical.
+
+---
+
 ## 2026-04-19 — DEV: `npm run dev` now resets onboarding state between runs
 
 **From:** CTS (Claude Code)
