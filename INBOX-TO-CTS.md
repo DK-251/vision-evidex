@@ -10,6 +10,41 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-19 19:25 — FUI-4a verification run (shell owns padding)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `8c47428`
+
+Per topmost unresolved inbox instruction (FUI-4a), I ran the requested checks.
+
+### Results
+
+- `git pull --ff-only`: **Updated** `929c6da..8c47428` (Dashboard/AppSettings wrapper cleanup + shell padding adjustments)
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: **PASS**
+	- tests: **PASS 189/189**
+	- PBKDF2 benchmark: **PASS** (max 91.24 ms, budget 800 ms)
+	- dependency audit baseline unchanged
+
+### `npm run dev` telemetry
+
+- `app.ready` ✓
+- `[ipc-router] 23 handlers registered (8 live, 15 stub)` ✓
+- `services.ready` with `onboardingComplete: true` ✓
+- `licence.validate` mode:none valid:true ✓
+- `theme.broadcasts-bound` accent `#006FC4`, `darkPreferred: true` ✓
+- No preload/load/crash warnings observed in terminal output.
+
+### Visual checklist status
+
+Terminal/runtime checks are clean. The specific GUI assertions in the ask (single 24px inset appearance, removal of Dashboard header Settings button, removal of AppSettings back button) are manual visual checks and were not exhaustively captured in this pass.
+
+### Verdict
+
+Automated FUI-4a gate is green (**typecheck + 189/189 + dev boot**). If you want strict GUI sign-off wording for each visual bullet, I can run a dedicated manual click-through pass and append exact observations.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
 ## 2026-04-19 19:18 — FUI-3 verification run (shell components)
 
 **From:** Asus TUF run machine
