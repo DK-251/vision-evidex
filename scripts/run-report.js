@@ -123,6 +123,41 @@ async function runModule(def) {
   };
 }
 
+// ─── Dependency audit (prod only) ───────────────────────────────────────
+//
+// Non-blocking visibility check. Records counts from `npm audit --omit=dev`
+// into every run report so severity drift is visible over time.
+// Never fails the build — remediation is tracked in VULNERABILITIES.md.
+
+function runDependencyAudit() {
+  const start = Date.now();
+  let raw;
+  try {
+    raw = execSync('npm audit --omit=dev --json', {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch (err) {
+    // npm audit exits non-zero when vulns exist; stdout still holds the JSON.
+    raw = err.stdout && err.stdout.toString();
+  }
+  const duration_ms = Date.now() - start;
+  if (!raw) {
+    return { ok: false, reason: 'npm audit produced no output', duration_ms };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return { ok: false, reason: 'npm audit output was not JSON', duration_ms };
+  }
+  const counts = (parsed.metadata && parsed.metadata.vulnerabilities) || {
+    info: 0, low: 0, moderate: 0, high: 0, critical: 0, total: 0,
+  };
+  return { ok: true, counts, duration_ms };
+}
+
 // ─── Main ───────────────────────────────────────────────────────────────
 
 async function main() {
@@ -177,6 +212,15 @@ async function main() {
 
   const features = countFeatures();
 
+  const dependencyAudit = runDependencyAudit();
+  if (dependencyAudit.ok && (dependencyAudit.counts.high > 0 || dependencyAudit.counts.critical > 0)) {
+    nextActions.push(
+      `DEP-AUDIT [npm audit --omit=dev] ${dependencyAudit.counts.critical} critical / ${dependencyAudit.counts.high} high / ${dependencyAudit.counts.moderate} moderate / ${dependencyAudit.counts.low} low — see VULNERABILITIES.md`
+    );
+  } else if (!dependencyAudit.ok) {
+    nextActions.push(`DEP-AUDIT failed to run: ${dependencyAudit.reason}`);
+  }
+
   // 3. Write latest.json
   const json = {
     timestamp: iso,
@@ -189,6 +233,7 @@ async function main() {
     modules: results,
     summary,
     features,
+    dependencyAudit,
     next_actions: nextActions.length > 0 ? nextActions : ['No failures — all modules SKIP (Phase 0 scaffold).'],
   };
   fs.writeFileSync(LATEST_JSON, JSON.stringify(json, null, 2));
@@ -197,6 +242,20 @@ async function main() {
   const moduleRows = results
     .map((r) => `| ${r.name} | ${r.status} | ${r.plannedPhase ?? '—'} |`)
     .join('\n');
+
+  const depAuditSection = dependencyAudit.ok
+    ? [
+        `| Severity | Count |`,
+        `|---|---|`,
+        `| critical | ${dependencyAudit.counts.critical} |`,
+        `| high | ${dependencyAudit.counts.high} |`,
+        `| moderate | ${dependencyAudit.counts.moderate} |`,
+        `| low | ${dependencyAudit.counts.low} |`,
+        `| total | ${dependencyAudit.counts.total} |`,
+        ``,
+        `Source: \`npm audit --omit=dev --json\`. See [VULNERABILITIES.md](../VULNERABILITIES.md) for accepted baseline and remediation plan.`,
+      ]
+    : [`*Dependency audit did not run: ${dependencyAudit.reason}.*`];
 
   const md = [
     `# Vision-EviDex Run Report`,
@@ -226,6 +285,10 @@ async function main() {
     `|---|---|---|`,
     moduleRows,
     ``,
+    `## Dependency audit (prod)`,
+    ``,
+    ...depAuditSection,
+    ``,
     `## Next actions`,
     ``,
     ...json.next_actions.map((a) => `- ${a}`),
@@ -243,6 +306,7 @@ async function main() {
     features_done: features.done,
     features_total: features.total,
     duration_ms: totalDuration,
+    audit: dependencyAudit.ok ? dependencyAudit.counts : null,
   }) + '\n';
   fs.appendFileSync(BENCHMARKS_FILE, benchLine);
 
