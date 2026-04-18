@@ -5,9 +5,9 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Phase 1 Week 4 — Licence, container, DB (D16–D20)
+- **SPRINT:** Phase 1 Week 5 — Onboarding flow + Dashboard shell (D21–D25)
 - **BRANCH:** `main`
-- **GOAL:** Replace the PHASE_0_1_STUB licence with the real keygen path + local validation (D16), land EvidexContainerService AES-256-GCM crypto (D17), project SQLite schema + full DatabaseService (D18), Manifest/Naming services (D19), Friday Asus run + onboarding React skeleton (D20). Exit criteria: Phase 1 gate — `none` mode still short-circuits, `keygen` mode activates + persists `licence.sig` + rejects tampered/expired/fingerprint-mismatched tokens; `.evidex` containers round-trip encrypt→decrypt with auth-tag verification; `DatabaseService` has prepared statements for all 30+ query methods with tests.
+- **GOAL:** Full onboarding wizard with real forms for 8 steps (Licence + Tour + Profile + Branding + Template + Hotkeys + Theme/Storage + Summary) that persists on Finish via `settings:*` / `branding:save` / `dialog:selectDirectory` IPC. Dashboard shell (S-03) with metrics panel, quick links, recent projects. App settings page (S-23) with 6 mode-aware tabs. Routing gate: render Dashboard when `settings.onboardingComplete`, else Onboarding. Exit criteria: D25 Asus smoke shows 7-step wizard end-to-end, Finish persists settings + branding row, Dashboard displays recent projects count, all tabs read/write settings.json.
 
 ## 2. IPC channels (`src/shared/ipc-channels.ts`)
 

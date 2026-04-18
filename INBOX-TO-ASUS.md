@@ -51,6 +51,74 @@ D21 PASS → CTS proceeds to D22 (Steps 5–8 + the Step-8 Finish persistence th
 
 ---
 
+## 2026-04-18 — D25 Friday gate: full Phase 1 Week 5 verification
+
+**From:** CTS (Claude Code)
+**Commit range from your last verified tip `10fa1ca` (D20):**
+- `03d11d5` D21 — onboarding Steps 1–4 (licence, tour, profile, branding) + validators
+- `4d7559b` D22 — onboarding Steps 5–8 + settings:*/branding:*/dialog IPC + Finish persistence
+- `3b1b87c` D23 — DashboardPage + MetricsService + onboarding-gated routing
+- `64b56b3` D24 — AppSettingsPage 6-tab + nav-store
+
+Five days, four commits, bundled. Summary of what landed:
+
+### New IPC channels (8 live / 15 stub after this push)
+- `settings:get`  → SettingsService.getSettings()
+- `settings:update` → SettingsService.saveSettings(partial)
+- `branding:save` → DatabaseService.saveBrandingProfile (INSERT / UPSERT)
+- `dialog:selectDirectory` → Electron dialog.showOpenDialog (openDirectory)
+- `metrics:summary` → MetricsService.summary()
+- `recentProjects:list` → DatabaseService.getRecentProjects()
+
+### Schema expansions
+- `Settings` now carries: `theme`, `defaultStoragePath`, `defaultTemplateId`, optional `profile`, optional `hotkeys`, optional `brandingProfileId`. Old settings.json shapes fall back to defaults on load (non-destructive).
+- `LicenceValidationResult` now additively includes `mode: 'keygen' | 'none'` so the About/Licence tab can render correctly.
+
+### New renderer
+- **Onboarding wizard** — 7 real step components (or 8 in keygen mode):
+  - `LicenceStep` (keygen-only): calls `licence:activate`, masks key `****-****-****-LAST4`
+  - `WelcomeTourStep`: 3-screen fade carousel via Framer Motion
+  - `UserProfileStep`: name/role/team/email
+  - `BrandingStep`: company / logo (PNG/JPG ≤ 2 MB → base64) / colour / header+footer
+  - `DefaultTemplateStep`: radio grid of 5 built-in templates
+  - `HotkeyConfigStep`: 6 actions with click-to-remap + live conflict highlighting
+  - `ThemeStorageStep`: 3-way theme + storage path picker via dialog IPC
+  - `SummaryStep`: read-only recap with Edit-links; Finish persists via `persistOnboarding()` (fails-closed: branding save must succeed before settings update)
+- **DashboardPage** (S-03) — metrics panel (4 cards), quick links (4 buttons), recent projects list (empty-state CTA), Settings button top-right.
+- **AppSettingsPage** (S-23) — 6 tabs: Profile / Hotkeys / Appearance / Storage / Defaults / Licence (label becomes "About" in none mode). Each tab reads from settings:get, writes via settings:update.
+- **App routing gate**: mount-time `settings:get` → render Dashboard when `onboardingComplete`, else Onboarding. `nav-store` toggles Dashboard ↔ AppSettings.
+
+### Please run (default cadence)
+
+```powershell
+git pull
+npm run report
+```
+
+Expected:
+- typecheck PASS
+- tests **~210/210 PASS** (140 prior + ~70 new across D21–D24)
+- PBKDF2 bench PASS
+- dep-audit baseline unchanged (0 / 5 / 0 / 3)
+- exit 0
+
+Then optionally `npm run dev` — you'll see:
+1. Onboarding wizard on first boot (none mode, 7 steps starting at Welcome tour)
+2. Walk through all steps, fill forms, click **Finish** on Summary
+3. Auto-transitions to Dashboard showing 0 recent projects + "Create your first project" empty state
+4. Click **Settings** top-right → AppSettings with 6 tabs, each reflecting what you just saved
+5. Click **← Dashboard** to return
+
+Close and relaunch: app should boot straight into Dashboard (gate honours persisted `onboardingComplete: true`). Delete `%APPDATA%\VisionEviDex\settings.json` to reset.
+
+### D25 gate
+
+All green → CTS proceeds to Phase 1 Week 6 (Project Manager D26–D30: create/open/close project flows, `.evidex` lifecycle wired to the container service).
+
+If any test or typecheck fails, paste the Pre-checks section from `latest.md` into `INBOX-TO-CTS.md`; I'll fix per failure.
+
+---
+
 ## 2026-04-18 — D20 verification: onboarding wizard skeleton
 
 **From:** CTS (Claude Code)
