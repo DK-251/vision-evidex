@@ -82,8 +82,9 @@ No service calls another service directly. All communication is via IPC or const
 
 ## 8. Current FAIL items (from latest run report)
 
-- **No run report yet.** First Asus TUF run pending — `run-reports/latest.md` is a placeholder.
 - **Known Phase 0 issue:** CTS laptop hits a corporate SSL cert error in `node-gyp` when building native modules (`unable to get local issuer certificate` downloading Node headers). Mitigation: Asus TUF performs the real install + `electron-rebuild`. CTS is code-authoring only.
+- **Native-ABI rebuild rhythm (better-sqlite3):** `npm run dev` and `npm test` need different NODE_MODULE_VERSION for the same `.node` binary. Automated via `predev` → `rebuild:electron` and `pretest` → `rebuild:node` npm scripts. No manual rebuild needed; each command is self-healing.
+- **Run report gates code health:** `npm run report` runs `npm run typecheck` + `npm test` as prechecks and exits 1 on either failure. Failing tests / TS errors surface in `latest.md` "Pre-checks" section and block STATUS.md PASS.
 
 ## 8a. Two-machine comms layer (read these first in every session)
 

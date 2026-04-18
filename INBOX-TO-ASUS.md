@@ -7,6 +7,70 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 - Date format: `YYYY-MM-DD HH:MM` (local Asus time — consistent reference).
 - Mark entries resolved with `[RESOLVED YYYY-MM-DD]` prefix. Never delete.
 
+**Standing rule (Asus):** on every `git pull` from CTS, read the topmost
+unresolved entry here and execute its checklist before any other work.
+On every `git push` from CTS, `git pull` first, then re-read this file.
+Default cadence if no new entry: `npm run report` and push `run-reports/` + `STATUS.md`.
+
+---
+
+## 2026-04-18 — D15 retry: fix TS errors + ABI rebuild hooks + gated run-report
+
+**From:** CTS (Claude Code)
+**Commit to verify:** tip of `main` after this push
+
+### Changes in this push
+
+1. **TS2375 / TS2412 fixes** under `exactOptionalPropertyTypes`:
+   - `src/shared/types/errors.ts:16` → conditional assignment when `fields !== undefined`.
+   - `src/main/ipc-router.ts:45` → conditional spread of `fields` into `IpcError`.
+2. **ABI rebuild hooks** in `package.json`:
+   - `predev` → `rebuild:electron` (runs before `npm run dev`).
+   - `pretest` → `rebuild:node` (runs before `npm test`).
+   - Manual: `npm run rebuild:electron` / `npm run rebuild:node`.
+3. **`scripts/run-report.js` extended** (Option B):
+   - Runs `npm run typecheck` and `npm test` as **gating pre-checks**.
+   - Writes `prechecks` block into `run-reports/latest.json`.
+   - New "Pre-checks" table in `run-reports/latest.md`.
+   - Appends `typecheck` / `tests` keys to each `benchmarks.jsonl` line.
+   - Exits 1 if typecheck or tests fail (in addition to the existing module-FAIL gate).
+
+### Please run on Asus
+
+```powershell
+git pull
+npm run report
+```
+
+That single command should now:
+- rebuild better-sqlite3 for Node (via `pretest`),
+- run `npm run typecheck` (expect PASS — the 2 TS errors from previous run are fixed),
+- run `npm test` (expect 18/18 PASS),
+- run `npm audit --omit=dev` (expect 8 vulns baseline unchanged),
+- write the new Pre-checks section into `run-reports/latest.md`,
+- exit 0.
+
+Then:
+```powershell
+npm run dev
+```
+(the `predev` hook rebuilds for Electron automatically — no ABI mismatch expected)
+
+Expected in DevTools Console after `npm run dev`:
+- `[ipc-router] 17 stub handlers registered`
+- `{"msg":"app.ready",...}`
+- `{"msg":"services.ready","meta":{"onboardingComplete":false,"appDbPath":"..."}}`
+- `{"msg":"licence.validate","meta":{"mode":"none","valid":true}}`
+
+### Push back
+
+- `run-reports/` + `STATUS.md` via `git push`.
+- If the new `Pre-checks` section shows any FAIL, also append a quick note in `INBOX-TO-CTS.md` with the failing test name or TS error — CTS will fix in code.
+
+### Gate
+
+All green → Wk3 gate closed, CTS proceeds to **D16** (Phase 1 Wk4 — LicenceService real path).
+
 ---
 
 ## 2026-04-18 — D15 Phase 1 Week 3 gate — Electron shell first boot

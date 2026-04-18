@@ -42,7 +42,11 @@ export function registerHandler<TSchema extends z.ZodTypeAny, TOutput>(
       if (isEvidexError(err)) {
         return {
           ok: false,
-          error: { code: err.code, message: err.message, fields: err.fields },
+          error: {
+            code: err.code,
+            message: err.message,
+            ...(err.fields !== undefined ? { fields: err.fields } : {}),
+          },
         };
       }
       if (err && typeof err === 'object' && 'issues' in err) {

@@ -10,8 +10,10 @@
     "node": ">=22.0.0"
   },
   "scripts": {
+    "predev": "npm run rebuild:electron",
     "dev": "electron-vite dev",
     "build": "electron-vite build",
+    "prebuild": "npm run rebuild:electron",
     "preview": "electron-vite preview",
     "start": "electron-vite preview",
     "dist": "npm run build && electron-builder --win",
@@ -22,12 +24,15 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
+    "pretest": "npm run rebuild:node",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "verify-setup": "node scripts/verify-setup.js",
     "report": "node scripts/run-report.js",
-    "rebuild": "electron-rebuild"
+    "rebuild": "electron-rebuild",
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3",
+    "rebuild:node": "npm rebuild better-sqlite3 --build-from-source"
   },
   "dependencies": {
     "archiver": "^7.0.1",

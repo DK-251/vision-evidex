@@ -13,7 +13,7 @@ export class EvidexError extends Error {
     super(message);
     this.name = 'EvidexError';
     this.code = code;
-    this.fields = fields;
+    if (fields !== undefined) this.fields = fields;
     Object.setPrototypeOf(this, EvidexError.prototype);
   }
 }

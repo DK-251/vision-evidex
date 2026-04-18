@@ -123,6 +123,89 @@ async function runModule(def) {
   };
 }
 
+// ─── Pre-checks (gating) ────────────────────────────────────────────────
+//
+// Typecheck and unit tests run before module stubs. Either failing
+// promotes the overall run to exit 1 — run reports are now evidence of
+// code health, not just feature progress.
+// Output is recorded under `prechecks` in latest.json for history.
+
+function runTypecheck() {
+  const start = Date.now();
+  try {
+    execSync('npm run typecheck', {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    return { ok: true, duration_ms: Date.now() - start };
+  } catch (err) {
+    const out = [err.stdout, err.stderr].filter(Boolean).join('\n');
+    const firstErrors = out
+      .split('\n')
+      .filter((l) => /error TS\d+|error:/.test(l))
+      .slice(0, 10);
+    return {
+      ok: false,
+      duration_ms: Date.now() - start,
+      errors: firstErrors.length > 0 ? firstErrors : [out.slice(-800)],
+    };
+  }
+}
+
+function runTests() {
+  const start = Date.now();
+  let raw;
+  let exitOk = true;
+  try {
+    raw = execSync('npm test --silent -- --reporter=json', {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: 20 * 1024 * 1024,
+    });
+  } catch (err) {
+    exitOk = false;
+    raw = (err.stdout && err.stdout.toString()) || '';
+  }
+  const duration_ms = Date.now() - start;
+
+  // Extract the JSON object from vitest output (npm prepends lines).
+  const jsonStart = raw.indexOf('{');
+  const jsonEnd = raw.lastIndexOf('}');
+  if (jsonStart < 0 || jsonEnd < 0) {
+    return {
+      ok: false,
+      duration_ms,
+      reason: 'could not parse vitest JSON output',
+      raw_tail: raw.slice(-800),
+    };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
+  } catch (e) {
+    return { ok: false, duration_ms, reason: `JSON parse: ${e.message}`, raw_tail: raw.slice(-800) };
+  }
+
+  const total = parsed.numTotalTests ?? 0;
+  const passed = parsed.numPassedTests ?? 0;
+  const failed = parsed.numFailedTests ?? 0;
+  const failures = [];
+  for (const f of parsed.testResults ?? []) {
+    for (const a of f.assertionResults ?? []) {
+      if (a.status === 'failed') {
+        failures.push({
+          file: path.relative(ROOT, f.name || ''),
+          name: a.fullName || a.title,
+          message: (a.failureMessages && a.failureMessages[0] ? a.failureMessages[0] : '').slice(0, 400),
+        });
+      }
+    }
+  }
+  return { ok: exitOk && failed === 0, duration_ms, total, passed, failed, failures };
+}
+
 // ─── Dependency audit (prod only) ───────────────────────────────────────
 //
 // Non-blocking visibility check. Records counts from `npm audit --omit=dev`
@@ -188,7 +271,12 @@ async function main() {
     }
   }
 
-  // 2. Run modules
+  // 2a. Pre-checks (gating): typecheck → tests
+  const typecheck = runTypecheck();
+  const tests = runTests();
+  const prechecks = { typecheck, tests };
+
+  // 2b. Run modules
   const results = [];
   const startTime = Date.now();
   for (const def of moduleDefs) {
@@ -212,6 +300,20 @@ async function main() {
 
   const features = countFeatures();
 
+  if (!typecheck.ok) {
+    const first = (typecheck.errors && typecheck.errors[0]) || 'see latest.json for details';
+    nextActions.unshift(`PRECHECK [typecheck] FAIL — ${first}`);
+  }
+  if (!tests.ok) {
+    const label = tests.reason
+      ? tests.reason
+      : `${tests.failed}/${tests.total} failed`;
+    nextActions.unshift(`PRECHECK [tests] FAIL — ${label}`);
+    for (const f of (tests.failures || []).slice(0, 5)) {
+      nextActions.push(`  · ${f.file} › ${f.name}`);
+    }
+  }
+
   const dependencyAudit = runDependencyAudit();
   if (dependencyAudit.ok && (dependencyAudit.counts.high > 0 || dependencyAudit.counts.critical > 0)) {
     nextActions.push(
@@ -233,6 +335,7 @@ async function main() {
     modules: results,
     summary,
     features,
+    prechecks,
     dependencyAudit,
     next_actions: nextActions.length > 0 ? nextActions : ['No failures — all modules SKIP (Phase 0 scaffold).'],
   };
@@ -257,6 +360,19 @@ async function main() {
       ]
     : [`*Dependency audit did not run: ${dependencyAudit.reason}.*`];
 
+  const prechecksSection = [
+    `| Check | Status | Duration | Notes |`,
+    `|---|---|---|---|`,
+    `| typecheck | ${typecheck.ok ? 'PASS' : 'FAIL'} | ${typecheck.duration_ms} ms | ${typecheck.ok ? '—' : (typecheck.errors?.[0] ?? 'see latest.json').replace(/\|/g, '\\|').slice(0, 200)} |`,
+    `| tests | ${tests.ok ? 'PASS' : 'FAIL'} | ${tests.duration_ms} ms | ${tests.ok ? `${tests.passed}/${tests.total} passed` : (tests.reason ?? `${tests.failed}/${tests.total} failed`)} |`,
+  ];
+  if (!tests.ok && (tests.failures || []).length > 0) {
+    prechecksSection.push('', '**Failing tests:**', '');
+    for (const f of tests.failures.slice(0, 10)) {
+      prechecksSection.push(`- \`${f.file}\` › ${f.name}`);
+    }
+  }
+
   const md = [
     `# Vision-EviDex Run Report`,
     ``,
@@ -278,6 +394,10 @@ async function main() {
     `## Feature progress`,
     ``,
     `**${features.done} / ${features.total} P0 features** merged + PASS`,
+    ``,
+    `## Pre-checks`,
+    ``,
+    ...prechecksSection,
     ``,
     `## Module results`,
     ``,
@@ -307,6 +427,10 @@ async function main() {
     features_total: features.total,
     duration_ms: totalDuration,
     audit: dependencyAudit.ok ? dependencyAudit.counts : null,
+    typecheck: typecheck.ok,
+    tests: tests.ok
+      ? { ok: true, total: tests.total, passed: tests.passed }
+      : { ok: false, total: tests.total ?? 0, failed: tests.failed ?? 0 },
   }) + '\n';
   fs.appendFileSync(BENCHMARKS_FILE, benchLine);
 
@@ -319,8 +443,11 @@ async function main() {
   }
 
   console.log(`[run-report] wrote latest.json, latest.md, STATUS.md, benchmarks.jsonl`);
-  console.log(`[run-report] PASS ${summary.pass}  FAIL ${summary.fail}  WARN ${summary.warn}  SKIP ${summary.skip}`);
-  process.exit(summary.fail > 0 ? 1 : 0);
+  console.log(
+    `[run-report] typecheck=${typecheck.ok ? 'PASS' : 'FAIL'}  tests=${tests.ok ? 'PASS' : 'FAIL'}  modules: PASS ${summary.pass}  FAIL ${summary.fail}  WARN ${summary.warn}  SKIP ${summary.skip}`
+  );
+  const gateFailed = summary.fail > 0 || !typecheck.ok || !tests.ok;
+  process.exit(gateFailed ? 1 : 0);
 }
 
 function writeStatus({ iso, shortSha, branch, json, features }) {
