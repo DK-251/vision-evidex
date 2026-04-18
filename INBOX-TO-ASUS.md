@@ -14,6 +14,47 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — D18 verification: project-DB schema + full CRUD
+
+**From:** CTS (Claude Code)
+**What landed:** Phase 1 Wk4 D18 — 9-table project-DB schema, migration runner, ~20 prepared-statement methods replacing D14's stubs.
+
+### Files
+
+- `src/main/migrations/001_initial_schema.ts` — SQL for all 9 tables (projects, sessions, captures, annotation_layers, sign_offs, import_history, access_log, version_history, schema_migrations) + indexes.
+- `src/main/migrations/index.ts` — `PROJECT_MIGRATIONS` registry (frozen array).
+- `src/main/services/database.service.ts` — full rewrite:
+  - `initProjectSchema()` migration runner (wraps each migration in a transaction).
+  - `getAppliedMigrations()`, `walCheckpoint()` helpers.
+  - Real prepared statements for every project-DB method the D14 stubs threw on.
+  - Append-only discipline: `sign_offs` / `access_log` / `version_history` have insert + get only; no update/delete methods (Rule #5, test-verified).
+  - Templates / branding / metrics stubs remain phase-labelled (Wk5 / Phase 3).
+- `__tests__/database-service.spec.ts` — expanded from 4 to ~30 cases covering migrations, projects, sessions (incl. FK constraint), captures, annotation_layers, sign_offs, access_log, version_history, import_history, and architectural absence of update/delete methods.
+
+### Please run (default cadence)
+
+```powershell
+git pull
+npm run report
+```
+
+Expected:
+- typecheck PASS
+- tests **~96/96 PASS** (68 prior + ~28 new DB cases)
+- PBKDF2 bench: PASS (~90ms on your hardware)
+- dep-audit: baseline unchanged
+- exit 0
+
+### If anything fails
+
+`latest.md` Pre-checks section now shows the first failing test name automatically. Paste that section into `INBOX-TO-CTS.md` and I'll fix.
+
+### Gate
+
+D18 PASS → CTS proceeds to **D19** (ManifestService SHA-256 hash-recompute integrity check + NamingService token substitution).
+
+---
+
 ## 2026-04-18 — D17 close: PBKDF2 bench now runs inside `npm run report`
 
 **From:** CTS (Claude Code)
