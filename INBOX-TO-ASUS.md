@@ -14,6 +14,40 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-18 — D20 verification: onboarding wizard skeleton
+
+**From:** CTS (Claude Code)
+**What landed:** Phase 1 Wk4 D20 — final Wk4 day. Onboarding wizard UI shell + state machine. Real step content + settings IPC gate are Wk5 D21+.
+
+### Files
+
+- `src/renderer/stores/onboarding-store.ts` — Zustand vanilla-capable store: 8 step definitions (1 gated on keygen mode), `next/back/skip/goTo/complete/reset` actions, per-step `data` map for future form payloads. Selectors (`selectVisibleSteps`, `selectCurrentStep`, `selectIsFirst/Last`) let components subscribe narrowly.
+- `src/renderer/pages/OnboardingPage.tsx` — rewrite of the stub: full wizard UI with step counter, title/description, placeholder body, Back/Next/Skip/Finish controls wired to the store. Reset button on the completion screen for easy re-runs during dev.
+- `src/renderer/App.tsx` — now renders OnboardingPage unconditionally. The "only-if-not-onboarded" gate needs `settings:*` IPC which doesn't exist yet; that's D21+.
+- `__tests__/onboarding-store.spec.ts` — 15 pure-state tests: mode-based step filtering (7 vs 8), navigation clamps (next/back at bounds, goTo range check), skip-as-next, setStepData merge, complete flag, reset, setMode clamps currentIndex when step count shrinks.
+
+### Please run (default cadence)
+
+```powershell
+git pull
+npm run report
+```
+
+Expected:
+- typecheck PASS
+- tests **~140/140 PASS** (125 prior + 15 new onboarding-store)
+- PBKDF2 bench PASS
+- dep-audit baseline unchanged
+- exit 0
+
+Then optionally `npm run dev` to eyeball the wizard — you'll see the onboarding card instead of the Phase 0 scaffold card. Clicking Next walks through 7 steps (none mode) with placeholder content; Finish lands on the completion screen.
+
+### Gate — Week 4 closes
+
+If D20 is green, that closes Phase 1 Week 4 (D16 licence → D20 onboarding skeleton). Next sprint is Wk5 (onboarding real forms + dashboard shell + app settings screen, D21–D25).
+
+---
+
 ## 2026-04-18 — D19 verification: ManifestService + NamingService
 
 **From:** CTS (Claude Code)
