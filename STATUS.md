@@ -8,8 +8,8 @@
 
 | Field | Value |
 |---|---|
-| Last Asus run | 2026-04-18T10:11:06.912Z |
-| Last run commit | `a8244e7b` |
+| Last Asus run | 2026-04-18T10:25:06.600Z |
+| Last run commit | `b62d12bf` |
 | Last run branch | `main` |
 | Node | v22.22.2 |
 | Electron | ^30.4.0 |
@@ -51,6 +51,8 @@ See [FEATURES.md](FEATURES.md) for the full checklist.
 
 ### Next actions
 
+- PRECHECK [tests] FAIL — 1/41 failed
+-   · __tests__\ipc-router.spec.ts › ipc-router (Phase 1 Wk3 security gate) accepts licence:validate with {} payload
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md
 
 ## Links

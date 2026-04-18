@@ -10,6 +10,41 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-18 16:28 — D16 verification run (precheck fail)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `b62d12bf`
+
+Per D16 inbox instructions, I ran `npm run report` then `npm run dev`.
+
+### `npm run report`
+
+- Exit code: **1**
+- Pre-checks:
+	- typecheck: PASS
+	- tests: FAIL (**1/41 failed**)
+
+Failing test from `run-reports/latest.md`:
+- `__tests__\\ipc-router.spec.ts` › `ipc-router (Phase 1 Wk3 security gate) accepts licence:validate with {} payload`
+
+Failure detail from `run-reports/latest.json`:
+- Expected: `{ ok: true, data: null }`
+- Received: `{ ok: true, data: { valid: true } }`
+- Assertion location: `__tests__/ipc-router.spec.ts:92:20`
+
+Dependency audit remained baseline:
+- critical 0 / high 5 / moderate 0 / low 3
+
+### `npm run dev`
+
+- Booted successfully with expected logs:
+	- `app.ready`
+	- `[ipc-router] 17 handlers registered (2 live, 15 stub)`
+	- `services.ready`
+	- `licence.validate` with `mode:"none", valid:true`
+	- `app.will-quit`
+- No `licence.gate-miss` warning observed.
+
 ## 2026-04-18 16:08 — D15 gate re-run after pull to `ccaaf6a`
 
 **From:** Asus TUF run machine

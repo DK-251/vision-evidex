@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-04-18T10:25:06.600Z",
+  "timestamp": "2026-04-18T10:11:06.912Z",
   "branch": "main",
-  "commitSha": "b62d12bf781f3fdae9a31979588c76c272c2216b",
-  "shortSha": "b62d12bf",
+  "commitSha": "a8244e7be8df82133b74a7881bfe7092fb5b4141",
+  "shortSha": "a8244e7b",
   "nodeVersion": "22.22.2",
   "electronVersion": "^30.4.0",
   "totalDurationMs": 0,
@@ -205,21 +205,15 @@
   "prechecks": {
     "typecheck": {
       "ok": true,
-      "duration_ms": 4987
+      "duration_ms": 4937
     },
     "tests": {
-      "ok": false,
-      "duration_ms": 6404,
-      "total": 41,
-      "passed": 40,
-      "failed": 1,
-      "failures": [
-        {
-          "file": "__tests__\\ipc-router.spec.ts",
-          "name": "ipc-router (Phase 1 Wk3 security gate) accepts licence:validate with {} payload",
-          "message": "AssertionError: expected { ok: true, data: { valid: true } } to deeply equal { ok: true, data: null }\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\ipc-router.spec.ts:92:20\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:533:5\n    at runTest (file:///D:/DEV/projects/vision-evidex/node"
-        }
-      ]
+      "ok": true,
+      "duration_ms": 5539,
+      "total": 18,
+      "passed": 18,
+      "failed": 0,
+      "failures": []
     }
   },
   "dependencyAudit": {
@@ -232,11 +226,9 @@
       "critical": 0,
       "total": 8
     },
-    "duration_ms": 4473
+    "duration_ms": 5707
   },
   "next_actions": [
-    "PRECHECK [tests] FAIL — 1/41 failed",
-    "  · __tests__\\ipc-router.spec.ts › ipc-router (Phase 1 Wk3 security gate) accepts licence:validate with {} payload",
     "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
   ]
 }
