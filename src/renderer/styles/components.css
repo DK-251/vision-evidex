@@ -409,12 +409,18 @@
 }
 
 .shell-content {
-  /* FUI-3: no inherent padding. The D25 pages keep their own
-     page-level padding until FUI-4 ports them to the screen specs in
-     doc §15 which move that padding into Shell. */
+  /* Content area per doc §4.5: 24px padding on all sides, scrollable. */
   flex: 1;
   overflow-y: auto;
   min-width: 0;
+  padding: var(--space-6);
+}
+
+/* Optional centred content column — screens that want doc §4.5's
+   max 1200px column wrap their content in .shell-content-column. */
+.shell-content-column {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* Sidebar — §5.6. 220px expanded / 48px collapsed. Acrylic material. */

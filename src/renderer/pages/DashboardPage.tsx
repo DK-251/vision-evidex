@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import type { MetricsSummary, RecentProject } from '@shared/types/entities';
-import { useNavStore } from '../stores/nav-store';
 import { Skeleton } from '../components/Skeleton';
 
 export function DashboardPage(): JSX.Element {
@@ -34,24 +33,14 @@ export function DashboardPage(): JSX.Element {
   }, []);
 
   return (
-    <div className="min-h-screen bg-surface-primary p-6 md:p-10">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <header className="flex items-baseline justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-text-primary">Dashboard</h1>
-            <p className="text-sm text-text-secondary">Vision-EviDex overview</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-text-secondary font-mono">No session active</span>
-            <button
-              type="button"
-              onClick={() => useNavStore.getState().goTo('settings')}
-              className="text-sm px-3 py-1.5 rounded-md border border-border-subtle"
-            >
-              Settings
-            </button>
-          </div>
-        </header>
+    <div className="shell-content-column" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
+      <header className="flex items-baseline justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-text-primary">Dashboard</h1>
+          <p className="text-sm text-text-secondary">Vision-EviDex overview</p>
+        </div>
+        <span className="text-xs text-text-secondary font-mono">No session active</span>
+      </header>
 
         {error && (
           <div
@@ -121,7 +110,6 @@ export function DashboardPage(): JSX.Element {
             </ul>
           )}
         </section>
-      </div>
     </div>
   );
 }

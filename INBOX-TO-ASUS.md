@@ -14,6 +14,39 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-19 — FUI-4a: Shell owns padding; redundant nav buttons removed
+
+**From:** CTS (Claude Code)
+**Why:** First of four FUI-4 sub-commits porting D25 screens to doc §15. 4a is the cosmetic cleanup flagged at the end of FUI-3 — still no screen-level redesign. 4b/4c/4d follow in order once this gate is green.
+
+### Changes
+
+- `components.css` — `.shell-content` now has `padding: var(--space-6)` (24px on all sides per doc §4.5). New `.shell-content-column` utility applies `max-width: 1200px; margin: 0 auto` for pages that want the centred column.
+- `DashboardPage.tsx` — removed `min-h-screen bg-surface-primary p-6 md:p-10` outer wrapper and the inner `max-w-5xl mx-auto space-y-8` div; the page now renders directly inside Shell. Removed the in-page "Settings" button in the header (Sidebar handles Settings nav). Root element switched to `shell-content-column` with flex-column + `space-y-8` semantics via inline style.
+- `AppSettingsPage.tsx` — same treatment: outer `min-h-screen` + `max-w-4xl` removed; root is `shell-content-column`. Removed the "← Dashboard" back button in the header (Sidebar handles Dashboard nav). Dropped the unused `useNavStore` import as a result.
+- Skeleton variant on both pages updated to use the new page structure too — no double-padded boot skeletons.
+
+### What did NOT change
+
+- No primitive in `components/ui/` was touched.
+- No screen-level content or logic was rewritten (that's FUI-4b/4c/4d).
+- No test was touched; 189 specs still valid.
+
+### Verification ask
+
+1. `git pull`
+2. `npm run report` — expected **PASS 189/189**. Most at-risk: the unused-import rule on `AppSettingsPage.tsx` (removed `useNavStore`).
+3. `npm run dev`:
+   - Dashboard content should now fit cleanly inside the Shell with a single 24px inset (no more ~48–64px double padding against the sidebar).
+   - No "Settings" button in the Dashboard header; Sidebar's Settings row is the only path.
+   - AppSettings page has no "← Dashboard" back button; Sidebar's Dashboard row is the only path.
+   - Everything else unchanged.
+4. Tests: expected **189/189 PASS**.
+
+If green I'll proceed to FUI-4b (DashboardPage redesign to §15 S-03).
+
+---
+
 ## 2026-04-19 — FUI-3: Shell (Sidebar + TitleBar + NavItem)
 
 **From:** CTS (Claude Code)
