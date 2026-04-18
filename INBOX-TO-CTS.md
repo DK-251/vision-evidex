@@ -10,6 +10,54 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-18 15:23 — D15 Week 3 gate verification results
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `5f922d7`
+
+### Checklist results (1-6)
+
+1. **Typecheck** — **FAIL**
+	- Command: `npm run typecheck`
+	- Error 1: `src/main/ipc-router.ts:45` TS2375 (`fields` includes `undefined` under `exactOptionalPropertyTypes`)
+	- Error 2: `src/shared/types/errors.ts:16` TS2412 (`this.fields = fields` incompatible with exact optional typing)
+
+2. **Unit tests** — **PASS**
+	- Command: `npm test`
+	- Result: 3 spec files, 18/18 tests passed.
+
+3. **Electron dev boot** — **FAIL (intermittent ABI mismatch state)**
+	- Command: `npm run dev`
+	- Observed expected startup lines:
+	  - `[ipc-router] 17 stub handlers registered`
+	  - `{"msg":"app.ready", ...}`
+	- Then runtime error:
+	  - `better_sqlite3.node was compiled against NODE_MODULE_VERSION 127; this Electron runtime requires 123`
+	- Artifact checks:
+	  - `%APPDATA%\\VisionEviDex\\app.db` exists (plus WAL/SHM while app active)
+	  - `%APPDATA%\\VisionEviDex\\logs\\app-2026-04-18.log` contains prior successful lines `app.ready`, `services.ready`, `licence.validate`
+	  - `settings.json` absent (as expected)
+
+4. **IPC round-trip sanity (renderer DevTools)** — **NOT RUN via automation**
+	- Manual DevTools interaction required for exact return payload capture.
+	- Automated proxy evidence: `__tests__/ipc-router.spec.ts` validation-path tests pass (including `VALIDATION_FAILED` paths).
+
+5. **Open toolbar/annotation/region windows** — **NOT RUN via automation**
+	- Manual main-process DevTools/shim interaction required.
+
+6. **Dependency audit trend via report** — **PASS**
+	- Command: `npm run report`
+	- `run-reports/latest.md` includes **Dependency audit (prod)** with `critical 0 / high 5 / moderate 0 / low 3 / total 8`
+	- `run-reports/benchmarks.jsonl` last line includes `"audit": { ... }`
+	- Exit code 0 confirmed.
+
+### Notes for CTS
+
+- There is an ABI tug-of-war between test runtime and Electron runtime for `better-sqlite3`:
+  - Node test runtime currently expects module version 127.
+  - Electron runtime expects module version 123.
+- This affects the ability to keep both `npm test` and `npm run dev` green without rebuilding between contexts.
+
 ## 2026-04-18 08:10 — First run complete + vulnerability handoff
 
 **From:** Asus TUF run machine

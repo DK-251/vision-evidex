@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-04-18T09:51:46.569Z",
+  "timestamp": "2026-04-18T09:44:47.891Z",
   "branch": "main",
-  "commitSha": "5f922d79b2380542005e49076a5c61b969843680",
-  "shortSha": "5f922d79",
+  "commitSha": "8af86a4acdd9cfb966f681e332a0cf25cb1568c6",
+  "shortSha": "8af86a4a",
   "nodeVersion": "22.22.2",
   "electronVersion": "^30.4.0",
   "totalDurationMs": 0,
@@ -212,7 +212,7 @@
       "critical": 0,
       "total": 8
     },
-    "duration_ms": 5254
+    "duration_ms": 5882
   },
   "next_actions": [
     "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
