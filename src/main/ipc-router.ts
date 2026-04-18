@@ -150,9 +150,36 @@ export function registerAllHandlers(services: ServiceRegistry): void {
   registerHandler(IPC.SETTINGS_GET, SettingsGetSchema, async () =>
     services.settings.getSettings()
   );
-  registerHandler(IPC.SETTINGS_UPDATE, SettingsUpdateSchema, async (partial) =>
-    services.settings.saveSettings(partial)
-  );
+  registerHandler(IPC.SETTINGS_UPDATE, SettingsUpdateSchema, async (partial) => {
+    const normalizedProfile =
+      partial.profile === undefined
+        ? undefined
+        : {
+            name: partial.profile.name,
+            role: partial.profile.role,
+            ...(partial.profile.team !== undefined ? { team: partial.profile.team } : {}),
+            ...(partial.profile.email !== undefined ? { email: partial.profile.email } : {}),
+          };
+
+    const normalized = {
+      ...(partial.onboardingComplete !== undefined
+        ? { onboardingComplete: partial.onboardingComplete }
+        : {}),
+      ...(partial.theme !== undefined ? { theme: partial.theme } : {}),
+      ...(partial.defaultStoragePath !== undefined
+        ? { defaultStoragePath: partial.defaultStoragePath }
+        : {}),
+      ...(partial.defaultTemplateId !== undefined
+        ? { defaultTemplateId: partial.defaultTemplateId }
+        : {}),
+      ...(normalizedProfile !== undefined ? { profile: normalizedProfile } : {}),
+      ...(partial.hotkeys !== undefined ? { hotkeys: partial.hotkeys } : {}),
+      ...(partial.brandingProfileId !== undefined
+        ? { brandingProfileId: partial.brandingProfileId }
+        : {}),
+    };
+    return services.settings.saveSettings(normalized);
+  });
 
   registerHandler(IPC.BRANDING_SAVE, BrandingSaveSchema, async (input) => {
     const profile = {

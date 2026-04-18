@@ -1,9 +1,9 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-18T16:32:20.281Z  
+**Date:** 2026-04-18T16:30:03.385Z  
 **Branch:** `main` · **Commit:** `49bdd4a2`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
-**Duration:** 0 ms
+**Duration:** 1 ms
 
 ## Summary
 
@@ -23,8 +23,8 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 10469 ms | — |
-| tests | PASS | 14566 ms | 189/189 passed |
+| typecheck | FAIL | 7955 ms | src/main/ipc-router.ts(171,43): error TS2379: Argument of type '{ brandingProfileId?: string; hotkeys?: Record<string, string>; profile?: { name: string; role: string; team?: string \| undefined; emai |
+| tests | PASS | 14244 ms | 189/189 passed |
 
 ## Module results
 
@@ -53,7 +53,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 139.96 ms | 145.16 ms | 146.92 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 141.99 ms | 146.57 ms | 153.16 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +71,5 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [typecheck] FAIL — src/main/ipc-router.ts(171,43): error TS2379: Argument of type '{ brandingProfileId?: string; hotkeys?: Record<string, string>; profile?: { name: string; role: string; team?: string | undefined; email?: string | undefined; }; defaultTemplateId?: string; defaultStoragePath?: string; theme?: "light" | ... 1 more ... | "system"; onboardingComplete?: boolean; }' is not assignable to parameter of type 'Partial<Settings>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

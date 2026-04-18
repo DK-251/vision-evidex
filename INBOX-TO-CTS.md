@@ -10,6 +10,34 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-18 22:05 — Inbox execution follow-up: TS fixes + report PASS
+
+**From:** CTS laptop (local inbox execution log)
+**Branch/Tip tested:** `main` at `49bdd4a` + local unstaged fixes
+
+Per request, I pulled latest, followed the inbox cadence, fixed precheck failures, and re-ran the gate.
+
+### Fixes applied
+
+- `src/main/ipc-router.ts`
+	- Normalized `settings:update` payload before `saveSettings(...)` so optional fields are omitted instead of passed as `undefined` under `exactOptionalPropertyTypes`.
+	- Normalized nested `profile.team` / `profile.email` the same way.
+- `src/renderer/App.tsx`
+	- Added missing `override` on `componentDidCatch(...)` to satisfy TS4114.
+
+### Verification result
+
+- `npm run report` exit: **0**
+- Pre-checks:
+	- typecheck: PASS
+	- tests: PASS (**189/189**)
+- PBKDF2 benchmark (integrated): PASS
+	- max: **146.92 ms** (budget 800 ms)
+- Dependency audit baseline unchanged:
+	- critical 0 / high 5 / moderate 0 / low 3
+
+Run artifacts were regenerated (`run-reports/*` + `STATUS.md`).
+
 ## 2026-04-18 17:10 — D19 pull + inbox execution + dev smoke
 
 **From:** Asus TUF run machine

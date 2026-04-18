@@ -124,5 +124,110 @@
     "mean_ms": 91.48,
     "budget_ms": 800,
     "passed": true
+  },
+  {
+    "ts": "2026-04-18T16:26:18.671Z",
+    "node": "22.22.2",
+    "platform": "win32-x64",
+    "iterations": 310000,
+    "key_len_bytes": 32,
+    "salt_len_bytes": 16,
+    "runs": 5,
+    "samples_ms": [
+      137.47,
+      132,
+      146.67,
+      133.03,
+      132.95
+    ],
+    "min_ms": 132,
+    "max_ms": 146.67,
+    "mean_ms": 136.42,
+    "budget_ms": 800,
+    "passed": true
+  },
+  {
+    "ts": "2026-04-18T16:28:57.346Z",
+    "node": "22.22.2",
+    "platform": "win32-x64",
+    "iterations": 310000,
+    "key_len_bytes": 32,
+    "salt_len_bytes": 16,
+    "runs": 5,
+    "samples_ms": [
+      149.35,
+      148.9,
+      147.32,
+      148.23,
+      149.33
+    ],
+    "min_ms": 147.32,
+    "max_ms": 149.35,
+    "mean_ms": 148.62,
+    "budget_ms": 800,
+    "passed": true
+  },
+  {
+    "ts": "2026-04-18T16:30:26.778Z",
+    "node": "22.22.2",
+    "platform": "win32-x64",
+    "iterations": 310000,
+    "key_len_bytes": 32,
+    "salt_len_bytes": 16,
+    "runs": 5,
+    "samples_ms": [
+      147.4,
+      141.99,
+      147.2,
+      143.1,
+      153.16
+    ],
+    "min_ms": 141.99,
+    "max_ms": 153.16,
+    "mean_ms": 146.57,
+    "budget_ms": 800,
+    "passed": true
+  },
+  {
+    "ts": "2026-04-18T16:31:26.360Z",
+    "node": "22.22.2",
+    "platform": "win32-x64",
+    "iterations": 310000,
+    "key_len_bytes": 32,
+    "salt_len_bytes": 16,
+    "runs": 5,
+    "samples_ms": [
+      148.58,
+      147.39,
+      155.2,
+      145.99,
+      151.65
+    ],
+    "min_ms": 145.99,
+    "max_ms": 155.2,
+    "mean_ms": 149.76,
+    "budget_ms": 800,
+    "passed": true
+  },
+  {
+    "ts": "2026-04-18T16:32:46.440Z",
+    "node": "22.22.2",
+    "platform": "win32-x64",
+    "iterations": 310000,
+    "key_len_bytes": 32,
+    "salt_len_bytes": 16,
+    "runs": 5,
+    "samples_ms": [
+      146.24,
+      146.32,
+      139.96,
+      146.38,
+      146.92
+    ],
+    "min_ms": 139.96,
+    "max_ms": 146.92,
+    "mean_ms": 145.16,
+    "budget_ms": 800,
+    "passed": true
   }
 ]

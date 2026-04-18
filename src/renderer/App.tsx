@@ -95,7 +95,7 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, BoundaryState>
   static getDerivedStateFromError(error: Error): BoundaryState {
     return { error };
   }
-  componentDidCatch(error: Error, info: ErrorInfo): void {
+  override componentDidCatch(error: Error, info: ErrorInfo): void {
     // eslint-disable-next-line no-console
     console.error('[AppErrorBoundary]', error, info);
   }
