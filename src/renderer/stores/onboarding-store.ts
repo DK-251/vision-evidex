@@ -27,13 +27,22 @@ export interface OnboardingStepDef {
   optional?: boolean;
 }
 
-/** All 8 step definitions. Order is authoritative. */
+/** All 8 step definitions. Order is authoritative. Order matches the
+ *  Tech Spec: Licence → Tour → Profile → Branding → Template → Hotkeys
+ *  → Theme/Storage → Summary. In `none` mode Licence is filtered out,
+ *  leaving 7. */
 export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = Object.freeze([
   {
     id: 'licence',
     title: 'Activate licence',
     description: 'Enter your licence key and bind this machine.',
     requiresMode: 'keygen',
+  },
+  {
+    id: 'tour',
+    title: 'Welcome tour',
+    description: 'A 3-screen introduction to the core flows.',
+    optional: true,
   },
   {
     id: 'profile',
@@ -46,30 +55,24 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = Object.freeze([
     description: 'Company name, logo, and primary colour for exports.',
   },
   {
-    id: 'naming',
-    title: 'Default naming pattern',
-    description: 'How capture filenames are generated across projects.',
+    id: 'template',
+    title: 'Default report template',
+    description: 'Pick the template new projects use by default.',
   },
   {
-    id: 'storage',
-    title: 'Default storage path',
-    description: 'Where new .evidex projects are saved.',
-  },
-  {
-    id: 'shortcuts',
+    id: 'hotkeys',
     title: 'Keyboard shortcuts',
-    description: 'Preview the hotkeys — you can rebind later.',
+    description: 'Six capture actions — click a binding to remap it.',
   },
   {
-    id: 'tour',
-    title: 'Welcome tour',
-    description: 'A 3-screen introduction to the core flows.',
-    optional: true,
+    id: 'themeStorage',
+    title: 'Theme & storage',
+    description: 'Light / dark theme plus the default folder for new projects.',
   },
   {
     id: 'done',
     title: "You're all set",
-    description: 'Confirmation screen — click Finish to enter the app.',
+    description: 'Review your settings and click Finish to persist them.',
   },
 ]);
 

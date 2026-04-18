@@ -78,6 +78,45 @@ describe('DatabaseService — app.db', () => {
     expect(db.getRecentProjects()).toEqual([]);
   });
 
+  it('saveBrandingProfile inserts then upserts + persists logo', () => {
+    const first = db.saveBrandingProfile({
+      id: 'brand_1',
+      name: 'ACME default',
+      companyName: 'ACME',
+      logoBase64: 'aGVsbG8=',
+      logoMimeType: 'image/png',
+      primaryColor: '#1A6FD4',
+      headerText: 'Header',
+      footerText: 'Footer',
+    });
+    expect(first.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+
+    const fetched = db.getBrandingProfile('brand_1');
+    expect(fetched).toMatchObject({
+      id: 'brand_1',
+      companyName: 'ACME',
+      logoBase64: 'aGVsbG8=',
+      logoMimeType: 'image/png',
+      primaryColor: '#1A6FD4',
+    });
+
+    db.saveBrandingProfile({
+      id: 'brand_1',
+      name: 'ACME renamed',
+      companyName: 'ACME Ltd',
+      logoBase64: null,
+      logoMimeType: null,
+      primaryColor: '#000000',
+    });
+    expect(db.getBrandingProfiles()).toHaveLength(1);
+    expect(db.getBrandingProfile('brand_1')?.companyName).toBe('ACME Ltd');
+    expect(db.getBrandingProfile('brand_1')?.logoBase64).toBeNull();
+  });
+
+  it('getBrandingProfile returns null for missing id', () => {
+    expect(db.getBrandingProfile('missing')).toBeNull();
+  });
+
   it('upsertRecentProject inserts then updates the same projectId', () => {
     db.upsertRecentProject({
       projectId: 'proj_01',

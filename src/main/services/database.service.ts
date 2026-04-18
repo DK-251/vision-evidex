@@ -619,13 +619,55 @@ export class DatabaseService {
     throw new Error('DatabaseService.deleteTemplate — Phase 3');
   }
   getBrandingProfiles(): BrandingProfile[] {
-    throw new Error('DatabaseService.getBrandingProfiles — Phase 1 Week 5');
+    const rows = this.db
+      .prepare(
+        `SELECT id, name, company_name, logo_base64, logo_mime_type,
+                primary_color, header_text, footer_text, created_at
+         FROM branding_profiles ORDER BY name`
+      )
+      .all() as BrandingProfileRow[];
+    return rows.map(mapBrandingProfile);
   }
-  getBrandingProfile(_profileId: string): BrandingProfile | null {
-    throw new Error('DatabaseService.getBrandingProfile — Phase 1 Week 5');
+  getBrandingProfile(profileId: string): BrandingProfile | null {
+    const row = this.db
+      .prepare(
+        `SELECT id, name, company_name, logo_base64, logo_mime_type,
+                primary_color, header_text, footer_text, created_at
+         FROM branding_profiles WHERE id = ?`
+      )
+      .get(profileId) as BrandingProfileRow | undefined;
+    return row ? mapBrandingProfile(row) : null;
   }
-  saveBrandingProfile(_profile: Omit<BrandingProfile, 'createdAt'>): BrandingProfile {
-    throw new Error('DatabaseService.saveBrandingProfile — Phase 1 Week 5');
+  saveBrandingProfile(profile: Omit<BrandingProfile, 'createdAt'>): BrandingProfile {
+    const createdAt = new Date().toISOString();
+    this.db
+      .prepare(
+        `INSERT INTO branding_profiles
+           (id, name, company_name, logo_base64, logo_mime_type,
+            primary_color, header_text, footer_text, created_at)
+         VALUES (@id, @name, @companyName, @logoBase64, @logoMimeType,
+                 @primaryColor, @headerText, @footerText, @createdAt)
+         ON CONFLICT(id) DO UPDATE SET
+           name = excluded.name,
+           company_name = excluded.company_name,
+           logo_base64 = excluded.logo_base64,
+           logo_mime_type = excluded.logo_mime_type,
+           primary_color = excluded.primary_color,
+           header_text = excluded.header_text,
+           footer_text = excluded.footer_text`
+      )
+      .run({
+        id: profile.id,
+        name: profile.name,
+        companyName: profile.companyName,
+        logoBase64: profile.logoBase64 ?? null,
+        logoMimeType: profile.logoMimeType ?? null,
+        primaryColor: profile.primaryColor,
+        headerText: profile.headerText ?? null,
+        footerText: profile.footerText ?? null,
+        createdAt,
+      });
+    return { ...profile, createdAt };
   }
   deleteBrandingProfile(_profileId: string): void {
     throw new Error('DatabaseService.deleteBrandingProfile — Phase 3');
@@ -856,4 +898,34 @@ interface RecentProjectRow {
   name: string;
   file_path: string;
   last_opened_at: string;
+}
+
+interface BrandingProfileRow {
+  id: string;
+  name: string;
+  company_name: string;
+  logo_base64: string | null;
+  logo_mime_type: string | null;
+  primary_color: string;
+  header_text: string | null;
+  footer_text: string | null;
+  created_at: string;
+}
+
+function mapBrandingProfile(r: BrandingProfileRow): BrandingProfile {
+  const base: BrandingProfile = {
+    id: r.id,
+    name: r.name,
+    companyName: r.company_name,
+    logoBase64: r.logo_base64,
+    logoMimeType:
+      r.logo_mime_type === 'image/png' || r.logo_mime_type === 'image/jpeg'
+        ? r.logo_mime_type
+        : null,
+    primaryColor: r.primary_color,
+    createdAt: r.created_at,
+  };
+  if (r.header_text !== null) base.headerText = r.header_text;
+  if (r.footer_text !== null) base.footerText = r.footer_text;
+  return base;
 }

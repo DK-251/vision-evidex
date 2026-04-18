@@ -51,13 +51,44 @@ export function isValidBranding(data: unknown): boolean {
   return true;
 }
 
+export function isValidTemplateSelection(data: unknown): boolean {
+  if (!isObject(data)) return false;
+  return isNonEmptyString(data['templateId']);
+}
+
+export function isValidHotkeys(data: unknown, conflicts: Set<string>): boolean {
+  // The HotkeyConfigStep always emits a full map (defaults + overrides),
+  // so the only way to invalidate is a duplicate binding.
+  if (data !== undefined && !isObject(data)) return false;
+  return conflicts.size === 0;
+}
+
+export function isValidThemeStorage(data: unknown): boolean {
+  if (!isObject(data)) return false;
+  if (data['storagePath'] !== undefined) {
+    if (typeof data['storagePath'] !== 'string') return false;
+  }
+  if (!isNonEmptyString(data['storagePath'])) return false;
+  const theme = data['theme'];
+  if (theme !== undefined && theme !== 'light' && theme !== 'dark' && theme !== 'system') {
+    return false;
+  }
+  return true;
+}
+
 /** Route a step to its validator. Unknown / form-less steps pass. */
-export function isStepValid(stepId: string, data: unknown): boolean {
+export function isStepValid(stepId: string, data: unknown, extras?: { hotkeyConflicts?: Set<string> }): boolean {
   switch (stepId) {
     case 'profile':
       return isValidUserProfile(data);
     case 'branding':
       return isValidBranding(data);
+    case 'template':
+      return isValidTemplateSelection(data);
+    case 'hotkeys':
+      return isValidHotkeys(data, extras?.hotkeyConflicts ?? new Set());
+    case 'themeStorage':
+      return isValidThemeStorage(data);
     default:
       return true;
   }

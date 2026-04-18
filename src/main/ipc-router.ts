@@ -1,4 +1,11 @@
-import { ipcMain, type IpcMainInvokeEvent } from 'electron';
+import {
+  ipcMain,
+  dialog,
+  type BrowserWindow,
+  type IpcMainInvokeEvent,
+  type OpenDialogOptions,
+} from 'electron';
+import { ulid } from 'ulid';
 import type { z } from 'zod';
 import { IPC, type IpcChannel } from '@shared/ipc-channels';
 import { EvidexError, isEvidexError } from '@shared/types/errors';
@@ -18,8 +25,14 @@ import {
   SignOffSubmitSchema,
   LicenceActivateSchema,
   LicenceValidateSchema,
+  SettingsGetSchema,
+  SettingsUpdateSchema,
+  BrandingSaveSchema,
+  DialogSelectDirectorySchema,
 } from '@shared/schemas';
 import type { LicenceService } from './services/licence.service';
+import type { SettingsService } from './services/settings.service';
+import type { DatabaseService } from './services/database.service';
 
 /**
  * Service registry injected into `registerAllHandlers`. Additional
@@ -28,6 +41,10 @@ import type { LicenceService } from './services/licence.service';
  */
 export interface ServiceRegistry {
   licence: LicenceService;
+  settings: SettingsService;
+  appDb: DatabaseService;
+  /** Owner of the currently-focused BrowserWindow for modal dialogs. */
+  getMainWindow: () => BrowserWindow | undefined;
 }
 
 /**
@@ -126,8 +143,44 @@ export function registerAllHandlers(services: ServiceRegistry): void {
     services.licence.validate()
   );
 
+  registerHandler(IPC.SETTINGS_GET, SettingsGetSchema, async () =>
+    services.settings.getSettings()
+  );
+  registerHandler(IPC.SETTINGS_UPDATE, SettingsUpdateSchema, async (partial) =>
+    services.settings.saveSettings(partial)
+  );
+
+  registerHandler(IPC.BRANDING_SAVE, BrandingSaveSchema, async (input) => {
+    const profile = {
+      id: input.id ?? `brand_${ulid()}`,
+      name: input.name,
+      companyName: input.companyName,
+      logoBase64: input.logoBase64,
+      logoMimeType: input.logoMimeType,
+      primaryColor: input.primaryColor,
+      ...(input.headerText !== undefined ? { headerText: input.headerText } : {}),
+      ...(input.footerText !== undefined ? { footerText: input.footerText } : {}),
+    };
+    return services.appDb.saveBrandingProfile(profile);
+  });
+
+  registerHandler(IPC.DIALOG_SELECT_DIRECTORY, DialogSelectDirectorySchema, async (input) => {
+    const win = services.getMainWindow();
+    const options: OpenDialogOptions = {
+      properties: ['openDirectory', 'createDirectory'],
+      ...(input.title !== undefined ? { title: input.title } : {}),
+      ...(input.defaultPath !== undefined ? { defaultPath: input.defaultPath } : {}),
+    };
+    const result = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    return {
+      path: result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0]!,
+    };
+  });
+
   // eslint-disable-next-line no-console
-  console.info(`[ipc-router] ${Object.values(IPC).length} handlers registered (2 live, 15 stub)`);
+  console.info(`[ipc-router] ${Object.values(IPC).length} handlers registered (6 live, 15 stub)`);
 }
 
 /**

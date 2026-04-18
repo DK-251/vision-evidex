@@ -1,6 +1,6 @@
 import { app, BrowserWindow, globalShortcut, session } from 'electron';
 import path from 'node:path';
-import { createMainWindow, destroyAllWindows } from './window-manager';
+import { createMainWindow, destroyAllWindows, getMainWindow } from './window-manager';
 import { CSP_HEADER } from './window-config';
 import { registerAllHandlers } from './ipc-router';
 import { getAppDataRoot, getLicencePath, getSettingsPath } from './app-paths';
@@ -100,7 +100,12 @@ function bootstrap(): void {
     appDb = new DatabaseService(path.join(appDataRoot, 'app.db'));
     appDb.initAppSchema();
 
-    registerAllHandlers({ licence: licenceService });
+    registerAllHandlers({
+      licence: licenceService,
+      settings: settingsService,
+      appDb: appDb,
+      getMainWindow,
+    });
 
     logger.info('services.ready', {
       onboardingComplete: settingsService.isOnboardingComplete(),

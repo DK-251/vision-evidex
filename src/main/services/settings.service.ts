@@ -19,6 +19,9 @@ export const SETTINGS_SCHEMA_VERSION = 1;
 export const DEFAULT_SETTINGS: Settings = Object.freeze({
   schemaVersion: SETTINGS_SCHEMA_VERSION,
   onboardingComplete: false,
+  theme: 'system',
+  defaultStoragePath: '',
+  defaultTemplateId: '',
 });
 
 export class SettingsService {

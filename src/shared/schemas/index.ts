@@ -208,10 +208,50 @@ export const LicenceValidateSchema = z.object({});
 
 // ─── Settings ───────────────────────────────────────────────────────────
 
+export const UserProfileSettingsSchema = z.object({
+  name: z.string().min(1),
+  role: z.string().min(1),
+  team: z.string().optional(),
+  email: z.string().email().optional(),
+});
+
 export const SettingsSchema = z.object({
   schemaVersion: z.number().int().min(1),
   onboardingComplete: z.boolean(),
+  theme: z.enum(['light', 'dark', 'system']),
+  defaultStoragePath: z.string(),
+  defaultTemplateId: z.string(),
+  profile: UserProfileSettingsSchema.optional(),
+  hotkeys: z.record(z.string()).optional(),
+  brandingProfileId: z.string().optional(),
 });
+
+export const SettingsUpdateSchema = SettingsSchema.partial().omit({ schemaVersion: true });
+
+export const SettingsGetSchema = z.object({});
+
+// ─── Branding (app.db) ──────────────────────────────────────────────────
+
+export const BrandingSaveSchema = z.object({
+  id: z.string().min(1).optional(),
+  name: z.string().min(1),
+  companyName: z.string().min(1),
+  logoBase64: z.string().nullable(),
+  logoMimeType: z.enum(['image/png', 'image/jpeg']).nullable(),
+  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  headerText: z.string().optional(),
+  footerText: z.string().optional(),
+});
+
+// ─── Dialog ─────────────────────────────────────────────────────────────
+
+export const DialogSelectDirectorySchema = z.object({
+  title: z.string().optional(),
+  defaultPath: z.string().optional(),
+});
+
+export type SettingsUpdateInput = z.infer<typeof SettingsUpdateSchema>;
+export type BrandingSaveInput = z.infer<typeof BrandingSaveSchema>;
 
 // ─── Type inference ─────────────────────────────────────────────────────
 

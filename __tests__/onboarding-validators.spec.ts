@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   isValidUserProfile,
   isValidBranding,
+  isValidTemplateSelection,
+  isValidHotkeys,
+  isValidThemeStorage,
   isStepValid,
 } from '../src/renderer/onboarding/validators';
 
@@ -83,6 +86,51 @@ describe('isValidBranding', () => {
   });
 });
 
+describe('isValidTemplateSelection', () => {
+  it('accepts a non-empty templateId', () => {
+    expect(isValidTemplateSelection({ templateId: 'tpl_tsr_standard' })).toBe(true);
+  });
+  it('rejects empty / missing templateId', () => {
+    expect(isValidTemplateSelection({})).toBe(false);
+    expect(isValidTemplateSelection({ templateId: '' })).toBe(false);
+    expect(isValidTemplateSelection({ templateId: '   ' })).toBe(false);
+  });
+  it('rejects non-object input', () => {
+    expect(isValidTemplateSelection(null)).toBe(false);
+    expect(isValidTemplateSelection('tpl_x')).toBe(false);
+  });
+});
+
+describe('isValidHotkeys', () => {
+  it('valid when no conflicts', () => {
+    expect(isValidHotkeys({}, new Set())).toBe(true);
+    expect(isValidHotkeys({ a: 'Ctrl+F' }, new Set())).toBe(true);
+  });
+  it('invalid when any conflict exists', () => {
+    expect(isValidHotkeys({ a: 'Ctrl+F' }, new Set(['a', 'b']))).toBe(false);
+  });
+  it('accepts undefined (uses defaults)', () => {
+    expect(isValidHotkeys(undefined, new Set())).toBe(true);
+  });
+});
+
+describe('isValidThemeStorage', () => {
+  it('requires a non-empty storagePath', () => {
+    expect(isValidThemeStorage({ storagePath: 'C:/Projects' })).toBe(true);
+    expect(isValidThemeStorage({ storagePath: '' })).toBe(false);
+    expect(isValidThemeStorage({})).toBe(false);
+  });
+  it('accepts any of the three theme values or undefined', () => {
+    expect(isValidThemeStorage({ storagePath: '/x', theme: 'light' })).toBe(true);
+    expect(isValidThemeStorage({ storagePath: '/x', theme: 'dark' })).toBe(true);
+    expect(isValidThemeStorage({ storagePath: '/x', theme: 'system' })).toBe(true);
+    expect(isValidThemeStorage({ storagePath: '/x' })).toBe(true);
+  });
+  it('rejects unknown theme values', () => {
+    expect(isValidThemeStorage({ storagePath: '/x', theme: 'midnight' } as unknown)).toBe(false);
+  });
+});
+
 describe('isStepValid router', () => {
   it('routes profile + branding to their validators', () => {
     expect(isStepValid('profile', { name: 'D', role: 'T' })).toBe(true);
@@ -91,12 +139,20 @@ describe('isStepValid router', () => {
     expect(isStepValid('branding', {})).toBe(false);
   });
 
+  it('routes template / hotkeys / themeStorage to their validators', () => {
+    expect(isStepValid('template', { templateId: 'tpl_x' })).toBe(true);
+    expect(isStepValid('template', {})).toBe(false);
+    expect(
+      isStepValid('hotkeys', { a: 'Ctrl+F' }, { hotkeyConflicts: new Set(['a']) })
+    ).toBe(false);
+    expect(isStepValid('hotkeys', { a: 'Ctrl+F' })).toBe(true);
+    expect(isStepValid('themeStorage', { storagePath: '/x', theme: 'dark' })).toBe(true);
+    expect(isStepValid('themeStorage', {})).toBe(false);
+  });
+
   it('passes through for form-less step ids', () => {
     expect(isStepValid('licence', undefined)).toBe(true);
     expect(isStepValid('tour', undefined)).toBe(true);
-    expect(isStepValid('naming', undefined)).toBe(true);
-    expect(isStepValid('storage', undefined)).toBe(true);
-    expect(isStepValid('shortcuts', undefined)).toBe(true);
     expect(isStepValid('done', undefined)).toBe(true);
   });
 

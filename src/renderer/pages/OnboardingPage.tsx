@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   useOnboardingStore,
   selectVisibleSteps,
@@ -6,10 +7,16 @@ import {
   selectIsLast,
 } from '../stores/onboarding-store';
 import { isStepValid } from '../onboarding/validators';
+import { detectHotkeyConflicts, DEFAULT_HOTKEYS } from '../onboarding/hotkey-utils';
 import { LicenceStep } from '../onboarding/LicenceStep';
 import { WelcomeTourStep } from '../onboarding/WelcomeTourStep';
 import { UserProfileStep } from '../onboarding/UserProfileStep';
 import { BrandingStep } from '../onboarding/BrandingStep';
+import { DefaultTemplateStep } from '../onboarding/DefaultTemplateStep';
+import { HotkeyConfigStep } from '../onboarding/HotkeyConfigStep';
+import { ThemeStorageStep } from '../onboarding/ThemeStorageStep';
+import { SummaryStep } from '../onboarding/SummaryStep';
+import { persistOnboarding } from '../onboarding/persist-onboarding';
 
 /**
  * S-02 — onboarding wizard.
@@ -28,10 +35,25 @@ export function OnboardingPage(): JSX.Element {
   const currentIndex = useOnboardingStore((s) => s.currentIndex);
   const completed = useOnboardingStore((s) => s.completed);
   const stepData = useOnboardingStore((s) => s.data[step.id]);
+  const allData = useOnboardingStore((s) => s.data);
   const next = useOnboardingStore((s) => s.next);
   const back = useOnboardingStore((s) => s.back);
   const skip = useOnboardingStore((s) => s.skip);
   const complete = useOnboardingStore((s) => s.complete);
+  const [finishState, setFinishState] = useState<
+    { kind: 'idle' } | { kind: 'saving' } | { kind: 'error'; message: string }
+  >({ kind: 'idle' });
+
+  async function onFinish() {
+    setFinishState({ kind: 'saving' });
+    const result = await persistOnboarding(allData);
+    if (!result.ok) {
+      setFinishState({ kind: 'error', message: result.reason ?? 'Unknown error' });
+      return;
+    }
+    setFinishState({ kind: 'idle' });
+    complete();
+  }
 
   if (completed) {
     return (
@@ -56,7 +78,11 @@ export function OnboardingPage(): JSX.Element {
     );
   }
 
-  const canAdvance = isStepValid(step.id, stepData);
+  const hotkeyConflicts =
+    step.id === 'hotkeys'
+      ? detectHotkeyConflicts((stepData as Record<string, string> | undefined) ?? { ...DEFAULT_HOTKEYS })
+      : new Set<string>();
+  const canAdvance = isStepValid(step.id, stepData, { hotkeyConflicts });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-primary p-6">
@@ -73,6 +99,12 @@ export function OnboardingPage(): JSX.Element {
         </div>
 
         <div className="px-8 py-6">{renderStepBody(step.id)}</div>
+
+        {finishState.kind === 'error' && (
+          <div className="px-8 pb-4 text-sm text-accent-error" role="alert">
+            Finish failed: {finishState.message}
+          </div>
+        )}
 
         <div
           className="px-8 py-4 flex items-center justify-between border-t border-border-subtle"
@@ -99,11 +131,11 @@ export function OnboardingPage(): JSX.Element {
             {isLast ? (
               <button
                 type="button"
-                onClick={complete}
-                disabled={!canAdvance}
+                onClick={onFinish}
+                disabled={!canAdvance || finishState.kind === 'saving'}
                 className="px-4 py-2 rounded-md bg-accent-primary text-white disabled:opacity-50"
               >
-                Finish
+                {finishState.kind === 'saving' ? 'Saving…' : 'Finish'}
               </button>
             ) : (
               <button
@@ -126,17 +158,24 @@ function renderStepBody(stepId: string): JSX.Element {
   switch (stepId) {
     case 'licence':
       return <LicenceStep />;
-    case 'tour':
-      return <WelcomeTourStep />;
     case 'profile':
       return <UserProfileStep />;
     case 'branding':
       return <BrandingStep />;
+    case 'template':
+      return <DefaultTemplateStep />;
+    case 'hotkeys':
+      return <HotkeyConfigStep />;
+    case 'themeStorage':
+      return <ThemeStorageStep />;
+    case 'tour':
+      return <WelcomeTourStep />;
+    case 'done':
+      return <SummaryStep />;
     default:
       return (
         <p className="text-sm text-text-secondary">
-          Placeholder content for <span className="font-mono">{stepId}</span>. Real form lands in
-          Phase 1 Week 5 D22.
+          Placeholder content for <span className="font-mono">{stepId}</span>.
         </p>
       );
   }

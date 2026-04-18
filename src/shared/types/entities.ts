@@ -437,7 +437,26 @@ export interface RecentProject {
 
 // ─── Settings (AppData/settings.json) ───────────────────────────────────
 
+export interface UserProfileSettings {
+  name: string;
+  role: string;
+  team?: string;
+  email?: string;
+}
+
+export type ThemePreference = 'light' | 'dark' | 'system';
+
 export interface Settings {
   schemaVersion: number;
   onboardingComplete: boolean;
+  theme: ThemePreference;
+  /** Default folder where new .evidex files are created. Empty until the user picks one. */
+  defaultStoragePath: string;
+  /** FK to templates.id (app.db) — empty string = not yet selected. */
+  defaultTemplateId: string;
+  profile?: UserProfileSettings;
+  /** Action id → key binding string (e.g. "captureFullscreen" → "Ctrl+Shift+F"). */
+  hotkeys?: Record<string, string>;
+  /** FK to branding_profiles.id (app.db) — empty string = not yet created. */
+  brandingProfileId?: string;
 }

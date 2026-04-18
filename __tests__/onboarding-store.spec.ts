@@ -80,9 +80,9 @@ describe('OnboardingStore', () => {
   });
 
   describe('selectCurrentStep', () => {
-    it('in none mode, index 0 is "profile" (not "licence")', () => {
+    it('in none mode, index 0 is "tour" (not "licence")', () => {
       state().setMode('none');
-      expect(selectCurrentStep(state()).id).toBe('profile');
+      expect(selectCurrentStep(state()).id).toBe('tour');
     });
 
     it('in keygen mode, index 0 is "licence"', () => {

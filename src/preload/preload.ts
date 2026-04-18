@@ -23,7 +23,10 @@ import type {
   LicenceActivateInput,
   ActivationResult,
   LicenceValidationResult,
+  Settings,
+  BrandingProfile,
 } from '@shared/types/entities';
+import type { SettingsUpdateInput, BrandingSaveInput } from '@shared/schemas';
 
 /**
  * Preload bridge — the ONLY surface the renderer uses to talk to main.
@@ -91,6 +94,24 @@ const evidexAPI = {
       ipcRenderer.invoke(IPC.LICENCE_ACTIVATE, input),
     validate: (): Promise<IpcResult<LicenceValidationResult>> =>
       ipcRenderer.invoke(IPC.LICENCE_VALIDATE, {}),
+  },
+
+  settings: {
+    get: (): Promise<IpcResult<Settings>> => ipcRenderer.invoke(IPC.SETTINGS_GET, {}),
+    update: (patch: SettingsUpdateInput): Promise<IpcResult<Settings>> =>
+      ipcRenderer.invoke(IPC.SETTINGS_UPDATE, patch),
+  },
+
+  branding: {
+    save: (input: BrandingSaveInput): Promise<IpcResult<BrandingProfile>> =>
+      ipcRenderer.invoke(IPC.BRANDING_SAVE, input),
+  },
+
+  dialog: {
+    selectDirectory: (
+      input: { title?: string; defaultPath?: string } = {}
+    ): Promise<IpcResult<{ path: string | null }>> =>
+      ipcRenderer.invoke(IPC.DIALOG_SELECT_DIRECTORY, input),
   },
 
   events: {

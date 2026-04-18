@@ -37,6 +37,12 @@ export const IPC = {
   // Licence
   LICENCE_ACTIVATE: 'licence:activate',
   LICENCE_VALIDATE: 'licence:validate',
+
+  // Settings + branding + dialogs (Phase 1 Wk5 D22)
+  SETTINGS_GET: 'settings:get',
+  SETTINGS_UPDATE: 'settings:update',
+  BRANDING_SAVE: 'branding:save',
+  DIALOG_SELECT_DIRECTORY: 'dialog:selectDirectory',
 } as const;
 
 export const IPC_EVENTS = {

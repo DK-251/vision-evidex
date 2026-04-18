@@ -36,21 +36,35 @@ describe('SettingsService', () => {
     expect(fs.existsSync(`${settingsPath}.tmp`)).toBe(false);
 
     const persisted = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    expect(persisted).toEqual({
+    expect(persisted).toMatchObject({
       schemaVersion: SETTINGS_SCHEMA_VERSION,
       onboardingComplete: true,
+      theme: 'system',
+      defaultStoragePath: '',
+      defaultTemplateId: '',
     });
   });
 
   it('merges partial updates into existing settings', () => {
     fs.writeFileSync(
       settingsPath,
-      JSON.stringify({ schemaVersion: 1, onboardingComplete: true })
+      JSON.stringify({
+        schemaVersion: 1,
+        onboardingComplete: true,
+        theme: 'dark',
+        defaultStoragePath: '/old/path',
+        defaultTemplateId: 'tpl_tsr_standard',
+      })
     );
     const svc = new SettingsService(settingsPath);
     svc.loadSettings();
-    const next = svc.saveSettings({ schemaVersion: 2 });
-    expect(next).toEqual({ schemaVersion: 2, onboardingComplete: true });
+    const next = svc.saveSettings({ defaultStoragePath: '/new/path' });
+    expect(next).toMatchObject({
+      onboardingComplete: true,
+      theme: 'dark',
+      defaultStoragePath: '/new/path',
+      defaultTemplateId: 'tpl_tsr_standard',
+    });
   });
 
   it('falls back to defaults when file is corrupted', () => {
