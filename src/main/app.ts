@@ -1,6 +1,6 @@
 import { app, BrowserWindow, globalShortcut, session } from 'electron';
 import path from 'node:path';
-import { createMainWindow } from './window-manager';
+import { createMainWindow, destroyAllWindows } from './window-manager';
 import { CSP_HEADER } from './window-config';
 import { registerAllHandlers } from './ipc-router';
 import { getAppDataRoot } from './app-paths';
@@ -90,6 +90,7 @@ function bootstrap(): void {
 
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
+    destroyAllWindows();
     logger.info('app.will-quit');
   });
 

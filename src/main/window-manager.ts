@@ -61,6 +61,7 @@ export function createToolbarWindow(): BrowserWindow {
     transparent: true,
   });
   toolbarWindow.setContentProtection(true); // prevents toolbar from appearing in its own screenshots
+  toolbarWindow.once('ready-to-show', () => toolbarWindow?.show());
   toolbarWindow.on('closed', () => {
     toolbarWindow = undefined;
   });
@@ -96,6 +97,8 @@ export function createRegionWindow(): BrowserWindow {
     fullscreen: true,
     hasShadow: false,
   });
+  // Crosshair cursor is applied via CSS on <body> in src/region/App.tsx (Phase 2 Wk7 D34).
+  regionWindow.once('ready-to-show', () => regionWindow?.show());
   regionWindow.on('closed', () => {
     regionWindow = undefined;
   });
@@ -117,4 +120,16 @@ export function getAnnotationWindow(): BrowserWindow | undefined {
 
 export function getRegionWindow(): BrowserWindow | undefined {
   return regionWindow;
+}
+
+/**
+ * Tear-down hook called from `app.on('will-quit')`. Safe to call multiple
+ * times — each window's `closed` handler clears its module-level ref.
+ */
+export function destroyAllWindows(): void {
+  for (const win of [mainWindow, toolbarWindow, annotationWindow, regionWindow]) {
+    if (win && !win.isDestroyed()) {
+      win.destroy();
+    }
+  }
 }
