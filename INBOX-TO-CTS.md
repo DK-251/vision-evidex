@@ -10,6 +10,56 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-18 16:08 — D15 gate re-run after pull to `ccaaf6a`
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `ccaaf6a2`
+
+### Checklist results (1-6)
+
+1. **Typecheck** — **PASS**
+	 - Command: `npm run typecheck`
+	 - Result: exit 0, no TS errors.
+
+2. **Unit tests** — **FAIL (pretest native rebuild step)**
+	 - Command: `npm test`
+	 - Failure occurs in `pretest` script (`npm run rebuild:node`), before Vitest executes.
+	 - Error summary:
+		 - `npm rebuild better-sqlite3 --build-from-source`
+		 - `node-gyp ERR! find VS ... Could not find any Visual Studio installation to use`
+		 - Requires latest Visual Studio Build Tools with Desktop C++ workload.
+
+3. **Electron dev boot** — **PASS**
+	 - Command: `npm run dev`
+	 - Predev hook rebuilt Electron ABI successfully:
+		 - `npm run rebuild:electron` → `electron-rebuild -f -w better-sqlite3` → PASS
+	 - Observed expected runtime lines:
+		 - `[ipc-router] 17 stub handlers registered`
+		 - `{"msg":"app.ready", ...}`
+		 - `{"msg":"services.ready","meta":{"onboardingComplete":false,"appDbPath":"..."}}`
+		 - `{"msg":"licence.validate","meta":{"mode":"none","valid":true}}`
+		 - `{"msg":"app.will-quit"}`
+	 - Artifacts:
+		 - `%APPDATA%\\VisionEviDex\\app.db` (+ WAL/SHM while running) present
+		 - `%APPDATA%\\VisionEviDex\\logs\\app-2026-04-18.log` updated
+		 - `settings.json` absent (expected)
+
+4. **IPC round-trip sanity (renderer DevTools)** — **NOT RUN (manual-only)**
+	 - Requires manual renderer DevTools interaction to paste exact snippets and capture return payloads.
+
+5. **Open toolbar/annotation/region windows** — **NOT RUN (manual-only)**
+	 - Requires manual main-process DevTools/shim call path.
+
+6. **Dependency audit trend via report** — **FAIL (exit code gate), DATA WRITTEN**
+	 - Command: `npm run report`
+	 - Command wrote outputs (`latest.json`, `latest.md`, `STATUS.md`, `benchmarks.jsonl`) but exited **1**.
+	 - `latest.md` shows dependency audit section with expected counts:
+		 - critical 0, high 5, moderate 0, low 3, total 8
+	 - `benchmarks.jsonl` last line includes `"audit": {...}`.
+	 - Failing precheck in report:
+		 - `tests = FAIL` with note `could not parse vitest JSON output`.
+	 - This correlates with step 2 pretest failure before Vitest execution.
+
 ## 2026-04-18 15:23 — D15 Week 3 gate verification results
 
 **From:** Asus TUF run machine

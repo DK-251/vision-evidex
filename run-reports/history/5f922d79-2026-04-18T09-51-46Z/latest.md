@@ -1,7 +1,7 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-18T10:04:04.596Z  
-**Branch:** `main` · **Commit:** `ccaaf6a2`  
+**Date:** 2026-04-18T09:51:46.569Z  
+**Branch:** `main` · **Commit:** `5f922d79`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
 **Duration:** 0 ms
 
@@ -18,13 +18,6 @@
 ## Feature progress
 
 **0 / 92 P0 features** merged + PASS
-
-## Pre-checks
-
-| Check | Status | Duration | Notes |
-|---|---|---|---|
-| typecheck | PASS | 4900 ms | — |
-| tests | FAIL | 7228 ms | could not parse vitest JSON output |
 
 ## Module results
 
@@ -63,5 +56,4 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
-- PRECHECK [tests] FAIL — could not parse vitest JSON output
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

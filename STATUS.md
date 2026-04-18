@@ -8,8 +8,8 @@
 
 | Field | Value |
 |---|---|
-| Last Asus run | 2026-04-18T09:51:46.569Z |
-| Last run commit | `5f922d79` |
+| Last Asus run | 2026-04-18T10:04:04.596Z |
+| Last run commit | `ccaaf6a2` |
 | Last run branch | `main` |
 | Node | v22.22.2 |
 | Electron | ^30.4.0 |
@@ -51,6 +51,7 @@ See [FEATURES.md](FEATURES.md) for the full checklist.
 
 ### Next actions
 
+- PRECHECK [tests] FAIL — could not parse vitest JSON output
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md
 
 ## Links
