@@ -206,6 +206,13 @@ export const LicenceActivateSchema = z.object({
 
 export const LicenceValidateSchema = z.object({});
 
+// ─── Settings ───────────────────────────────────────────────────────────
+
+export const SettingsSchema = z.object({
+  schemaVersion: z.number().int().min(1),
+  onboardingComplete: z.boolean(),
+});
+
 // ─── Type inference ─────────────────────────────────────────────────────
 
 export type SessionIntakeInput = z.infer<typeof SessionIntakeSchema>;

@@ -434,3 +434,10 @@ export interface RecentProject {
   filePath: string;
   lastOpenedAt: string;
 }
+
+// ─── Settings (AppData/settings.json) ───────────────────────────────────
+
+export interface Settings {
+  schemaVersion: number;
+  onboardingComplete: boolean;
+}

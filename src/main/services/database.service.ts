@@ -1,3 +1,4 @@
+import Database, { type Database as DatabaseT } from 'better-sqlite3';
 import type {
   Project,
   ProjectStatus,
@@ -28,9 +29,60 @@ import type {
  * Architectural Rule 5: sign_offs, access_log, version_history are
  *   append-only — this class provides NO update*/delete* methods for them.
  *
- * Phase 1 Week 4 implementation.
+ * Phase 1 Week 3 (D14): constructor + app-level schema + recent_projects
+ * CRUD. Project-db methods (sessions, captures, etc.) land Phase 1 Wk4–
+ * Phase 2 per the thrown-phase messages.
  */
 export class DatabaseService {
+  private readonly db: DatabaseT;
+
+  constructor(dbPath: string) {
+    this.db = new Database(dbPath);
+    this.db.pragma('journal_mode = WAL');
+    this.db.pragma('foreign_keys = ON');
+  }
+
+  /** Create tables used by `app.db`. Idempotent. */
+  initAppSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS templates (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        schema_json TEXT NOT NULL,
+        is_builtin INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS branding_profiles (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        company_name TEXT NOT NULL,
+        logo_base64 TEXT,
+        logo_mime_type TEXT,
+        primary_color TEXT NOT NULL,
+        header_text TEXT,
+        footer_text TEXT,
+        created_at TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS recent_projects (
+        project_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        last_opened_at TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS metrics_data (
+        project_id TEXT PRIMARY KEY,
+        data_json TEXT NOT NULL,
+        imported_at TEXT NOT NULL
+      );
+    `);
+  }
+
+  close(): void {
+    this.db.close();
+  }
+
   // ─── Project ────────────────────────────────────────────────────────
   insertProject(_project: Omit<Project, 'updatedAt'>): void {
     throw new Error('DatabaseService.insertProject — Phase 1 Week 4');
@@ -160,9 +212,36 @@ export class DatabaseService {
     throw new Error('DatabaseService.deleteBrandingProfile — Phase 3');
   }
   getRecentProjects(): RecentProject[] {
-    throw new Error('DatabaseService.getRecentProjects — Phase 1 Week 5');
+    const rows = this.db
+      .prepare(
+        `SELECT project_id, name, file_path, last_opened_at
+         FROM recent_projects
+         ORDER BY last_opened_at DESC`
+      )
+      .all() as Array<{
+      project_id: string;
+      name: string;
+      file_path: string;
+      last_opened_at: string;
+    }>;
+    return rows.map((r) => ({
+      projectId: r.project_id,
+      name: r.name,
+      filePath: r.file_path,
+      lastOpenedAt: r.last_opened_at,
+    }));
   }
-  upsertRecentProject(_entry: RecentProject): void {
-    throw new Error('DatabaseService.upsertRecentProject — Phase 1 Week 5');
+
+  upsertRecentProject(entry: RecentProject): void {
+    this.db
+      .prepare(
+        `INSERT INTO recent_projects (project_id, name, file_path, last_opened_at)
+         VALUES (@projectId, @name, @filePath, @lastOpenedAt)
+         ON CONFLICT(project_id) DO UPDATE SET
+           name = excluded.name,
+           file_path = excluded.file_path,
+           last_opened_at = excluded.last_opened_at`
+      )
+      .run(entry);
   }
 }

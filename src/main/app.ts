@@ -3,9 +3,11 @@ import path from 'node:path';
 import { createMainWindow, destroyAllWindows } from './window-manager';
 import { CSP_HEADER } from './window-config';
 import { registerAllHandlers } from './ipc-router';
-import { getAppDataRoot } from './app-paths';
+import { getAppDataRoot, getSettingsPath } from './app-paths';
 import { logger } from './logger';
 import { LicenceService } from './services/licence.service';
+import { SettingsService } from './services/settings.service';
+import { DatabaseService } from './services/database.service';
 
 /**
  * Vision-EviDex main process entry point.
@@ -28,6 +30,8 @@ import { LicenceService } from './services/licence.service';
 export const isDev = !app.isPackaged;
 
 const licenceService = new LicenceService();
+let settingsService: SettingsService | undefined;
+let appDb: DatabaseService | undefined;
 
 function applyCSP(): void {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -75,6 +79,17 @@ function bootstrap(): void {
     applyCSP();
     registerAllHandlers();
 
+    settingsService = new SettingsService(getSettingsPath());
+    settingsService.loadSettings();
+
+    appDb = new DatabaseService(path.join(appDataRoot, 'app.db'));
+    appDb.initAppSchema();
+
+    logger.info('services.ready', {
+      onboardingComplete: settingsService.isOnboardingComplete(),
+      appDbPath: path.join(appDataRoot, 'app.db'),
+    });
+
     const licence = licenceService.validate();
     logger.info('licence.validate', { mode: licenceService.getMode(), valid: licence.valid });
     // Week 4 adds: if (!licence.valid) return windowManager.showActivationWindow();
@@ -91,6 +106,11 @@ function bootstrap(): void {
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
     destroyAllWindows();
+    try {
+      appDb?.close();
+    } catch (err) {
+      logger.warn('appDb.close failed', { err: String(err) });
+    }
     logger.info('app.will-quit');
   });
 
