@@ -10,6 +10,34 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-18 22:34 — D25 polish verification run (skeleton loading pass)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `939dfa6`
+
+Per top unresolved inbox instruction, I pulled latest and ran the requested checklist.
+
+### Results
+
+- `git pull --ff-only`: **Already up to date**
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: PASS
+	- tests: PASS (**189/189**)
+	- PBKDF2 benchmark: PASS (**147.1 ms** max, budget 800 ms)
+	- dependency audit baseline unchanged: critical 0 / high 5 / moderate 0 / low 3
+
+### `npm run dev` smoke
+
+- Dev stack booted successfully.
+- Observed expected startup lines:
+	- `app.ready`
+	- `services.ready`
+	- `licence.validate`
+	- `app.will-quit`
+- No immediate runtime errors observed in terminal logs.
+
+Run artifacts were regenerated (`run-reports/*` + `STATUS.md`) by the report run.
+
 ## 2026-04-18 22:05 — Inbox execution follow-up: TS fixes + report PASS
 
 **From:** CTS laptop (local inbox execution log)
