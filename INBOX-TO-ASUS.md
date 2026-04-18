@@ -14,6 +14,66 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-19 — FUI-2: Fluent UI component library (primitives only)
+
+**From:** CTS (Claude Code)
+**Why:** Second of five Fluent phases. FUI-2 ships the `src/renderer/components/ui/` primitive library — the reusable React components every screen will consume from FUI-4 onwards. **No screen is modified.** The three existing D25 screens still import from the deprecated-alias layer and render byte-identically to `4724b26`.
+
+### What landed
+
+**Styles** — `src/renderer/styles/components.css` (NEW, imported from `global.css` right after `loading.css`):
+- `.btn-base` + `.btn-accent` / `.btn-standard` / `.btn-subtle` / `.btn-outline` + `.btn-compact` modifier (§5.1)
+- `.input` + `.input-multiline` with focus/hover/invalid states (§5.2)
+- `.toggle-track` / `.toggle-thumb` with checked/press thumb-stretch micro-interaction (§5.3)
+- `.checkbox` / `.radio` with thin SVG-check / inner-dot pseudo-elements (§5.4)
+- `.dropdown` with embedded SVG chevron (§5.5)
+- `.card` / `.card-elevated` / `.card-highlighted` + `.card-divider` (§5.7)
+- `.modal-backdrop` / `.modal` + `.modal-title` / `.modal-body` / `.modal-actions` (§5.8)
+- `.status-badge` with per-tag dot + bg colour (§5.10)
+- `.toast` with severity-coded left border (§5.12)
+- `.sr-only` visually-hidden helper for live regions
+
+**React primitives** — `src/renderer/components/ui/`:
+
+| Component | File | Notes |
+|---|---|---|
+| `Button` | `Button.tsx` | `variant`: accent/standard/subtle/outline; `size`: normal/compact; `startIcon`/`endIcon` slots; `forwardRef`. |
+| `Input` / `Textarea` | `Input.tsx` | `invalid` prop → `aria-invalid='true'` + red bottom border. |
+| `Toggle` | `Toggle.tsx` | `<label>` wraps a visually-hidden `<input type=checkbox role=switch>`; stretch animation comes from CSS `:active`. |
+| `Checkbox` / `Radio` | `Checkbox.tsx` / `Radio.tsx` | Same pattern — native input hidden inside a styled label. |
+| `Dropdown` | `Dropdown.tsx` | Native `<select>` styled to match input + Fluent chevron SVG data-URI; `options: DropdownOption[]` + optional `placeholder`. |
+| `Card` | `Card.tsx` | `variant`: default/elevated/highlighted; exports `CardDivider`. |
+| `Modal` | `Modal.tsx` | Framer Motion `dialogEnter` + smoke backdrop `fadeIn`; ESC closes when `onClose` provided; autofocuses the dialog; exports `ModalTitle` / `ModalBody` / `ModalActions`. |
+| `Toast` | `Toast.tsx` | Severity pill (success/error/warning/info) with optional icon + dismiss button; wrapped in `toastEnter` variant. |
+| `StatusBadge` | `StatusBadge.tsx` | `tag: 'pass' \| 'fail' \| 'blocked' \| 'skip' \| 'untagged' \| 'suspect'` + optional custom label. |
+| `ProgressBar` | `ProgressBar.tsx` | `value` omitted → indeterminate; present → determinate; `status` colours the determinate fill. |
+| `ProgressRing` | `ProgressRing.tsx` | Three permitted sizes: 16 / 20 / 32. Always inline with an optional label. |
+| `Skeleton` | `ui/Skeleton.tsx` | Fluent shimmer (1.5s sweep) replacing the old `animate-pulse`. |
+
+**Barrel** — `src/renderer/components/ui/index.ts` re-exports everything for clean screen-side imports like `import { Button, Card, Modal } from '../components/ui'`.
+
+**Backwards-compat** — `src/renderer/components/Skeleton.tsx` is rewritten to delegate to the new `ui/Skeleton`. Same API (`Skeleton({className, style})` + `BootSkeleton()`), same callers keep working. The old pulse animation is now the new shimmer — the only visual change anywhere in FUI-2.
+
+### What did NOT change
+
+- No screen file (`OnboardingPage`, `DashboardPage`, `AppSettingsPage`, 8 step components) was touched.
+- No existing test was touched — still 189 specs.
+- No new IPC / no schema migration.
+- The three Phase-2 stubs (toolbar / annotation / region) are untouched.
+
+### Verification ask
+
+1. `git pull`
+2. `npm run report` — expected **PASS**. Most at-risk: the barrel re-exports in `ui/index.ts` (stray `type` re-exports under `verbatimModuleSyntax: false` should be fine, but if any fails paste the exact error). Also the Framer Motion wiring in `Modal.tsx` / `Toast.tsx` (new imports — `framer-motion` is already a dep so install should be clean).
+3. `npm run dev`:
+   - Wizard should render **exactly** as on `4724b26`. No visual regression.
+   - **Only visible difference**: boot skeleton + any other skeleton instances now sweep left-to-right (Fluent shimmer) instead of fading (old pulse). Subtle — worth looking at when the wizard is about to appear.
+4. Tests: expected unchanged at **189/189 PASS**.
+
+If all green, I'll start FUI-3 (Shell: Sidebar + TitleBar + NavItem — the 220/48px acrylic sidebar and the content-area React title bar that overlays the OS titlebar strip).
+
+---
+
 ## 2026-04-19 — FUI-1: Fluent design foundation (tokens + materials + theme plumbing)
 
 **From:** CTS (Claude Code)
