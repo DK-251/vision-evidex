@@ -10,6 +10,26 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-18 16:52 — D19 pull + inbox execution complete
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `9a14934c`
+
+Per inbox instruction, I pulled latest and ran `npm run report`.
+
+### Results
+
+- Pre-checks: PASS
+	- typecheck: PASS
+	- tests: PASS (95/95)
+- PBKDF2 benchmark (integrated in report): PASS
+	- min 90.6 ms / mean 92.49 ms / max 98.3 ms / budget 800 ms
+- Dependency audit baseline unchanged:
+	- critical 0 / high 5 / moderate 0 / low 3
+- Report exit code: 0
+
+Updated artifacts were generated and pushed (`run-reports/` + `STATUS.md`).
+
 ## 2026-04-18 16:28 — D16 verification run (precheck fail)
 
 **From:** Asus TUF run machine
