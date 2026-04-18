@@ -5,9 +5,9 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Phase 0 Week 1 — Environment setup and project scaffold
+- **SPRINT:** Phase 1 Week 3 — Electron shell (D11–D15)
 - **BRANCH:** `main`
-- **GOAL:** Deliver a fully scaffolded repo (package.json, configs, 22 page stubs, 13 service stubs, shared types + schemas, design tokens, scripts) that builds on the Asus TUF and is ready for Phase 1 Week 3 (Electron shell).
+- **GOAL:** Turn the scaffold into a booting Electron app: app.ts entry (D11), WindowManager with four BrowserWindows (D12), Preload bridge + IPC router (D13), SettingsService + app.db schema (D14), Friday Asus run (D15). Exit criteria: `npm run dev` boots, IPC `settings:*` handlers validate + round-trip, AppData files created, first Wk3 security-gate test (invalid payload → `VALIDATION_FAILED` IpcResult) in place.
 
 ## 2. IPC channels (`src/shared/ipc-channels.ts`)
 
