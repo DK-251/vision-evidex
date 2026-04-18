@@ -1,7 +1,7 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-18T10:29:34.365Z  
-**Branch:** `main` · **Commit:** `284e794a`  
+**Date:** 2026-04-18T10:25:06.600Z  
+**Branch:** `main` · **Commit:** `b62d12bf`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
 **Duration:** 0 ms
 
@@ -23,8 +23,12 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 4966 ms | — |
-| tests | PASS | 5855 ms | 42/42 passed |
+| typecheck | PASS | 4987 ms | — |
+| tests | FAIL | 6404 ms | 1/41 failed |
+
+**Failing tests:**
+
+- `__tests__\ipc-router.spec.ts` › ipc-router (Phase 1 Wk3 security gate) accepts licence:validate with {} payload
 
 ## Module results
 
@@ -63,4 +67,6 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [tests] FAIL — 1/41 failed
+-   · __tests__\ipc-router.spec.ts › ipc-router (Phase 1 Wk3 security gate) accepts licence:validate with {} payload
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md
