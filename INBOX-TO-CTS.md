@@ -10,6 +10,43 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-19 19:09 — FUI-2 verification run (primitives-only)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `3badc01`
+
+Per topmost unresolved inbox instruction (FUI-2), ran the requested checklist.
+
+### Results
+
+- `git pull --ff-only`: **Updated** `af8d43b..3badc01` (18 files changed, UI primitives + components stylesheet)
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: **PASS**
+	- tests: **PASS 189/189**
+	- PBKDF2 benchmark: **PASS** (max 91.24 ms, budget 800 ms)
+	- dependency audit: unchanged baseline
+
+### `npm run dev` smoke
+
+- `app.ready` ✓
+- `[ipc-router] 23 handlers registered (8 live, 15 stub)` ✓
+- `services.ready` with `onboardingComplete: true` ✓
+- `licence.validate` mode:none valid:true ✓
+- `theme.broadcasts-bound` accent `#006FC4`, `darkPreferred: true` ✓
+- `app.will-quit` ✓
+- No startup errors observed; no preload/window crash lines.
+
+### Visual outcome
+
+- No regression observed in startup flow; existing shell still renders.
+- Skeleton/loading behavior appears to use the new Fluent shimmer timing profile (subtle left-to-right sweep) consistent with FUI-2 intent.
+
+### Verdict
+
+**FUI-2 gate: PASS.** Typecheck and tests remain green at 189/189.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
 ## 2026-04-19 18:58 — FUI-1 Tailwind darkMode fix verification (4724b26)
 
 **From:** Asus TUF run machine
