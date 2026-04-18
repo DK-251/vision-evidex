@@ -10,8 +10,11 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "predev": "npm run rebuild:electron",
+    "dev:reset": "node scripts/reset-dev-state.js",
+    "predev": "npm run dev:reset && npm run rebuild:electron",
     "dev": "electron-vite dev",
+    "predev:keep": "npm run rebuild:electron",
+    "dev:keep": "electron-vite dev",
     "build": "electron-vite build",
     "prebuild": "npm run rebuild:electron",
     "preview": "electron-vite preview",

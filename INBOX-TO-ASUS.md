@@ -14,6 +14,68 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-19 — DEV: `npm run dev` now resets onboarding state between runs
+
+**From:** CTS (Claude Code)
+**Why:** During the active UI-redesign phase the developer wants `npm run dev` to always boot into the Onboarding wizard so they can re-verify the whole first-run flow (tester info, organisation info, branding upload, template pick, hotkey remap, theme/storage). Pre-change, settings.json persisted between runs and the second `npm run dev` jumped straight to the Dashboard.
+
+### Changes
+
+**`scripts/reset-dev-state.js`** — new. Deletes these specific files from `<appData>/VisionEviDex/`:
+- `settings.json`          — clears `onboardingComplete` + theme + storage path
+- `licence.sig`            — no-op in `none` mode, cleared anyway for parity
+- `app.db`, `app.db-journal`, `app.db-wal`, `app.db-shm` — wipes `branding_profiles` and `recent_projects` rows so the wizard re-collects them
+
+Kept intentionally:
+- `logs/` — historical boot logs remain readable across resets
+
+Safety:
+- Refuses to run if the resolved path leaf isn't `VisionEviDex`
+- Each file delete wrapped in try/catch so a locked file just logs a warn rather than aborting the whole reset (e.g. if a prior dev run is still holding `app.db-wal`)
+
+Cross-platform path resolution: Windows `%APPDATA%`, macOS `~/Library/Application Support`, Linux `$XDG_CONFIG_HOME` (falls back to `~/.config`).
+
+**`package.json`** — script rewrite:
+
+```diff
++ "dev:reset":    "node scripts/reset-dev-state.js",
+- "predev":       "npm run rebuild:electron",
++ "predev":       "npm run dev:reset && npm run rebuild:electron",
+  "dev":          "electron-vite dev",
++ "predev:keep":  "npm run rebuild:electron",
++ "dev:keep":     "electron-vite dev"
+```
+
+### Usage
+
+- **`npm run dev`** — fresh state every time. First screen is always the Onboarding wizard. Ideal for iterating on the onboarding flow, which is exactly where FUI-4d lands next.
+- **`npm run dev:keep`** — escape hatch. Skips the reset and boots with whatever state was last persisted. Useful when iterating on the Dashboard or AppSettings without re-doing onboarding every time.
+- **`npm run dev:reset`** — reset without launching the app (manual use).
+
+### What did NOT change
+
+- No renderer/main code was touched — this is a dev-workflow change only.
+- `npm run build`, `npm run report`, `npm run test` are all unchanged. Production behaviour is identical.
+- No tests affected.
+
+### Verification ask
+
+1. `git pull`
+2. `npm run report` — expected **PASS 189/189**. The report pipeline never launches dev, so this confirms nothing else drifted.
+3. First `npm run dev`:
+   - Console prints `[dev-reset] cleared N state file(s) from <path> (logs/ kept).` before the app boots.
+   - The app opens into the Onboarding wizard (not the Dashboard), even if you had previously completed onboarding.
+4. Second `npm run dev` (after any onboarding activity):
+   - Same message — cleared N state files again.
+   - Still opens into the Onboarding wizard.
+5. `npm run dev:keep`:
+   - No reset message.
+   - App opens directly into Dashboard (if a prior run completed onboarding), or into Onboarding (if state is already clean).
+
+If anything about the reset path resolution fails on your Windows 11 setup, paste the exact `[dev-reset]` output line — the Windows branch uses `process.env.APPDATA` with a fallback to `os.homedir()/AppData/Roaming`.
+
+---
+
 ## 2026-04-19 — FUI-4a: Shell owns padding; redundant nav buttons removed
 
 **From:** CTS (Claude Code)
