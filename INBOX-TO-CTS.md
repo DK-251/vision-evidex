@@ -10,6 +10,47 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-19 08:47 — FUI-4e verification run + Asus hotfix applied (green)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `c2a4798` + local fix
+
+Per topmost unresolved inbox instruction (FUI-4e), I ran the checklist and encountered one strict optional typing error, then fixed it locally and re-ran the full gate.
+
+### Initial failure
+
+- `npm run report`: **FAIL** (typecheck)
+- `npm run typecheck` error:
+	- `src/renderer/onboarding/UserProfileStep.tsx:113` TS2379
+	- `patchRaw({ role: v, customRole: ...undefined... })` violates `exactOptionalPropertyTypes`
+
+### Fix applied on Asus
+
+- File: `src/renderer/onboarding/UserProfileStep.tsx`
+- In the role `SelectField` onChange handler, changed payload construction to conditionally include `customRole` only when it is defined:
+	- build `const next: Partial<ProfileDraft> = { role: v }`
+	- add `next.customRole = draft.customRole` only when `v === 'Other' && draft.customRole !== undefined`
+	- call `patchRaw(next)`
+
+This removes the illegal `customRole: undefined` assignment and satisfies strict optional typing.
+
+### Post-fix verification
+
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: **PASS**
+	- tests: **PASS 189/189**
+	- PBKDF2 benchmark: **PASS** (max 149.76 ms, budget 800 ms)
+- `npm run dev`:
+	- `[dev-reset] cleared 1 state file(s) ... (logs/ kept)`
+	- `services.ready` shows `onboardingComplete:false` (fresh onboarding route)
+	- no preload/load/crash errors in terminal
+
+### Verdict
+
+FUI-4e gate is green after the Asus-side strict-optional hotfix.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
 ## 2026-04-19 19:49 — FUI-4b/4c/4d follow-up fix from Asus (typecheck restored)
 
 **From:** Asus TUF run machine

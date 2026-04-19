@@ -1,6 +1,6 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-19T08:44:45.166Z  
+**Date:** 2026-04-19T08:43:53.922Z  
 **Branch:** `main` · **Commit:** `c2a47985`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
 **Duration:** 0 ms
@@ -23,8 +23,8 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 12056 ms | — |
-| tests | PASS | 12823 ms | 192/192 passed |
+| typecheck | FAIL | 9873 ms | src/renderer/onboarding/UserProfileStep.tsx(114,13): error TS2379: Argument of type '{ role: string; customRole: string \| undefined; } \| { role: string; }' is not assignable to parameter of type 'Pa |
+| tests | PASS | 13157 ms | 192/192 passed |
 
 ## Module results
 
@@ -53,7 +53,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 142.07 ms | 144.51 ms | 149.76 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 145.76 ms | 150.17 ms | 153.13 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +71,5 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [typecheck] FAIL — src/renderer/onboarding/UserProfileStep.tsx(114,13): error TS2379: Argument of type '{ role: string; customRole: string | undefined; } | { role: string; }' is not assignable to parameter of type 'Partial<ProfileDraft>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

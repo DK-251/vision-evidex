@@ -110,7 +110,13 @@ export function UserProfileStep(): JSX.Element {
           required
           icon={<BriefcaseRegular fontSize={20} />}
           value={selectedRole}
-          onChange={(v) => patchRaw({ role: v, customRole: v === 'Other' ? draft.customRole : undefined })}
+          onChange={(v) => {
+            const next: Partial<ProfileDraft> = { role: v };
+            if (v === 'Other' && draft.customRole !== undefined) {
+              next.customRole = draft.customRole;
+            }
+            patchRaw(next);
+          }}
           options={ROLES as unknown as string[]}
         />
         {selectedRole === 'Other' && (
