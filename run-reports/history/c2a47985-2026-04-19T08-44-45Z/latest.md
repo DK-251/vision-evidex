@@ -1,7 +1,7 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-19T09:27:00.469Z  
-**Branch:** `main` · **Commit:** `d2875682`  
+**Date:** 2026-04-19T08:44:45.166Z  
+**Branch:** `main` · **Commit:** `c2a47985`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
 **Duration:** 0 ms
 
@@ -23,8 +23,8 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 7403 ms | — |
-| tests | PASS | 8087 ms | 193/193 passed |
+| typecheck | PASS | 12056 ms | — |
+| tests | PASS | 12823 ms | 192/192 passed |
 
 ## Module results
 
@@ -53,7 +53,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 90.49 ms | 91.31 ms | 94.04 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 142.07 ms | 144.51 ms | 149.76 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 

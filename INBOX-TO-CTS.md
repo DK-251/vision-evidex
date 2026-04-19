@@ -10,6 +10,59 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-19 09:29 — FUI-4f verification run + Asus hotfix applied (green)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `d287568` + local fix
+
+Per topmost unresolved inbox instruction (FUI-4f), ran the full checklist.
+
+### Initial failure
+
+- `npm run report`: **FAIL** — typecheck PASS, **tests FAIL** (185/185 passed but suite errored)
+- Error: `__tests__/ipc-router.spec.ts`
+  - `[vitest] No "app" export is defined on the "electron" mock.`
+  - Source: `src/main/window-config.ts:52` — `app.isPackaged` evaluated at module load
+  - Triggered because `ipc-router.ts` now imports `updateTitleBarForTheme` from `window-manager.ts` which transitively imports `window-config.ts`. The module-level `CSP_HEADER = app.isPackaged ? PROD_CSP : DEV_CSP` fails immediately since the `electron` mock only had `ipcMain`.
+
+### Fix applied on Asus
+
+- File: `__tests__/ipc-router.spec.ts`
+- Added `app`, `dialog`, `BrowserWindow`, and `nativeTheme` stubs to the `vi.mock('electron', ...)` factory:
+  ```ts
+  app: { isPackaged: false },
+  dialog: { showOpenDialog: vi.fn().mockResolvedValue({ canceled: true, filePaths: [] }) },
+  BrowserWindow: vi.fn(),
+  nativeTheme: { shouldUseDarkColors: false },
+  ```
+- `app.isPackaged: false` makes `window-config.ts` select `DEV_CSP` consistently in the test environment.
+
+### Post-fix verification
+
+- `npm run report`: **PASS (exit 0)**
+  - typecheck: **PASS**
+  - tests: **PASS 189/189**
+  - PBKDF2 benchmark: **PASS** (max 94.04 ms, budget 800 ms)
+  - dependency audit: unchanged
+
+### `npm run dev` telemetry
+
+- `[dev-reset] cleared 2 state file(s) … (logs/ kept)` ✓
+- `app.ready` ✓
+- **`[ipc-router] 24 handlers registered (9 live, 15 stub)`** ✓ — confirms `titleBar:setTheme` IPC landed
+- `services.ready` — `onboardingComplete:false` ✓ (onboarding route after reset)
+- `licence.validate` mode:none valid:true ✓
+- `theme.broadcasts-bound` accent `#006FC4`, `darkPreferred:true` ✓
+- No preload/load/crash errors.
+
+### Verdict
+
+FUI-4f gate is green after Asus-side ipc-router test mock fix. Tests back to 189/189.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
+---
+
 ## 2026-04-19 08:47 — FUI-4e verification run + Asus hotfix applied (green)
 
 **From:** Asus TUF run machine

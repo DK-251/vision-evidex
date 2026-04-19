@@ -26,6 +26,14 @@ vi.mock('electron', () => ({
       handlers.set(channel, fn);
     },
   },
+  app: {
+    isPackaged: false,
+  },
+  dialog: {
+    showOpenDialog: vi.fn().mockResolvedValue({ canceled: true, filePaths: [] }),
+  },
+  BrowserWindow: vi.fn(),
+  nativeTheme: { shouldUseDarkColors: false },
 }));
 
 import { IPC } from '@shared/ipc-channels';

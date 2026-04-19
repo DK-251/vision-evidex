@@ -1,6 +1,6 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-19T09:27:00.469Z  
+**Date:** 2026-04-19T09:24:57.967Z  
 **Branch:** `main` · **Commit:** `d2875682`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
 **Duration:** 0 ms
@@ -23,8 +23,8 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 7403 ms | — |
-| tests | PASS | 8087 ms | 193/193 passed |
+| typecheck | PASS | 7512 ms | — |
+| tests | FAIL | 8800 ms | 0/185 failed |
 
 ## Module results
 
@@ -53,7 +53,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 90.49 ms | 91.31 ms | 94.04 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 90.14 ms | 91.09 ms | 92.94 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +71,5 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [tests] FAIL — 0/185 failed
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

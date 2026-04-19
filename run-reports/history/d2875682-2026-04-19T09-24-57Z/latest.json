@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-04-19T09:27:00.469Z",
+  "timestamp": "2026-04-19T09:24:57.967Z",
   "branch": "main",
   "commitSha": "d287568273272163a4aa8dfa7d5e8e01e5e22a72",
   "shortSha": "d2875682",
@@ -205,22 +205,22 @@
   "prechecks": {
     "typecheck": {
       "ok": true,
-      "duration_ms": 7403
+      "duration_ms": 7512
     },
     "tests": {
-      "ok": true,
-      "duration_ms": 8087,
-      "total": 193,
-      "passed": 193,
+      "ok": false,
+      "duration_ms": 8800,
+      "total": 185,
+      "passed": 185,
       "failed": 0,
       "failures": []
     }
   },
   "pbkdf2": {
     "ok": true,
-    "duration_ms": 550,
+    "duration_ms": 563,
     "record": {
-      "ts": "2026-04-19T09:27:16.662Z",
+      "ts": "2026-04-19T09:25:14.998Z",
       "node": "22.22.2",
       "platform": "win32-x64",
       "iterations": 310000,
@@ -228,15 +228,15 @@
       "salt_len_bytes": 16,
       "runs": 5,
       "samples_ms": [
-        94.04,
-        90.79,
-        90.7,
-        90.52,
-        90.49
+        90.14,
+        92.94,
+        90.5,
+        90.76,
+        91.1
       ],
-      "min_ms": 90.49,
-      "max_ms": 94.04,
-      "mean_ms": 91.31,
+      "min_ms": 90.14,
+      "max_ms": 92.94,
+      "mean_ms": 91.09,
       "budget_ms": 800,
       "passed": true
     }
@@ -251,9 +251,10 @@
       "critical": 0,
       "total": 8
     },
-    "duration_ms": 1942
+    "duration_ms": 4817
   },
   "next_actions": [
+    "PRECHECK [tests] FAIL — 0/185 failed",
     "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
   ]
 }
