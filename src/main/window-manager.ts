@@ -76,16 +76,12 @@ export function createMainWindow(opts: { initialTheme?: 'light' | 'dark' } = {})
 
   applyWindowMaterial(mainWindow);
 
-  // Keep the caption button colours legible when the OS theme flips.
-  const onNativeThemeUpdate = (): void => {
-    if (!mainWindow || mainWindow.isDestroyed()) return;
-    updateTitleBarForTheme(mainWindow, nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
-  };
-  nativeTheme.on('updated', onNativeThemeUpdate);
+  // Caption-button colours follow the renderer's resolved theme via
+  // `titleBar:setTheme` IPC — driven by ThemeProvider, which respects
+  // the user's light/dark/system choice instead of only the OS.
 
   mainWindow.once('ready-to-show', () => mainWindow?.show());
   mainWindow.on('closed', () => {
-    nativeTheme.off('updated', onNativeThemeUpdate);
     mainWindow = undefined;
   });
   loadRendererEntry(mainWindow, 'main');

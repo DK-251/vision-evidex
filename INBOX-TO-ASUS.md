@@ -14,6 +14,31 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-19 — FUI-4g: Caption-button theme race fix (small)
+
+**From:** CTS (Claude Code)
+**Why:** After FUI-4f the user still saw the light-theme caption buttons flip back to a dark overlay whenever the OS theme changed. Root cause was a duplicate authority in `src/main/window-manager.ts`: both the renderer (authoritative, user preference aware) *and* a `nativeTheme.on('updated')` listener in main were calling `setTitleBarOverlay`. When OS theme differed from the in-app choice (e.g. user picked `light`, OS is dark), the main-side listener would overwrite the renderer's correct value.
+
+### Fix
+
+- Removed the redundant `nativeTheme.on('updated')` handler from `createMainWindow()` in `src/main/window-manager.ts`.
+- Renderer's `ThemeProvider` (via `titleBar:setTheme` IPC) is now the single source of truth. It already re-resolves on OS flips through the `theme:systemThemeChange` broadcast and respects `light`/`dark`/`system` preference.
+- Initial boot overlay is still resolved main-side from `settings.theme`, so there is no flash before the renderer mounts.
+
+### Checklist for Asus
+
+1. `git pull --ff-only`
+2. `npm run report` — expect PASS (typecheck + 189/189 tests + benchmark).
+3. `npm run dev`:
+   - Startup: no `did-fail-load`, no preload errors.
+   - **`[ipc-router] 24 handlers registered (9 live, 15 stub)`** still shows (FUI-4f IPC stays registered).
+   - **`theme.broadcasts-bound`** still logs accent + darkPreferred.
+4. Manual: open Onboarding → step 8 (Theme & storage) → flip `light` ↔ `dark` ↔ `system`; caption buttons + content should stay in sync, including when OS theme is the opposite of your chosen preference.
+
+Everything else from FUI-4f remains as-is (profile validators, Fluent dropdown, template preview accent + skeleton).
+
+---
+
 ## 2026-04-19 — FUI-4f: Onboarding polish (profile dropdown + template preview + title bar)
 
 **From:** CTS (Claude Code)
