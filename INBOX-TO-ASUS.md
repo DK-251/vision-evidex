@@ -14,6 +14,78 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-19 — FUI-4e: Onboarding premium redesign (8 → 9 steps)
+
+**From:** CTS (Claude Code)
+**Why:** Onboarding visual overhaul per the design brief. Centred Fluent layout on every step with an animated gradient icon orb, transparent underline-only inputs (no blue focus border), colour-coded per-step palettes, 2-column forms where dense, and premium cards for templates and themes. Also adds a **new welcome/brand screen** as the very first step.
+
+### Step flow change — 8 steps became 9
+
+New first step `welcome` — the Vision-EviDex brand screen with a large animated shield orb, split-colour wordmark, and a tagline. Every mode now starts here. Sequence:
+
+| # | id | Scope |
+|---|----|-------|
+| 1 | `welcome` | **NEW** brand splash (Begin button) |
+| 2 | `licence` (keygen only) | Verify flow |
+| 3 | `tour` (optional) | 3-screen carousel |
+| 4 | `profile` | Profile form |
+| 5 | `branding` | Organisation + logo |
+| 6 | `template` | Default template picker |
+| 7 | `hotkeys` | Shortcut remap |
+| 8 | `themeStorage` | Theme + storage |
+| 9 | `done` | Summary |
+
+### Per-step redesign
+
+- **WelcomeBrandingStep.tsx (new)** — 96px animated accent orb (`ShieldCheckmarkFilled`), `type-title-large` wordmark with the `-EviDex` suffix tinted in accent, single-line tagline. OnboardingPage sets the primary action label to "Begin" on this step.
+- **LicenceStep** — Key orb, transparent key field with `KeyRegular` icon, **Verify button**. After `licence.activate()` resolves:
+  - success → green `verify-status` pill "Thanks for choosing Vision-EviDex — click Next to proceed." + outer Next unlocks (new `isValidLicence` validator checks `verified === true`).
+  - failure → red pill with the exact error from the IPC result.
+  - The input becomes read-only after a successful verify; typing again clears verification.
+- **WelcomeTourStep** — three carousel screens, each with its own palette-coloured 56px orb (cool / warm / violet) + Fluent icon. Internal nav buttons now have leading `ChevronLeftRegular` / trailing `ChevronRightRegular` + "Previous" / "Next" labels.
+- **UserProfileStep** — 2-column grid. Row 1 First name / Last name, row 2 Email / Team, row 3 Role. When Role = "Other" a sixth field appears for a custom role string. Each field is a transparent underline input with a coloured Fluent icon on the left. First+last are concatenated into `profile.name` for the existing persist contract; custom role writes through to `profile.role`.
+- **BrandingStep** — company/colour/header/footer grid, then a drop-style logo upload zone with its own small orb + inline file-picker label styled as a compact button. Below: a **live Fluent preview strip** that renders the logo + company + header as they'll appear in exported reports, with a top accent-coloured bar.
+- **DefaultTemplateStep** — **2-column layout**: left is the template card selector (5 premium cards, each with a small icon tile + name + description, selected gets a 2px accent border + accent-subtle glow); right is an **A4-proportioned skeleton preview** with per-template block layouts. `tpl_tsr_standard` is auto-selected on first render.
+- **HotkeyConfigStep** — centred keyboard orb; six setting rows with `key-chip` remap; duplicate-binding warning reused from AppSettings.
+- **ThemeStorageStep** — three **theme cards** (Light / System / Dark) each with a mini shell preview (title bar, sidebar, accent line) — the user sees the actual colour scheme not just a label. Storage folder uses a transparent field with `FolderRegular` icon + compact Browse button.
+
+### Supporting CSS added to `components.css`
+
+- `.icon-orb` + `.icon-orb-accent` / `-success` / `-warm` / `-cool` / `-violet` — gradient orbs with glow and size variants 56 / 72 / 96.
+- `@keyframes orb-float` + `orb-breathe` — subtle float + glow pulse; `.icon-orb-animated`; all killed under `prefers-reduced-motion`.
+- `.field-floating` / `.field-floating-label` / `.field-icon` — transparent underline inputs with coloured icon slot, no solid fill, no blue bottom border at rest, accent underline on focus, red on invalid.
+- `.template-card(.selected)` + `.template-card-icon/.name/.description` + `.template-preview(.block)` — template picker cards and A4 skeleton.
+- `.theme-card(.selected)` + `.theme-card-swatch*` with per-variant variations via `[data-theme-variant]` — shell-preview mini widgets.
+- `.verify-status.success/.error` — inline result pills for the licence step and elsewhere.
+
+### OnboardingPage wiring
+
+- Dispatches `welcome` → `WelcomeBrandingStep`.
+- Page-level icon/title/description moved **into** each step's `StepLayout` — the card no longer duplicates a header row. The step-dot indicator + card + nav are all that OnboardingPage owns.
+- Nav row: Back becomes **"Previous"** with a leading chevron, Next gets a trailing chevron, Skip label is **"Skip tour"** when on the tour step else "Skip for now", primary label on welcome is **"Begin"** (final step stays "Get Started").
+
+### Tests updated
+
+- `__tests__/onboarding-store.spec.ts` — step count assertions now use `ONBOARDING_STEPS.length` (dynamic), index-0 assertions changed to `'welcome'` for both modes, added "index 1 is licence/tour" assertions.
+- `__tests__/onboarding-validators.spec.ts` — added a case for `isValidLicence` (unverified → false, `{ verified: true }` → true); removed `licence` from the form-less pass-through case.
+
+### Verification ask
+
+1. `git pull`
+2. `npm run report` — expected **PASS 189/189** (tests updated, no net count change). Most at-risk:
+   - `@fluentui/react-icons` name resolution across the many new imports (PersonAccountsRegular, TextTRegular, TextAlignLeftRegular, ColorRegular, ImageAddRegular, ClipboardTaskListLtrRegular, BugRegular, WeatherSunnyRegular, WeatherMoonRegular, DesktopRegular, ErrorCircleRegular, etc.). Paste any unresolved names verbatim and I'll swap in alternates.
+   - `FluentIconsProps` typing in `StepLayout.tsx` — should be identical to what worked in OnboardingPage's typed map.
+3. `npm run dev` (fresh — the dev-reset will fire):
+   - **Screen 1**: Brand splash with "Vision-EviDex" wordmark, tagline, Begin button centred at the bottom. Icon orb floats gently (reduced-motion respected).
+   - **Screen 2 (none mode)**: Tour with three colour-coded icons. Prev/Next buttons have chevron icons.
+   - **Screens 3-8**: Profile (2-col), Organisation (2-col + logo preview), Template (2-col cards + preview skeleton; TSR selected by default), Hotkeys (key chips), Theme/Storage (3 theme cards + folder picker).
+   - On the licence step (keygen mode): typing a short key and clicking Verify shows the red error; a ≥10-char key + successful `licence.activate` shows the green pill and unlocks Next.
+4. Tests: **189/189 PASS**.
+
+Once this is green we move on to the **Dashboard padding polish** the user flagged on the sidebar icons.
+
+---
+
 ## 2026-04-19 — FUI-4b + 4c + 4d: D25 screens ported to doc §15
 
 **From:** CTS (Claude Code)

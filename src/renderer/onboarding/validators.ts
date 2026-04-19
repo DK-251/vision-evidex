@@ -76,9 +76,16 @@ export function isValidThemeStorage(data: unknown): boolean {
   return true;
 }
 
+export function isValidLicence(data: unknown): boolean {
+  if (!isObject(data)) return false;
+  return data['verified'] === true;
+}
+
 /** Route a step to its validator. Unknown / form-less steps pass. */
 export function isStepValid(stepId: string, data: unknown, extras?: { hotkeyConflicts?: Set<string> }): boolean {
   switch (stepId) {
+    case 'licence':
+      return isValidLicence(data);
     case 'profile':
       return isValidUserProfile(data);
     case 'branding':

@@ -1,16 +1,10 @@
-import { useState, type ComponentType, type ReactNode } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  KeyRegular,
-  SparkleRegular,
-  PersonRegular,
-  BuildingRegular,
-  DocumentTextRegular,
-  KeyboardRegular,
-  PaintBrushRegular,
+  ChevronLeftRegular,
+  ChevronRightRegular,
   CheckmarkCircleRegular,
 } from '@fluentui/react-icons';
-import type { FluentIconsProps } from '@fluentui/react-icons';
 import {
   useOnboardingStore,
   selectVisibleSteps,
@@ -20,6 +14,7 @@ import {
 } from '../stores/onboarding-store';
 import { isStepValid } from '../onboarding/validators';
 import { detectHotkeyConflicts, DEFAULT_HOTKEYS } from '../onboarding/hotkey-utils';
+import { WelcomeBrandingStep } from '../onboarding/WelcomeBrandingStep';
 import { LicenceStep } from '../onboarding/LicenceStep';
 import { WelcomeTourStep } from '../onboarding/WelcomeTourStep';
 import { UserProfileStep } from '../onboarding/UserProfileStep';
@@ -33,23 +28,11 @@ import { Button } from '../components/ui';
 import { pageBack, pageForward } from '../components/animations';
 
 /**
- * S-02 — Onboarding wizard. Port to doc §15: step-dot indicator at the
- * top, 32px Fluent icon per step inside a card-elevated container, and
- * pageForward/pageBack transitions between steps via Framer Motion.
+ * S-02 — Onboarding wizard. Each step component owns its own animated
+ * icon, title, and subtext via StepLayout; this file just renders the
+ * step-dot indicator, the card wrapper, the step body (with pageForward/
+ * pageBack transitions), and the navigation row.
  */
-
-type FluentIcon = ComponentType<FluentIconsProps>;
-
-const STEP_ICONS: Record<string, FluentIcon> = {
-  licence:      KeyRegular,
-  tour:         SparkleRegular,
-  profile:      PersonRegular,
-  branding:     BuildingRegular,
-  template:     DocumentTextRegular,
-  hotkeys:      KeyboardRegular,
-  themeStorage: PaintBrushRegular,
-  done:         CheckmarkCircleRegular,
-};
 
 export function OnboardingPage(): JSX.Element {
   const visible = useOnboardingStore(selectVisibleSteps);
@@ -95,26 +78,36 @@ export function OnboardingPage(): JSX.Element {
       : new Set<string>();
   const canAdvance = isStepValid(step.id, stepData, { hotkeyConflicts });
   const variant = direction === 'forward' ? pageForward : pageBack;
+  const primaryLabel = step.id === 'welcome' ? 'Begin' : isLast ? 'Get Started' : 'Next';
 
   return (
     <div
       className="material-mica"
       style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
+        minHeight:      '100vh',
+        display:        'flex',
+        alignItems:     'center',
         justifyContent: 'center',
-        padding: 'var(--space-6)',
+        padding:        'var(--space-6)',
       }}
     >
-      <div style={{ width: 600, maxWidth: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-4)' }}>
+      <div
+        style={{
+          width:          720,
+          maxWidth:       '100%',
+          display:        'flex',
+          flexDirection:  'column',
+          alignItems:     'center',
+          gap:            'var(--space-4)',
+        }}
+      >
         <StepIndicator total={visible.length} currentIndex={currentIndex} />
 
         <div
           className="card-elevated"
           style={{
-            width:  '100%',
-            padding: 'var(--space-8) var(--space-8) var(--space-6)',
+            width:        '100%',
+            padding:      'var(--space-8) var(--space-8) var(--space-6)',
             borderRadius: 'var(--radius-dialog)',
           }}
         >
@@ -126,47 +119,13 @@ export function OnboardingPage(): JSX.Element {
               animate="animate"
               exit="exit"
             >
-              <div
-                style={{ color: 'var(--color-accent-default)', marginBottom: 'var(--space-3)' }}
-                aria-hidden
-              >
-                {renderIcon(STEP_ICONS[step.id], 32)}
-              </div>
-              <h1
-                style={{
-                  fontFamily: 'var(--font-family-display)',
-                  fontSize:   'var(--type-title-size)',
-                  fontWeight: 'var(--type-title-weight)',
-                  lineHeight: 'var(--type-title-height)',
-                  color:      'var(--color-text-primary)',
-                  margin:     0,
-                }}
-              >
-                {step.title}
-              </h1>
-              <p
-                style={{
-                  fontSize: 'var(--type-body-size)',
-                  color:    'var(--color-text-secondary)',
-                  margin:   'var(--space-2) 0 var(--space-6)',
-                }}
-              >
-                {step.description}
-              </p>
               {renderStepBody(step.id)}
             </motion.div>
           </AnimatePresence>
 
           {finishState.kind === 'error' && (
-            <div
-              role="alert"
-              style={{
-                color:     'var(--color-status-fail)',
-                fontSize:  'var(--type-caption-size)',
-                marginTop: 'var(--space-3)',
-              }}
-            >
-              Finish failed: {finishState.message}
+            <div className="verify-status error" role="alert" style={{ marginTop: 'var(--space-4)' }}>
+              <span>Finish failed: {finishState.message}</span>
             </div>
           )}
         </div>
@@ -175,6 +134,8 @@ export function OnboardingPage(): JSX.Element {
           isFirst={isFirst}
           isLast={isLast}
           optional={!!step.optional}
+          skipLabel={step.id === 'tour' ? 'Skip tour' : 'Skip for now'}
+          primaryLabel={primaryLabel}
           canAdvance={canAdvance}
           saving={finishState.kind === 'saving'}
           onBack={back}
@@ -186,8 +147,6 @@ export function OnboardingPage(): JSX.Element {
     </div>
   );
 }
-
-/* ── Step indicator ───────────────────────────────────────────────── */
 
 function StepIndicator({ total, currentIndex }: { total: number; currentIndex: number }): JSX.Element {
   return (
@@ -207,15 +166,15 @@ function StepIndicator({ total, currentIndex }: { total: number; currentIndex: n
   );
 }
 
-/* ── Nav row ──────────────────────────────────────────────────────── */
-
 function Nav({
-  isFirst, isLast, optional, canAdvance, saving,
+  isFirst, isLast, optional, skipLabel, primaryLabel, canAdvance, saving,
   onBack, onSkip, onNext, onFinish,
 }: {
   isFirst: boolean;
   isLast: boolean;
   optional: boolean;
+  skipLabel: string;
+  primaryLabel: string;
   canAdvance: boolean;
   saving: boolean;
   onBack: () => void;
@@ -226,17 +185,24 @@ function Nav({
   return (
     <div
       style={{
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 'var(--space-2)',
+        width:           '100%',
+        display:         'flex',
+        alignItems:      'center',
+        justifyContent:  'space-between',
+        gap:             'var(--space-2)',
       }}
     >
-      <Button variant="subtle" onClick={onBack} disabled={isFirst}>Back</Button>
+      <Button
+        variant="subtle"
+        onClick={onBack}
+        disabled={isFirst}
+        startIcon={<ChevronLeftRegular fontSize={18} />}
+      >
+        Previous
+      </Button>
       <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
         {optional && !isLast && (
-          <Button variant="subtle" onClick={onSkip}>Skip for now</Button>
+          <Button variant="subtle" onClick={onSkip}>{skipLabel}</Button>
         )}
         {isLast ? (
           <Button
@@ -244,23 +210,22 @@ function Nav({
             onClick={onFinish}
             disabled={!canAdvance || saving}
           >
-            {saving ? 'Saving…' : 'Get Started'}
+            {saving ? 'Saving…' : primaryLabel}
           </Button>
         ) : (
           <Button
             variant="accent"
             onClick={onNext}
             disabled={!canAdvance}
+            endIcon={<ChevronRightRegular fontSize={18} />}
           >
-            Next
+            {primaryLabel}
           </Button>
         )}
       </div>
     </div>
   );
 }
-
-/* ── Completed card ───────────────────────────────────────────────── */
 
 function CompletedCard(): JSX.Element {
   return (
@@ -284,8 +249,12 @@ function CompletedCard(): JSX.Element {
           borderRadius: 'var(--radius-dialog)',
         }}
       >
-        <div style={{ color: 'var(--color-status-pass)', marginBottom: 'var(--space-3)' }} aria-hidden>
-          <CheckmarkCircleRegular fontSize={48} />
+        <div
+          className="icon-orb icon-orb-success icon-orb-72 icon-orb-animated"
+          style={{ margin: '0 auto var(--space-3)' }}
+          aria-hidden
+        >
+          <CheckmarkCircleRegular fontSize={34} />
         </div>
         <h1
           style={{
@@ -299,10 +268,7 @@ function CompletedCard(): JSX.Element {
           Onboarding complete
         </h1>
         <div style={{ marginTop: 'var(--space-4)' }}>
-          <Button
-            variant="standard"
-            onClick={() => useOnboardingStore.getState().reset()}
-          >
+          <Button variant="standard" onClick={() => useOnboardingStore.getState().reset()}>
             Reset
           </Button>
         </div>
@@ -311,15 +277,9 @@ function CompletedCard(): JSX.Element {
   );
 }
 
-function renderIcon(Icon: FluentIcon | undefined, size: number): ReactNode {
-  if (!Icon) return null;
-  return <Icon fontSize={size} />;
-}
-
-/* ── Step body dispatch ───────────────────────────────────────────── */
-
-function renderStepBody(stepId: string): ReactNode {
+function renderStepBody(stepId: string): JSX.Element {
   switch (stepId) {
+    case 'welcome':      return <WelcomeBrandingStep />;
     case 'licence':      return <LicenceStep />;
     case 'profile':      return <UserProfileStep />;
     case 'branding':     return <BrandingStep />;

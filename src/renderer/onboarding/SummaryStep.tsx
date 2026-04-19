@@ -1,8 +1,8 @@
-import { useOnboardingStore } from '../stores/onboarding-store';
+import { useOnboardingStore, selectVisibleSteps } from '../stores/onboarding-store';
 import type { UserProfileData, BrandingData } from './validators';
 import type { ThemeChoice } from './ThemeStorageStep';
 import { BUILTIN_TEMPLATES } from './DefaultTemplateStep';
-import { DEFAULT_HOTKEYS, HOTKEY_ACTIONS } from './hotkey-utils';
+import { HOTKEY_ACTIONS } from './hotkey-utils';
 
 /**
  * Step 8 — Summary.
@@ -14,7 +14,7 @@ import { DEFAULT_HOTKEYS, HOTKEY_ACTIONS } from './hotkey-utils';
 export function SummaryStep(): JSX.Element {
   const data = useOnboardingStore((s) => s.data);
   const goTo = useOnboardingStore((s) => s.goTo);
-  const mode = useOnboardingStore((s) => s.mode);
+  const visible = useOnboardingStore(selectVisibleSteps);
 
   const profile = data['profile'] as Partial<UserProfileData> | undefined;
   const branding = data['branding'] as Partial<BrandingData> | undefined;
@@ -22,21 +22,12 @@ export function SummaryStep(): JSX.Element {
   const themeStorage = data['themeStorage'] as
     | { theme?: ThemeChoice; storagePath?: string }
     | undefined;
-  const hotkeys = (data['hotkeys'] as Record<string, string> | undefined) ?? DEFAULT_HOTKEYS;
 
   const templateName = BUILTIN_TEMPLATES.find((t) => t.id === template?.templateId)?.name ?? '(not selected)';
 
-  // Step indices are mode-dependent: in `none` mode the licence step
-  // is hidden, so all indices shift down by 1.
-  const stepIndexOf = (name: 'profile' | 'branding' | 'template' | 'hotkeys' | 'themeStorage') => {
-    const offset = mode === 'none' ? 0 : 1;
-    switch (name) {
-      case 'profile': return 1 + offset - 1;     // profile is the 2nd visible step in keygen, 1st in none
-      case 'branding': return 2 + offset - 1;
-      case 'template': return 3 + offset - 1;
-      case 'hotkeys': return 4 + offset - 1;
-      case 'themeStorage': return 5 + offset - 1;
-    }
+  const stepIndexOf = (id: string): number => {
+    const idx = visible.findIndex((s) => s.id === id);
+    return idx < 0 ? 0 : idx;
   };
 
   return (

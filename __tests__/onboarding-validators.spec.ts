@@ -151,9 +151,16 @@ describe('isStepValid router', () => {
   });
 
   it('passes through for form-less step ids', () => {
-    expect(isStepValid('licence', undefined)).toBe(true);
+    expect(isStepValid('welcome', undefined)).toBe(true);
     expect(isStepValid('tour', undefined)).toBe(true);
     expect(isStepValid('done', undefined)).toBe(true);
+  });
+
+  it('licence step requires verified=true', () => {
+    expect(isStepValid('licence', undefined)).toBe(false);
+    expect(isStepValid('licence', {})).toBe(false);
+    expect(isStepValid('licence', { verified: false })).toBe(false);
+    expect(isStepValid('licence', { verified: true })).toBe(true);
   });
 
   it('unknown step ids pass through (safe default)', () => {

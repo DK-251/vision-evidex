@@ -24,18 +24,20 @@ describe('OnboardingStore', () => {
   });
 
   describe('visibleSteps by mode', () => {
-    it('none mode hides the licence step → 7 steps', () => {
+    it('none mode hides the licence step', () => {
       state().setMode('none');
       const visible = selectVisibleSteps(state());
       expect(visible).toHaveLength(ONBOARDING_STEPS.length - 1);
       expect(visible.find((s) => s.id === 'licence')).toBeUndefined();
     });
 
-    it('keygen mode includes the licence step → all 8 steps', () => {
+    it('keygen mode includes every step', () => {
       state().setMode('keygen');
       const visible = selectVisibleSteps(state());
       expect(visible).toHaveLength(ONBOARDING_STEPS.length);
-      expect(visible[0]?.id).toBe('licence');
+      // First visible step is always the brand welcome — it applies to
+      // both licence modes.
+      expect(visible[0]?.id).toBe('welcome');
     });
   });
 
@@ -80,26 +82,38 @@ describe('OnboardingStore', () => {
   });
 
   describe('selectCurrentStep', () => {
-    it('in none mode, index 0 is "tour" (not "licence")', () => {
+    it('in none mode, index 0 is the welcome brand screen', () => {
       state().setMode('none');
-      expect(selectCurrentStep(state()).id).toBe('tour');
+      expect(selectCurrentStep(state()).id).toBe('welcome');
     });
 
-    it('in keygen mode, index 0 is "licence"', () => {
+    it('in keygen mode, index 0 is also the welcome brand screen', () => {
       state().setMode('keygen');
+      expect(selectCurrentStep(state()).id).toBe('welcome');
+    });
+
+    it('in keygen mode, index 1 is the licence step', () => {
+      state().setMode('keygen');
+      state().next();
       expect(selectCurrentStep(state()).id).toBe('licence');
+    });
+
+    it('in none mode, index 1 is the tour step', () => {
+      state().setMode('none');
+      state().next();
+      expect(selectCurrentStep(state()).id).toBe('tour');
     });
   });
 
   describe('setMode clamps index when step count shrinks', () => {
     it('switching keygen → none at last index clamps to new max', () => {
       state().setMode('keygen');
-      // go to index 7 (last of 8)
-      for (let i = 0; i < 10; i++) state().next();
-      expect(state().currentIndex).toBe(7);
+      const keygenMax = ONBOARDING_STEPS.length - 1;
+      for (let i = 0; i < keygenMax + 5; i++) state().next();
+      expect(state().currentIndex).toBe(keygenMax);
       state().setMode('none');
-      // 7 steps in none mode → max index 6
-      expect(state().currentIndex).toBe(6);
+      const noneMax = ONBOARDING_STEPS.length - 2; // licence dropped
+      expect(state().currentIndex).toBe(noneMax);
     });
   });
 

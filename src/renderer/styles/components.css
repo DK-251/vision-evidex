@@ -361,6 +361,283 @@
 
 /* ── ProgressBar + ProgressRing: styles live in loading.css ──────── */
 
+/* ── Fluent animated icon orb (used across onboarding) ───────────── */
+
+.icon-orb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-circle);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.icon-orb-accent {
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-default) 0%,
+    var(--color-accent-dark-1) 100%
+  );
+  color: var(--color-text-on-accent);
+  box-shadow: 0 8px 24px -8px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.6);
+}
+.icon-orb-success {
+  background: linear-gradient(135deg, #4ADE80 0%, #0E7A0D 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px -8px rgba(14, 122, 13, 0.5);
+}
+.icon-orb-warm {
+  background: linear-gradient(135deg, #FACC15 0%, #DB7C00 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px -8px rgba(219, 124, 0, 0.5);
+}
+.icon-orb-cool {
+  background: linear-gradient(135deg, #38BDF8 0%, #0369A1 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px -8px rgba(3, 105, 161, 0.5);
+}
+.icon-orb-violet {
+  background: linear-gradient(135deg, #A78BFA 0%, #6D28D9 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px -8px rgba(109, 40, 217, 0.5);
+}
+
+.icon-orb-56 { width: 56px; height: 56px; font-size: 28px; }
+.icon-orb-72 { width: 72px; height: 72px; font-size: 34px; }
+.icon-orb-96 { width: 96px; height: 96px; font-size: 44px; }
+
+/* Subtle float / breathe — only the wrapper, respects reduced-motion */
+@keyframes orb-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+@keyframes orb-breathe {
+  0%, 100% { box-shadow: 0 8px 24px -8px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.55); }
+  50%      { box-shadow: 0 12px 32px -6px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.75); }
+}
+.icon-orb-animated { animation: orb-float 4s ease-in-out infinite; }
+.icon-orb-animated.icon-orb-accent { animation: orb-float 4s ease-in-out infinite, orb-breathe 4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-orb-animated { animation: none; }
+}
+
+/* ── Transparent form field (§15 S-02 Fluent onboarding) ─────────── */
+
+.field-floating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 44px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-bottom: 1px solid var(--color-stroke-default);
+  background: transparent;
+  transition: border-bottom-color var(--duration-ultra-fast) var(--easing-standard);
+}
+.field-floating:hover        { border-bottom-color: var(--color-text-secondary); }
+.field-floating:focus-within { border-bottom-color: var(--color-accent-default); }
+.field-floating[aria-invalid='true'] { border-bottom-color: var(--color-text-danger); }
+.field-floating .field-icon {
+  color: var(--color-accent-default);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.field-floating > input,
+.field-floating > select {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  font-size: var(--type-body-size);
+  height: 100%;
+  padding: 0;
+}
+.field-floating > input::placeholder { color: var(--color-text-tertiary); }
+.field-floating > select { appearance: none; padding-right: 20px; cursor: pointer; }
+
+.field-floating-label {
+  display: block;
+  font-size: var(--type-caption-size);
+  color: var(--color-text-secondary);
+  margin-bottom: 2px;
+  letter-spacing: 0.02em;
+}
+.field-floating-label .req {
+  color: var(--color-text-danger);
+  margin-left: 2px;
+}
+
+/* ── Template card (onboarding Step 5) ───────────────────────────── */
+
+.template-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-stroke-default);
+  border-radius: var(--radius-card);
+  background: var(--color-layer-1);
+  cursor: pointer;
+  transition: border-color var(--duration-ultra-fast) var(--easing-standard),
+              box-shadow   var(--duration-ultra-fast) var(--easing-standard),
+              transform    var(--duration-ultra-fast) var(--easing-standard);
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+}
+.template-card:hover {
+  border-color: var(--color-accent-default);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-1px);
+}
+.template-card.selected {
+  border: 2px solid var(--color-accent-default);
+  box-shadow: 0 0 0 3px var(--color-fill-accent-subtle);
+  padding: calc(var(--space-4) - 1px);
+}
+.template-card-icon {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-control);
+  background: var(--color-fill-accent-subtle);
+  color: var(--color-accent-default);
+  flex-shrink: 0;
+}
+.template-card-name {
+  font-size: var(--type-body-strong-size);
+  font-weight: var(--type-body-strong-weight);
+  color: var(--color-text-primary);
+}
+.template-card-description {
+  font-size: var(--type-caption-size);
+  color: var(--color-text-secondary);
+  line-height: 16px;
+}
+
+/* Skeleton preview (A4-ish proportioned) */
+.template-preview {
+  aspect-ratio: 1 / 1.414;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-stroke-default);
+  background: var(--color-layer-1);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-card);
+}
+.template-preview-block {
+  border-radius: var(--radius-control);
+  background: var(--color-fill-subtle);
+}
+
+/* ── Theme card (onboarding Step 7) ──────────────────────────────── */
+
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-stroke-default);
+  border-radius: var(--radius-card);
+  background: var(--color-layer-1);
+  cursor: pointer;
+  transition: border-color var(--duration-ultra-fast) var(--easing-standard),
+              transform    var(--duration-ultra-fast) var(--easing-standard);
+  text-align: center;
+  width: 100%;
+  font-family: inherit;
+}
+.theme-card:hover { transform: translateY(-1px); border-color: var(--color-accent-default); }
+.theme-card.selected {
+  border: 2px solid var(--color-accent-default);
+  box-shadow: 0 0 0 3px var(--color-fill-accent-subtle);
+  padding: calc(var(--space-3) - 1px);
+}
+.theme-card-swatch {
+  height: 64px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-stroke-default);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.theme-card-swatch-titlebar {
+  height: 8px;
+  background: rgba(0,0,0,0.08);
+}
+.theme-card-swatch-body {
+  flex: 1;
+  display: flex;
+}
+.theme-card-swatch-sidebar {
+  width: 14px;
+  background: rgba(0,0,0,0.06);
+}
+.theme-card-swatch-content {
+  flex: 1;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.theme-card-swatch-line {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0,0,0,0.08);
+}
+.theme-card-swatch-line.accent { background: var(--color-accent-default); width: 40%; }
+
+.theme-card[data-theme-variant='light'] .theme-card-swatch {
+  background: #FFFFFF;
+  color: #0D1B2A;
+}
+.theme-card[data-theme-variant='dark'] .theme-card-swatch {
+  background: #202020;
+  color: #F5F5F5;
+}
+.theme-card[data-theme-variant='dark'] .theme-card-swatch-titlebar { background: rgba(255,255,255,0.08); }
+.theme-card[data-theme-variant='dark'] .theme-card-swatch-sidebar { background: rgba(255,255,255,0.06); }
+.theme-card[data-theme-variant='dark'] .theme-card-swatch-line { background: rgba(255,255,255,0.12); }
+.theme-card[data-theme-variant='system'] .theme-card-swatch {
+  background: linear-gradient(90deg, #FFFFFF 50%, #202020 50%);
+}
+
+.theme-card-label {
+  font-size: var(--type-body-strong-size);
+  font-weight: var(--type-body-strong-weight);
+  color: var(--color-text-primary);
+}
+
+/* ── Verify status message (LicenceStep) ─────────────────────────── */
+
+.verify-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-card);
+  font-size: var(--type-body-size);
+}
+.verify-status.success {
+  background: var(--color-status-pass-bg);
+  color: var(--color-status-pass);
+  border: 1px solid var(--color-status-pass);
+}
+.verify-status.error {
+  background: var(--color-status-fail-bg);
+  color: var(--color-status-fail);
+  border: 1px solid var(--color-status-fail);
+}
+
 /* ── Dashboard recent-projects list row (§15 S-03) ───────────────── */
 
 .recent-project-row {

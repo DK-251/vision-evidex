@@ -14,9 +14,14 @@ export interface OnboardingStepDef {
 
 export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = Object.freeze([
   {
+    id: 'welcome',
+    title: 'Vision-EviDex',
+    description: 'Evidence capture and report generation, designed for audit-grade QA.',
+  },
+  {
     id: 'licence',
-    title: 'Activate licence',
-    description: 'Enter your licence key and bind this machine.',
+    title: 'Activate your licence',
+    description: 'Paste your licence key and bind this machine.',
     requiresMode: 'keygen',
   },
   {
