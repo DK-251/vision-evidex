@@ -32,12 +32,24 @@ const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
 export function isValidUserProfile(data: unknown): boolean {
   if (!isObject(data)) return false;
-  if (!isNonEmptyString(data['name'])) return false;
-  if (!isNonEmptyString(data['role'])) return false;
-  const email = data['email'];
-  if (email !== undefined && email !== '') {
-    if (typeof email !== 'string' || !EMAIL_PATTERN.test(email)) return false;
+  // First + last name are required, but the persisted shape only has
+  // `name` (joined). Accept either the working draft (firstName + lastName)
+  // or a composed `name`.
+  const firstName = data['firstName'];
+  const lastName = data['lastName'];
+  if (firstName !== undefined || lastName !== undefined) {
+    if (!isNonEmptyString(firstName) || !isNonEmptyString(lastName)) return false;
+  } else if (!isNonEmptyString(data['name'])) {
+    return false;
   }
+  // Role: always required. When the user picks "Other" the UI switches
+  // the draft into "customRole mode" (`customRole` defined, possibly
+  // empty) and mirrors customRole into `role` — so requiring `role`
+  // non-empty covers both branches.
+  if (!isNonEmptyString(data['role'])) return false;
+  // Email required — must parse as an email.
+  const email = data['email'];
+  if (!isNonEmptyString(email) || !EMAIL_PATTERN.test(email)) return false;
   return true;
 }
 

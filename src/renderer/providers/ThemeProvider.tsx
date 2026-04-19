@@ -77,14 +77,18 @@ export function ThemeProvider({ children }: { children: ReactNode }): JSX.Elemen
     };
   }, []);
 
-  // Reflect resolved theme on the document root.
+  // Reflect resolved theme on the document root + inform the main
+  // process so the title-bar overlay fill stays in sync with content.
   const resolved = resolveTheme(preference, systemDark);
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute('data-theme', resolved);
-    // Density + font-size are FUI-4 settings fields. Default them for now.
     if (!root.hasAttribute('data-density')) root.setAttribute('data-density', 'normal');
     if (!root.hasAttribute('data-font-size')) root.setAttribute('data-font-size', 'normal');
+    // Best-effort push; the overlay already has a sensible default
+    // from `createMainWindow()` so a failure here just means it
+    // stays at the boot-time colour.
+    void window.evidexAPI?.titleBar?.setTheme?.(resolved).catch(() => undefined);
   }, [resolved]);
 
   return (

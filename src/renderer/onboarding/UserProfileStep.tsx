@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   PersonRegular,
   PersonAccountsRegular,
@@ -6,6 +6,8 @@ import {
   PeopleRegular,
   BriefcaseRegular,
   EditRegular,
+  ChevronDownRegular,
+  CheckmarkRegular,
 } from '@fluentui/react-icons';
 import { useOnboardingStore } from '../stores/onboarding-store';
 import type { UserProfileData } from './validators';
@@ -17,15 +19,16 @@ type Role = typeof ROLES[number];
 interface ProfileDraft extends Partial<UserProfileData> {
   firstName?: string;
   lastName?: string;
+  /** Always set when selected role is 'Other' (may be empty string). */
   customRole?: string;
 }
 
 /**
- * Step 4 — User profile. Two-column Fluent form: first/last name row,
- * email/team row, then role dropdown with a third "custom role" input
- * that appears when "Other" is selected. Saves to onboarding-store as
- * a single `name` field (first + last joined) so it persists into
- * settings.profile.name unchanged from D22 contract.
+ * Step 4 — User profile. Two-column Fluent form with a custom dropdown
+ * (theme-aware; native <select> opens a Windows-styled popup that
+ * ignores our CSS). All four visible fields + role are required; when
+ * role = 'Other' the sixth "Describe your role" field appears and is
+ * also required.
  */
 export function UserProfileStep(): JSX.Element {
   const draft = useOnboardingStore(
@@ -34,29 +37,40 @@ export function UserProfileStep(): JSX.Element {
   const setStepData = useOnboardingStore((s) => s.setStepData);
 
   const { firstName, lastName } = useMemo(() => splitName(draft), [draft]);
+  const isOtherMode = draft.customRole !== undefined;
 
-  function patchRaw(update: Partial<ProfileDraft>): void {
-    const next: ProfileDraft = { ...draft, ...update };
+  function setProfile(next: ProfileDraft): void {
     const fn = (next.firstName ?? '').trim();
     const ln = (next.lastName  ?? '').trim();
     next.name = [fn, ln].filter(Boolean).join(' ');
     if (next.team === '')  delete next.team;
-    if (next.email === '') delete next.email;
-    if (next.role === 'Other') {
-      // Persist the custom role string as `role` for downstream consumers.
-      // When customRole is empty we leave `role` blank so the outer Next
-      // stays disabled until the user types something.
-      next.role = (next.customRole ?? '').trim();
+    // Derive the final `role` from `customRole` whenever the user is
+    // in "Other" mode so typing the custom role unlocks Next.
+    if (next.customRole !== undefined) {
+      next.role = next.customRole.trim();
     }
     setStepData('profile', next);
   }
 
+  function pickRole(role: Role): void {
+    if (role === 'Other') {
+      setProfile({ ...draft, customRole: draft.customRole ?? '' });
+    } else {
+      // Leaving Other — drop customRole so the branch collapses.
+      const next: ProfileDraft = { ...draft, role };
+      delete next.customRole;
+      setProfile(next);
+    }
+  }
+
   const selectedRole: Role | '' =
-    draft.role === undefined
-      ? ''
-      : (ROLES as readonly string[]).includes(draft.role)
-        ? (draft.role as Role)
-        : 'Other';
+    isOtherMode
+      ? 'Other'
+      : draft.role === undefined
+        ? ''
+        : (ROLES as readonly string[]).includes(draft.role)
+          ? (draft.role as Role)
+          : '';
 
   return (
     <StepLayout
@@ -75,57 +89,47 @@ export function UserProfileStep(): JSX.Element {
         }}
       >
         <Field
-          label="First name"
-          required
+          label="First name" required
           icon={<PersonRegular fontSize={20} />}
           value={firstName}
-          onChange={(v) => patchRaw({ firstName: v })}
+          onChange={(v) => setProfile({ ...draft, firstName: v })}
           placeholder="Alex"
         />
         <Field
-          label="Last name"
-          required
+          label="Last name" required
           icon={<PersonRegular fontSize={20} />}
           value={lastName}
-          onChange={(v) => patchRaw({ lastName: v })}
+          onChange={(v) => setProfile({ ...draft, lastName: v })}
           placeholder="Morgan"
         />
         <Field
-          label="Email"
+          label="Email" required type="email"
           icon={<MailRegular fontSize={20} />}
-          type="email"
           value={draft.email ?? ''}
-          onChange={(v) => patchRaw({ email: v })}
+          onChange={(v) => setProfile({ ...draft, email: v })}
           placeholder="alex.morgan@example.com"
         />
         <Field
           label="Team"
           icon={<PeopleRegular fontSize={20} />}
           value={draft.team ?? ''}
-          onChange={(v) => patchRaw({ team: v })}
+          onChange={(v) => setProfile({ ...draft, team: v })}
           placeholder="QA · Payments"
         />
-        <SelectField
-          label="Role"
-          required
+        <FluentSelect
+          label="Role" required
           icon={<BriefcaseRegular fontSize={20} />}
           value={selectedRole}
-          onChange={(v) => {
-            const next: Partial<ProfileDraft> = { role: v };
-            if (v === 'Other' && draft.customRole !== undefined) {
-              next.customRole = draft.customRole;
-            }
-            patchRaw(next);
-          }}
           options={ROLES as unknown as string[]}
+          placeholder="Select a role…"
+          onChange={(v) => pickRole(v as Role)}
         />
-        {selectedRole === 'Other' && (
+        {isOtherMode && (
           <Field
-            label="Describe your role"
-            required
+            label="Describe your role" required
             icon={<EditRegular fontSize={20} />}
             value={draft.customRole ?? ''}
-            onChange={(v) => patchRaw({ customRole: v })}
+            onChange={(v) => setProfile({ ...draft, customRole: v })}
             placeholder="e.g. Release Engineer"
           />
         )}
@@ -174,31 +178,89 @@ function Field({
   );
 }
 
-function SelectField({
-  label, icon, value, onChange, options, required = false,
+function FluentSelect({
+  label, icon, value, onChange, options, placeholder, required = false,
 }: {
   label: string;
   icon: JSX.Element;
   value: string;
   onChange: (value: string) => void;
   options: ReadonlyArray<string>;
+  placeholder?: string;
   required?: boolean;
 }): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocPointer = (e: PointerEvent): void => {
+      if (!rootRef.current) return;
+      if (!rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('pointerdown', onDocPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDocPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const display = value || placeholder || 'Select…';
+  const isPlaceholder = !value;
+
   return (
-    <label style={{ display: 'block' }}>
+    <div style={{ display: 'block' }}>
       <span className="field-floating-label">
         {label}
         {required && <span className="req">*</span>}
       </span>
-      <div className="field-floating">
-        <span className="field-icon">{icon}</span>
-        <select value={value} onChange={(e) => onChange(e.target.value)}>
-          <option value="" disabled>Select a role…</option>
-          {options.map((o) => (
-            <option key={o} value={o}>{o}</option>
-          ))}
-        </select>
+      <div ref={rootRef} className="fluent-select">
+        <button
+          type="button"
+          className="fluent-select-button"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          data-placeholder={isPlaceholder}
+          onClick={() => setOpen((o) => !o)}
+        >
+          <span className="field-icon">{icon}</span>
+          <span className="fluent-select-value">{display}</span>
+          <span className="fluent-select-chevron" aria-hidden>
+            <ChevronDownRegular fontSize={16} />
+          </span>
+        </button>
+        {open && (
+          <div role="listbox" className="fluent-select-popover">
+            {options.map((o) => {
+              const selected = o === value;
+              return (
+                <button
+                  key={o}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  className={`fluent-select-option${selected ? ' selected' : ''}`}
+                  onClick={() => {
+                    onChange(o);
+                    setOpen(false);
+                  }}
+                >
+                  <span style={{ flex: 1 }}>{o}</span>
+                  {selected && (
+                    <span aria-hidden style={{ color: 'var(--color-accent-default)' }}>
+                      <CheckmarkRegular fontSize={16} />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
-    </label>
+    </div>
   );
 }

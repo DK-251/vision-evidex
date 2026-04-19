@@ -39,7 +39,7 @@ describe('SettingsService', () => {
     expect(persisted).toMatchObject({
       schemaVersion: SETTINGS_SCHEMA_VERSION,
       onboardingComplete: true,
-      theme: 'system',
+      theme: 'light',
       defaultStoragePath: '',
       defaultTemplateId: '',
     });

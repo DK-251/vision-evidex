@@ -56,8 +56,12 @@ function loadRendererEntry(window: BrowserWindow, entry: 'main' | 'toolbar' | 'a
   }
 }
 
-export function createMainWindow(): BrowserWindow {
-  const initialTheme: 'light' | 'dark' = nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
+export function createMainWindow(opts: { initialTheme?: 'light' | 'dark' } = {}): BrowserWindow {
+  // Prefer the caller-supplied resolved theme (e.g. from settings.theme) so
+  // the boot-time overlay matches what the renderer will paint. Fall back
+  // to the OS preference if not provided.
+  const initialTheme: 'light' | 'dark' =
+    opts.initialTheme ?? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
   mainWindow = new BrowserWindow({
     ...baseWindowConfig(),
     width: 1280,

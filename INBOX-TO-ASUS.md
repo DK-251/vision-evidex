@@ -14,6 +14,67 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-19 — FUI-4f: Onboarding polish (profile dropdown + template preview + title bar)
+
+**From:** CTS (Claude Code)
+**Why:** Three fixes called out after the FUI-4e visual review:
+
+### 1. Title bar overlay was painting dark on light content
+
+- Default `Settings.theme` changed from `'system'` to `'light'` so first-launch after install is coherent. User can change during the onboarding Theme/Storage step or later under AppSettings → Appearance.
+- **New IPC** `titleBar:setTheme` (renderer → main invoke). Schema `TitleBarSetThemeSchema = { theme: 'light' | 'dark' }`.
+- `ThemeProvider` now calls `window.evidexAPI.titleBar.setTheme(resolved)` inside the same effect that writes `data-theme` so the overlay flips in lock-step with the content.
+- `createMainWindow()` gained an optional `initialTheme` argument; `app.ts` resolves it from `settingsService.getSettings().theme` at boot (treating `system` as `nativeTheme.shouldUseDarkColors`) so the overlay is correct before the renderer has mounted — no more dark caption strip on a light app.
+- IPC handler-count log now reads `(9 live, 15 stub)`.
+
+### 2. Profile dropdown was white / non-themed
+
+- Native `<select>` in Chromium opens an OS-rendered popup that ignores CSS. Replaced with a **custom `FluentSelect`** (inline in `UserProfileStep.tsx`) — a transparent underline button + portalled popover.
+  - New CSS: `.fluent-select`, `.fluent-select-button`, `.fluent-select-popover`, `.fluent-select-option(.selected)`.
+  - Popover uses `--color-layer-2` / `--shadow-layer-2` so it's dark in dark theme and light in light theme.
+  - Chevron rotates 180° while open; selected option shows `CheckmarkRegular` in accent; hover + keyboard ESC close supported; click-outside closes via `pointerdown` listener.
+  - Field icon is coloured in accent by default (matching the rest of the form).
+
+### 3. Profile validation
+
+- All four visible inputs are now required: first name, last name, email, role. When "Other" is selected, the inline "Describe your role" field is also required before outer Next enables.
+- Bug fix: previously, typing the custom role did not unlock Next because the store still held `role: ''`. New `setProfile()` derives `role` from `customRole` whenever the draft is in "Other mode" (detected via `customRole !== undefined`). Picking a built-in role again clears `customRole` and restores the plain selection.
+- Validator `isValidUserProfile` now checks: firstName+lastName (if draft-shape) OR composed name, required non-empty role, required well-formed email. Tests in `onboarding-validators.spec.ts` updated.
+
+### 4. Template preview is now dynamic
+
+- Reads `branding.primaryColor` from the onboarding store (falls back to `#0078D4` if no branding entered yet).
+- Accent blocks in the per-template preview use that colour directly (plus alpha tints for secondary fills). Makes the preview match what the exported report will actually look like.
+- Non-accent blocks now use the `.skeleton` class so they shimmer — the preview visibly breathes rather than sitting as static grey rectangles. Reduced-motion freezes the shimmer (already handled in `loading.css`).
+- Preview heights compacted (all sizes ~40% smaller) so the block proportions read as a 1-page document rather than a tall card.
+- Selected template card's icon tile now tints to the user's primary colour too, so the left / right sides of the layout stay in sync visually.
+
+### Tests
+
+- `onboarding-validators.spec.ts` rewritten for the new profile rules (firstName+lastName+email all required; role still required).
+- `settings-service.spec.ts` default-theme assertion: `'light'` (was `'system'`).
+
+### What did NOT change
+
+- Persisted data shape (settings.profile.name / role / email / team) is unchanged — the draft still composes `name` from first+last before calling `setStepData`.
+- No new dependency.
+- Dashboard / AppSettings not touched.
+
+### Verification ask
+
+1. `git pull`
+2. `npm run report` — expected **PASS**. Tests unchanged at **189/189**; the rewritten profile and settings-service cases don't change the count.
+3. `npm run dev` (fresh, reset runs):
+   - **Title bar**: strip colour matches the app content (no black-looking caption region on a light app, no light strip on a dark app).
+   - **Theme on first launch**: light, not system. Onboarding Theme step will flip it if the user picks dark.
+   - **Profile step**: role dropdown is now a custom Fluent popover. Transparent button; click opens a dark-on-dark / light-on-light list; ESC closes; selected option highlighted in accent. All four left/right inputs have red `*` markers. Next stays disabled until first+last+email+role are all filled; picking "Other" + typing a custom role unlocks Next.
+   - **Template step**: preview thumbnail reflects the primary colour you typed on the Branding step (change Branding → Primary colour, come back to Template → preview should use the new colour). Non-accent blocks shimmer softly (reduced-motion freezes them).
+4. Tests: expected **189/189 PASS**.
+
+Once this is green we move on to the Dashboard sidebar padding polish.
+
+---
+
 ## 2026-04-19 — FUI-4e: Onboarding premium redesign (8 → 9 steps)
 
 **From:** CTS (Claude Code)

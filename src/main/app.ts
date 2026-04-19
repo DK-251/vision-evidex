@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, session } from 'electron';
+import { app, BrowserWindow, globalShortcut, nativeTheme, session } from 'electron';
 import path from 'node:path';
 import { createMainWindow, destroyAllWindows, getMainWindow } from './window-manager';
 import { CSP_HEADER } from './window-config';
@@ -110,7 +110,12 @@ function bootstrap(): void {
       });
     }
     bindThemeBroadcasts();
-    const mainWin = createMainWindow();
+    const prefTheme = settingsService.getSettings().theme;
+    const initialTheme: 'light' | 'dark' =
+      prefTheme === 'dark' ? 'dark'
+      : prefTheme === 'light' ? 'light'
+      : (nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
+    const mainWin = createMainWindow({ initialTheme });
 
     // Send the initial accent + light/dark once the renderer is ready so
     // the ThemeProvider does not flash the default `#0078D4` before the

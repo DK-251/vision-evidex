@@ -235,6 +235,13 @@ export const SettingsGetSchema = z.object({});
 export const MetricsSummarySchema = z.object({});
 export const RecentProjectsListSchema = z.object({});
 
+// ─── Title-bar overlay theme (renderer → main) ──────────────────────────
+
+export const TitleBarSetThemeSchema = z.object({
+  theme: z.enum(['light', 'dark']),
+});
+export type TitleBarSetThemeInput = z.infer<typeof TitleBarSetThemeSchema>;
+
 // ─── Branding (app.db) ──────────────────────────────────────────────────
 
 export const BrandingSaveSchema = z.object({

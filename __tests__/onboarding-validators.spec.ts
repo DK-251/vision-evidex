@@ -9,31 +9,45 @@ import {
 } from '../src/renderer/onboarding/validators';
 
 describe('isValidUserProfile', () => {
-  it('requires name and role', () => {
-    expect(isValidUserProfile({ name: 'Deepak', role: 'Tester' })).toBe(true);
+  const base = { name: 'Deepak Sahu', role: 'Tester', email: 'a@b.co' };
+
+  it('accepts a complete profile with composed name', () => {
+    expect(isValidUserProfile(base)).toBe(true);
   });
 
-  it('rejects when name is empty or whitespace', () => {
-    expect(isValidUserProfile({ name: '', role: 'Tester' })).toBe(false);
-    expect(isValidUserProfile({ name: '   ', role: 'Tester' })).toBe(false);
+  it('accepts a draft with firstName + lastName in place of name', () => {
+    expect(
+      isValidUserProfile({ firstName: 'Deepak', lastName: 'Sahu', role: 'Tester', email: 'a@b.co' })
+    ).toBe(true);
   });
 
-  it('rejects when role is empty', () => {
-    expect(isValidUserProfile({ name: 'D', role: '' })).toBe(false);
+  it('rejects when firstName or lastName is missing/empty', () => {
+    expect(
+      isValidUserProfile({ firstName: '', lastName: 'Sahu', role: 'Tester', email: 'a@b.co' })
+    ).toBe(false);
+    expect(
+      isValidUserProfile({ firstName: 'Deepak', lastName: '', role: 'Tester', email: 'a@b.co' })
+    ).toBe(false);
   });
 
-  it('accepts missing / empty email (optional)', () => {
-    expect(isValidUserProfile({ name: 'D', role: 'T' })).toBe(true);
-    expect(isValidUserProfile({ name: 'D', role: 'T', email: '' })).toBe(true);
+  it('rejects when composed name is empty or whitespace', () => {
+    expect(isValidUserProfile({ ...base, name: '' })).toBe(false);
+    expect(isValidUserProfile({ ...base, name: '   ' })).toBe(false);
   });
 
-  it('rejects malformed email', () => {
-    expect(isValidUserProfile({ name: 'D', role: 'T', email: 'not-an-email' })).toBe(false);
-    expect(isValidUserProfile({ name: 'D', role: 'T', email: 'no@domain' })).toBe(false);
+  it('rejects when role is empty (covers "Other" with blank customRole)', () => {
+    expect(isValidUserProfile({ ...base, role: '' })).toBe(false);
+  });
+
+  it('rejects when email is missing, empty, or malformed', () => {
+    expect(isValidUserProfile({ name: 'D S', role: 'T' })).toBe(false);
+    expect(isValidUserProfile({ ...base, email: '' })).toBe(false);
+    expect(isValidUserProfile({ ...base, email: 'not-an-email' })).toBe(false);
+    expect(isValidUserProfile({ ...base, email: 'no@domain' })).toBe(false);
   });
 
   it('accepts well-formed email', () => {
-    expect(isValidUserProfile({ name: 'D', role: 'T', email: 'a@b.co' })).toBe(true);
+    expect(isValidUserProfile(base)).toBe(true);
   });
 
   it('rejects non-object input', () => {
@@ -133,7 +147,7 @@ describe('isValidThemeStorage', () => {
 
 describe('isStepValid router', () => {
   it('routes profile + branding to their validators', () => {
-    expect(isStepValid('profile', { name: 'D', role: 'T' })).toBe(true);
+    expect(isStepValid('profile', { name: 'D S', role: 'T', email: 'a@b.co' })).toBe(true);
     expect(isStepValid('profile', {})).toBe(false);
     expect(isStepValid('branding', { companyName: 'A', primaryColor: '#1A6FD4' })).toBe(true);
     expect(isStepValid('branding', {})).toBe(false);

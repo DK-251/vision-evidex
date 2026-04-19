@@ -47,6 +47,9 @@ export const IPC = {
   // Dashboard metrics + recent projects
   METRICS_SUMMARY: 'metrics:summary',
   RECENT_PROJECTS_LIST: 'recentProjects:list',
+
+  // Title-bar overlay colour sync (renderer → main)
+  TITLE_BAR_SET_THEME: 'titleBar:setTheme',
 } as const;
 
 export const IPC_EVENTS = {

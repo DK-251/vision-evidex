@@ -116,6 +116,11 @@ const evidexAPI = {
       ipcRenderer.invoke(IPC.DIALOG_SELECT_DIRECTORY, input),
   },
 
+  titleBar: {
+    setTheme: (theme: 'light' | 'dark'): Promise<IpcResult<null>> =>
+      ipcRenderer.invoke(IPC.TITLE_BAR_SET_THEME, { theme }),
+  },
+
   dashboard: {
     summary: (): Promise<IpcResult<MetricsSummary>> =>
       ipcRenderer.invoke(IPC.METRICS_SUMMARY, {}),

@@ -31,7 +31,9 @@ import {
   DialogSelectDirectorySchema,
   MetricsSummarySchema,
   RecentProjectsListSchema,
+  TitleBarSetThemeSchema,
 } from '@shared/schemas';
+import { updateTitleBarForTheme } from './window-manager';
 import type { LicenceService } from './services/licence.service';
 import type { SettingsService } from './services/settings.service';
 import type { DatabaseService } from './services/database.service';
@@ -175,6 +177,12 @@ export function registerAllHandlers(services: ServiceRegistry): void {
     services.appDb.getRecentProjects()
   );
 
+  registerHandler(IPC.TITLE_BAR_SET_THEME, TitleBarSetThemeSchema, async (input) => {
+    const win = services.getMainWindow();
+    if (win) updateTitleBarForTheme(win, input.theme);
+    return null;
+  });
+
   registerHandler(IPC.DIALOG_SELECT_DIRECTORY, DialogSelectDirectorySchema, async (input) => {
     const win = services.getMainWindow();
     const options: OpenDialogOptions = {
@@ -191,7 +199,7 @@ export function registerAllHandlers(services: ServiceRegistry): void {
   });
 
   // eslint-disable-next-line no-console
-  console.info(`[ipc-router] ${Object.values(IPC).length} handlers registered (8 live, 15 stub)`);
+  console.info(`[ipc-router] ${Object.values(IPC).length} handlers registered (9 live, 15 stub)`);
 }
 
 /**
