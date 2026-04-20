@@ -1,18 +1,15 @@
-import { BrowserWindow, nativeTheme } from 'electron';
+import { BrowserWindow } from 'electron';
 import path from 'node:path';
 import { baseWindowConfig } from './window-config';
+import { IPC_EVENTS } from '@shared/ipc-channels';
 import { logger } from './logger';
 
 /**
- * Fluent title-bar-overlay palette. The title bar is rendered by the OS
- * as a 32px strip over our window; we pick its fill + symbol colour to
- * match the current light/dark theme so the caption buttons stay legible.
+ * Main-window creation. The title bar is fully owned by the renderer
+ * (see `src/renderer/components/shell/TitleBar.tsx`) — Electron uses
+ * `frame: false` so the OS paints no native chrome at all; caption
+ * buttons are rendered in React and dispatched through IPC.
  */
-function titleBarOverlay(theme: 'light' | 'dark'): { color: string; symbolColor: string; height: number } {
-  return theme === 'dark'
-    ? { color: '#202020', symbolColor: 'rgba(255,255,255,0.8956)', height: 32 }
-    : { color: '#F3F3F3', symbolColor: 'rgba(0,0,0,0.8956)', height: 32 };
-}
 
 function applyWindowMaterial(win: BrowserWindow): void {
   if (process.platform !== 'win32') return;
@@ -25,14 +22,6 @@ function applyWindowMaterial(win: BrowserWindow): void {
   }
 }
 
-export function updateTitleBarForTheme(win: BrowserWindow, theme: 'light' | 'dark'): void {
-  try {
-    win.setTitleBarOverlay(titleBarOverlay(theme));
-  } catch {
-    // Overlay is only supported when titleBarStyle === 'hidden'; safe to swallow.
-  }
-}
-
 let mainWindow: BrowserWindow | undefined;
 let toolbarWindow: BrowserWindow | undefined;
 let annotationWindow: BrowserWindow | undefined;
@@ -41,10 +30,6 @@ let regionWindow: BrowserWindow | undefined;
 const RENDERER_BASE_URL = process.env['ELECTRON_RENDERER_URL'];
 
 function loadRendererEntry(window: BrowserWindow, entry: 'main' | 'toolbar' | 'annotation' | 'region'): void {
-  // Each entry's HTML lives at `src/<dir>/index.html` where <dir> is the
-  // entry name, except `main` which maps to `src/renderer/index.html`.
-  // With `renderer.root: '.'` in electron.vite.config.ts, the dev server
-  // serves every HTML at its relative path from project root.
   const dir = entry === 'main' ? 'renderer' : entry;
   window.webContents.on('did-fail-load', (_e, code, description, url) => {
     logger.error('window.did-fail-load', { entry, code, description, url });
@@ -56,12 +41,18 @@ function loadRendererEntry(window: BrowserWindow, entry: 'main' | 'toolbar' | 'a
   }
 }
 
-export function createMainWindow(opts: { initialTheme?: 'light' | 'dark' } = {}): BrowserWindow {
-  // Prefer the caller-supplied resolved theme (e.g. from settings.theme) so
-  // the boot-time overlay matches what the renderer will paint. Fall back
-  // to the OS preference if not provided.
-  const initialTheme: 'light' | 'dark' =
-    opts.initialTheme ?? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
+function wireWindowStateBroadcasts(win: BrowserWindow): void {
+  const broadcast = (maximized: boolean): void => {
+    if (win.isDestroyed()) return;
+    win.webContents.send(IPC_EVENTS.WINDOW_MAXIMIZED_CHANGE, maximized);
+  };
+  win.on('maximize', () => broadcast(true));
+  win.on('unmaximize', () => broadcast(false));
+  win.on('enter-full-screen', () => broadcast(true));
+  win.on('leave-full-screen', () => broadcast(false));
+}
+
+export function createMainWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
     ...baseWindowConfig(),
     width: 1280,
@@ -69,16 +60,12 @@ export function createMainWindow(opts: { initialTheme?: 'light' | 'dark' } = {})
     minWidth: 1024,
     minHeight: 680,
     title: 'Vision-EviDex',
-    titleBarStyle: 'hidden',
-    titleBarOverlay: titleBarOverlay(initialTheme),
+    frame: false,
     backgroundColor: '#00000000',
   });
 
   applyWindowMaterial(mainWindow);
-
-  // Caption-button colours follow the renderer's resolved theme via
-  // `titleBar:setTheme` IPC — driven by ThemeProvider, which respects
-  // the user's light/dark/system choice instead of only the OS.
+  wireWindowStateBroadcasts(mainWindow);
 
   mainWindow.once('ready-to-show', () => mainWindow?.show());
   mainWindow.on('closed', () => {

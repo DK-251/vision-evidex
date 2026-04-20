@@ -48,8 +48,11 @@ export const IPC = {
   METRICS_SUMMARY: 'metrics:summary',
   RECENT_PROJECTS_LIST: 'recentProjects:list',
 
-  // Title-bar overlay colour sync (renderer → main)
-  TITLE_BAR_SET_THEME: 'titleBar:setTheme',
+  // Custom title bar — window controls (renderer → main)
+  WINDOW_MINIMIZE: 'window:minimize',
+  WINDOW_MAXIMIZE_TOGGLE: 'window:maximizeToggle',
+  WINDOW_CLOSE: 'window:close',
+  WINDOW_IS_MAXIMIZED: 'window:isMaximized',
 } as const;
 
 export const IPC_EVENTS = {
@@ -60,6 +63,7 @@ export const IPC_EVENTS = {
   APP_UPDATE_AVAILABLE: 'app:updateAvailable',
   THEME_ACCENT_COLOUR_UPDATE: 'theme:accentColourUpdate',
   THEME_SYSTEM_CHANGE: 'theme:systemThemeChange',
+  WINDOW_MAXIMIZED_CHANGE: 'window:maximizedChange',
 } as const;
 
 export type IpcChannel = typeof IPC[keyof typeof IPC];

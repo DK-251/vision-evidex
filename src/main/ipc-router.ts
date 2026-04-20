@@ -31,9 +31,8 @@ import {
   DialogSelectDirectorySchema,
   MetricsSummarySchema,
   RecentProjectsListSchema,
-  TitleBarSetThemeSchema,
+  WindowControlSchema,
 } from '@shared/schemas';
-import { updateTitleBarForTheme } from './window-manager';
 import type { LicenceService } from './services/licence.service';
 import type { SettingsService } from './services/settings.service';
 import type { DatabaseService } from './services/database.service';
@@ -177,10 +176,23 @@ export function registerAllHandlers(services: ServiceRegistry): void {
     services.appDb.getRecentProjects()
   );
 
-  registerHandler(IPC.TITLE_BAR_SET_THEME, TitleBarSetThemeSchema, async (input) => {
-    const win = services.getMainWindow();
-    if (win) updateTitleBarForTheme(win, input.theme);
+  registerHandler(IPC.WINDOW_MINIMIZE, WindowControlSchema, async () => {
+    services.getMainWindow()?.minimize();
     return null;
+  });
+  registerHandler(IPC.WINDOW_MAXIMIZE_TOGGLE, WindowControlSchema, async () => {
+    const win = services.getMainWindow();
+    if (!win) return null;
+    if (win.isMaximized()) win.unmaximize();
+    else win.maximize();
+    return null;
+  });
+  registerHandler(IPC.WINDOW_CLOSE, WindowControlSchema, async () => {
+    services.getMainWindow()?.close();
+    return null;
+  });
+  registerHandler(IPC.WINDOW_IS_MAXIMIZED, WindowControlSchema, async () => {
+    return services.getMainWindow()?.isMaximized() ?? false;
   });
 
   registerHandler(IPC.DIALOG_SELECT_DIRECTORY, DialogSelectDirectorySchema, async (input) => {
@@ -199,7 +211,7 @@ export function registerAllHandlers(services: ServiceRegistry): void {
   });
 
   // eslint-disable-next-line no-console
-  console.info(`[ipc-router] ${Object.values(IPC).length} handlers registered (9 live, 15 stub)`);
+  console.info(`[ipc-router] ${Object.values(IPC).length} handlers registered (12 live, 15 stub)`);
 }
 
 /**

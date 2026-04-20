@@ -14,6 +14,89 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-20 — FUI-5: Fully custom Fluent title bar + window controls
+
+**From:** CTS (Claude Code)
+**Why:** Replace the OS `titleBarOverlay` caption buttons with a fully React-owned implementation so we get pixel-perfect control over hover states, focus rings, restore/maximize icon swap, and theme sync — and so we stop relying on Electron's overlay API (it's Windows-only and its color contract is hard to match against Mica).
+
+### Design summary
+
+- Electron main window switched from `titleBarStyle: 'hidden'` + `titleBarOverlay` → `frame: false`. No OS chrome at all.
+- Draggable strip: `.title-bar` uses `-webkit-app-region: drag`; caption buttons and icon opt out with `no-drag`. Double-click on the draggable area still toggles maximize (OS default under `app-region: drag`).
+- Caption buttons are hand-drawn 10 × 10 inline SVGs (stroke-width 1) at 46 × 32 px, matching Windows 11 Fluent geometry (Segoe Fluent Icons E921–E923, E8BB visual equivalents). No webfont, no icon-lib dependency for the caption glyphs.
+- Maximize ↔ Restore icon swaps live from a `window:maximizedChange` broadcast emitted by main on `maximize` / `unmaximize` / `enter-full-screen` / `leave-full-screen`.
+
+### IPC changes
+
+**Removed:**
+- Channel `titleBar:setTheme`
+- Schema `TitleBarSetThemeSchema` / `TitleBarSetThemeInput`
+- Helper `updateTitleBarForTheme(win, theme)` in `src/main/window-manager.ts`
+- Preload `window.evidexAPI.titleBar.setTheme(...)`
+
+**Added (renderer → main invoke, 4 new):**
+- `window:minimize`
+- `window:maximizeToggle` (main checks `win.isMaximized()` and flips)
+- `window:close`
+- `window:isMaximized` → returns `boolean`
+
+**Added (main → renderer event, 1 new):**
+- `window:maximizedChange` → `boolean` (broadcast on maximize / unmaximize / enter-full-screen / leave-full-screen)
+
+**Schema:** all four control channels share `WindowControlSchema = z.object({})` (no payload).
+
+**Preload bridge:**
+- `window.evidexAPI.windowControls.{ minimize, maximizeToggle, close, isMaximized }`
+- `window.evidexAPI.events.onMaximizedChange(handler)` → returns off-fn.
+
+**Handler count log:** now `(12 live, 15 stub)` — up from `(9 live, 15 stub)` by +3 net (removed 1, added 4).
+
+### Files touched
+
+- `src/shared/ipc-channels.ts` — swap `TITLE_BAR_SET_THEME` → 4 `WINDOW_*` channels + `WINDOW_MAXIMIZED_CHANGE` event.
+- `src/shared/schemas/index.ts` — `TitleBarSetThemeSchema` → `WindowControlSchema`.
+- `src/main/window-manager.ts` — drop overlay helpers, drop `nativeTheme` dep, switch main window to `frame: false`, wire maximize/unmaximize broadcasts.
+- `src/main/app.ts` — drop `initialTheme` plumbing (no longer needed since the renderer owns the bar).
+- `src/main/ipc-router.ts` — drop `TITLE_BAR_SET_THEME` handler, add four `WINDOW_*` handlers, update handler-count log.
+- `src/preload/preload.ts` — expose `windowControls` API + `onMaximizedChange` event subscriber.
+- `src/renderer/providers/ThemeProvider.tsx` — drop the `titleBar.setTheme(resolved)` call (no longer needed).
+- `src/renderer/components/shell/TitleBar.tsx` — full rewrite with caption buttons, Fluent inline SVG glyphs, aria-labels, restore/maximize icon swap.
+- `src/renderer/styles/components.css` — drop the `padding-right: 140px` reserve, add `.caption-buttons` + `.caption-button` (+ `--close` variant) with Fluent hover/active/focus-visible states.
+
+### Accessibility
+
+- Each caption button is a real `<button>` with `aria-label` + `title` (Minimize / Restore or Maximize / Close).
+- Group wrapper is `role="group" aria-label="Window controls"`.
+- Focus ring: inset 2px accent-coloured box-shadow on `:focus-visible`.
+- Icons use `aria-hidden="true" focusable="false"`.
+- Windows High Contrast: buttons use `currentColor` on the glyph so `forced-colors` stroke stays visible.
+
+### Explicit non-goals (call these out on verification)
+
+- **Snap Layouts flyout on maximize-button hover is not available.** Windows 11 only shows Snap Layouts for native caption buttons; a fully custom button cannot emit the right `WM_NCHITTEST` response from Electron. User explicitly asked for fully-custom, so this is the accepted trade-off.
+- **No `remote` module, no deprecated APIs.** Everything goes through `contextBridge` + `ipcRenderer.invoke`.
+
+### Checklist for Asus
+
+1. `git pull --ff-only`
+2. `npm run report` — expect PASS (typecheck + 189/189 tests + benchmark).
+3. `npm run dev`:
+   - Startup logs: `[ipc-router] 27 handlers registered (12 live, 15 stub)`.
+   - No `did-fail-load`, no preload errors.
+4. Manual visual checks:
+   - Title bar renders with app icon + title on the left, three caption buttons flush right.
+   - Hover minimize / maximize / restore → subtle neutral fill.
+   - Hover close → red `#C42B1C`, white glyph.
+   - Double-click draggable area → window maximizes; maximize icon becomes restore icon; double-click again → restores.
+   - Drag title bar → window moves.
+   - Toggle theme in Onboarding Theme/Storage step → caption strip and glyph colours flip in sync (no OS overlay to race against).
+   - No black/grey strip under the caption area in light theme.
+5. Tab into a caption button → visible focus ring (inset accent).
+
+Everything from FUI-4f remains intact.
+
+---
+
 ## 2026-04-19 — FUI-4g: Caption-button theme race fix (small)
 
 **From:** CTS (Claude Code)

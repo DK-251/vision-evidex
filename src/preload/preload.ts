@@ -116,9 +116,13 @@ const evidexAPI = {
       ipcRenderer.invoke(IPC.DIALOG_SELECT_DIRECTORY, input),
   },
 
-  titleBar: {
-    setTheme: (theme: 'light' | 'dark'): Promise<IpcResult<null>> =>
-      ipcRenderer.invoke(IPC.TITLE_BAR_SET_THEME, { theme }),
+  windowControls: {
+    minimize: (): Promise<IpcResult<null>> => ipcRenderer.invoke(IPC.WINDOW_MINIMIZE, {}),
+    maximizeToggle: (): Promise<IpcResult<null>> =>
+      ipcRenderer.invoke(IPC.WINDOW_MAXIMIZE_TOGGLE, {}),
+    close: (): Promise<IpcResult<null>> => ipcRenderer.invoke(IPC.WINDOW_CLOSE, {}),
+    isMaximized: (): Promise<IpcResult<boolean>> =>
+      ipcRenderer.invoke(IPC.WINDOW_IS_MAXIMIZED, {}),
   },
 
   dashboard: {
@@ -158,6 +162,11 @@ const evidexAPI = {
       const listener = (_e: unknown, shouldUseDark: boolean): void => handler(shouldUseDark);
       ipcRenderer.on(IPC_EVENTS.THEME_SYSTEM_CHANGE, listener);
       return () => ipcRenderer.removeListener(IPC_EVENTS.THEME_SYSTEM_CHANGE, listener);
+    },
+    onMaximizedChange: (handler: (maximized: boolean) => void): (() => void) => {
+      const listener = (_e: unknown, maximized: boolean): void => handler(maximized);
+      ipcRenderer.on(IPC_EVENTS.WINDOW_MAXIMIZED_CHANGE, listener);
+      return () => ipcRenderer.removeListener(IPC_EVENTS.WINDOW_MAXIMIZED_CHANGE, listener);
     },
   },
 } as const;
