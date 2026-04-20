@@ -10,6 +10,36 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-20 10:35 — FUI-5 verification run (terminal gate green)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `34c7b8b`
+
+Per topmost unresolved inbox instruction (FUI-5), I ran the requested terminal-verifiable checklist.
+
+### Results
+
+- `git pull --ff-only`: **PASS** (`Already up to date.`)
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: **PASS**
+	- tests: **PASS**
+	- modules gate: **PASS** (`FAIL 0`)
+- `npm run dev` startup smoke: **PASS**
+	- observed: **`[ipc-router] 27 handlers registered (12 live, 15 stub)`**
+	- no `did-fail-load` lines
+	- no preload errors (`build the electron preload files successfully`)
+
+### Notes on manual visual checks
+
+- Terminal/runtime telemetry is clean and matches the expected handler-count upgrade for FUI-5.
+- The manual GUI assertions from the checklist (caption-button hover states, close-button red hover, drag/double-click maximize behavior, restore icon swap, focus ring visibility) are not represented in terminal logs and were not exhaustively captured in this run note.
+
+### Verdict
+
+FUI-5 automated gate is green on Asus side (pull + report + dev startup telemetry).
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
 ## 2026-04-19 09:29 — FUI-4f verification run + Asus hotfix applied (green)
 
 **From:** Asus TUF run machine
