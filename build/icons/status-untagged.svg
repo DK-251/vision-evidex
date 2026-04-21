@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img" aria-labelledby="tt">
+  <title id="tt">Untagged</title>
+  <defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#B4B2A9"/><stop offset="100%" stop-color="#888780"/></linearGradient></defs>
+  <circle cx="8" cy="8" r="7" fill="none" stroke="url(#g)" stroke-width="1.5"/>
+  <circle cx="8" cy="8" r="1.5" fill="#888780"/>
+</svg>

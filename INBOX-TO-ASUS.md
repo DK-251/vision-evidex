@@ -14,6 +14,66 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-20 — FUI-6: Onboarding close + Begin centered + brand icon system
+
+**From:** CTS (Claude Code)
+
+Three independent deliverables in one commit.
+
+### 1. Onboarding can now be closed without completing setup
+
+**Problem:** after FUI-5 the main window has `frame: false`, so the only caption buttons come from the renderer's `<TitleBar />`. Onboarding did not render the Shell and therefore had no visible min/max/close buttons — users were stuck.
+
+**Fix:** mounted `<TitleBar title="Vision-EviDex · Setup" />` at the top of both branches of `OnboardingPage.tsx` (the wizard state and the transient `CompletedCard`). The Mica backdrop now flex-columns with the 32 px title bar on top and the wizard card filling the remainder. Close → window quits; `onboardingComplete` stays `false` in `settings.json`; next launch re-enters onboarding. Minimize and maximize also work, matching the rest of the app.
+
+### 2. First onboarding step: Begin button centered, no Previous
+
+**Fix:** the onboarding `Nav` component now has an early return when `isFirst === true`. It renders only the accent Begin button in a `justify-content: center` row, with the normal two-column Previous/Next layout starting on step 2. The `disabled` prop on the previous-previous button is gone (it was always disabled anyway on step 1 — now the whole button is gone).
+
+### 3. Vision-EviDex icon system — 34 SVGs + manifest + build hook
+
+Full Fluent Design 2 icon family lives under `build/icons/`. All icons follow the brand language: 135° linear gradient `#0078D4 → #00B4D8` (primary) or `#0078D4 → #6B2FBA` (secondary), rounded caps / joins, `<title>` + `<desc>` for a11y, `@media (prefers-color-scheme: dark)` where surface-dependent.
+
+**App-shell (12 files):** `app-icon-{1024,512,256,128,64,48,32,16}.svg`, `app-icon-taskbar-32.svg`, `favicon-32.svg`, `tray-icon-{light,dark}.svg`. The 256 has a verified-checkmark inside the shield; 32 and below use the abstracted 6-point star form per the spec.
+
+**Onboarding (10 files):** `onboarding-hero-animated.svg` (200×200 with 5 named `@keyframes`: aperture-pulse, scan-sweep, doc-float, glow-pulse, shield-rotate — all with a `prefers-reduced-motion: reduce` fallback), `step-01-activate.svg` through `step-08-complete.svg` (32×32 step-header pictograms), plus `step-icons-preview.svg` for visual review.
+
+**In-app (12 files):** `report-default-branding.svg` (240×60 report header placeholder with UNBRANDED watermark), `status-{pass,fail,blocked,skip,untagged}.svg` (16×16 capture tags), `nav-{capture,evidence,audit}-{regular,filled}.svg` (20×20 sidebar nav with Regular + Filled variants — Regular uses `currentColor`, Filled uses the primary gradient).
+
+**Manifest:** `build/icons/icon-manifest.md` — lists every file, dimensions, usage context, the exact bundle command for the Windows `.ico` (both `sharp` + `png-to-ico` and an ImageMagick alternative), and the `electron-builder.config.js` icon hook ready to drop in when packaging lands in Phase 4.
+
+### Files touched
+
+- `src/renderer/pages/OnboardingPage.tsx` — TitleBar import, wrapper restructure, Nav.isFirst branch.
+- `build/icons/` — 34 SVG files + `icon-manifest.md`.
+
+No test or schema changes; IPC count still `27 handlers registered (12 live, 15 stub)`.
+
+### Checklist for Asus
+
+1. `git pull --ff-only`
+2. `npm run report` — expect PASS (typecheck + 189/189 tests + benchmark).
+3. `npm run dev`:
+   - Boot fresh userData (`predev` clears state).
+   - Onboarding renders with the caption buttons (min/max/close) at top-right of the title strip.
+   - Step 1 (welcome) shows only the centered accent Begin button, no Previous.
+   - Click the caption close button → app quits. Relaunch → onboarding returns (onboardingComplete still `false`).
+   - Click Begin → step 2; Previous button now visible.
+4. Open a few of the SVG files in the browser / VS Code preview to sanity-check rendering of:
+   - `build/icons/app-icon-1024.svg` — aperture iris + shield visible.
+   - `build/icons/app-icon-256.svg` — shield has a white checkmark inside.
+   - `build/icons/onboarding-hero-animated.svg` — aperture breathes, scan line sweeps, shield rotates slowly, document floats.
+   - `build/icons/step-icons-preview.svg` — all 8 step glyphs in a row.
+5. Confirm no stray `build/tmp/` files are committed (the `.ico` bundle command uses it as a scratch directory only).
+
+### Notes
+
+- Icons live under `build/icons/` so the `electron-builder` `directories.buildResources` default ('build') picks them up at packaging time without extra config.
+- Actual `.ico` generation from SVGs is a build-time concern — the manifest has the exact command, but we only execute it when packaging (Phase 4). The SVG sources are authoritative until then.
+- Tray service wiring is not done yet (still stubbed) — tray icons are included so we have the assets ready when `TrayService` lands.
+
+---
+
 ## 2026-04-20 — FUI-5: Fully custom Fluent title bar + window controls
 
 **From:** CTS (Claude Code)

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="20" height="20" role="img" aria-labelledby="tt">
+  <title id="tt">Capture (active)</title>
+  <defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0078D4"/><stop offset="100%" stop-color="#00B4D8"/></linearGradient></defs>
+  <g transform="translate(10 10)" fill="url(#g)" stroke="url(#g)" stroke-width="0.5" stroke-linejoin="round">
+    <g id="nbcf"><path d="M0 -7 C 2 -6.5 3.4 -5 3.4 -3 C 3.4 -1 2 0 0 0 C -1.5 -0.5 -2.6 -2 -2.6 -4 C -2.6 -5.5 -1.5 -6.5 0 -7 Z"/></g>
+    <use href="#nbcf" transform="rotate(60)"/><use href="#nbcf" transform="rotate(120)"/><use href="#nbcf" transform="rotate(180)"/><use href="#nbcf" transform="rotate(240)"/><use href="#nbcf" transform="rotate(300)"/>
+    <circle r="2" fill="#FFFFFF"/>
+  </g>
+</svg>

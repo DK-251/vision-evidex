@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img" aria-labelledby="tt desc">
+  <title id="tt">Vision-EviDex (16)</title>
+  <desc id="desc">Minimal gradient rounded square with 6-ray star — smallest app icon.</desc>
+  <defs>
+    <linearGradient id="sq" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0078D4"/><stop offset="100%" stop-color="#00B4D8"/></linearGradient>
+  </defs>
+  <rect width="16" height="16" rx="4" fill="url(#sq)"/>
+  <!-- 6-ray star centred — bright white lines -->
+  <g transform="translate(8 8)" stroke="#FFFFFF" stroke-width="1" stroke-linecap="round">
+    <path d="M0 -5 V 5"/>
+    <path d="M -4.3 -2.5 L 4.3 2.5"/>
+    <path d="M -4.3 2.5 L 4.3 -2.5"/>
+  </g>
+  <circle r="1.4" cx="8" cy="8" fill="#60CDFF"/>
+</svg>

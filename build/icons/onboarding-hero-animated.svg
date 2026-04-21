@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-labelledby="tt desc">
+  <title id="tt">Vision-EviDex onboarding hero</title>
+  <desc id="desc">Animated aperture with floating document and rotating shield — captures evidence, secured.</desc>
+  <defs>
+    <linearGradient id="blade" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0078D4"/>
+      <stop offset="100%" stop-color="#00B4D8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#60CDFF" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#60CDFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0078D4" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#6B2FBA" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient id="scan" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#60CDFF" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#60CDFF" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#60CDFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="docTint" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0078D4" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0078D4" stop-opacity="0.3"/>
+    </linearGradient>
+    <clipPath id="lensClip"><circle cx="100" cy="100" r="22"/></clipPath>
+    <style><![CDATA[
+      @keyframes aperture-pulse {
+        0%   { transform: scale(1); }
+        15%  { transform: scale(1.04); }
+        30%  { transform: scale(0.97); }
+        45%  { transform: scale(1); }
+        100% { transform: scale(1); }
+      }
+      @keyframes scan-sweep {
+        0%   { transform: translateY(-44px); opacity: 0; }
+        20%  { opacity: 0.7; }
+        80%  { opacity: 0.7; }
+        100% { transform: translateY(44px); opacity: 0; }
+      }
+      @keyframes doc-float {
+        0%, 100% { transform: translateY(0); }
+        50%      { transform: translateY(-4px); }
+      }
+      @keyframes glow-pulse {
+        0%, 100% { opacity: 0.7; r: 22; }
+        50%      { opacity: 1;   r: 26; }
+      }
+      @keyframes shield-rotate {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+      }
+      .ap-blades      { transform-origin: 100px 100px; animation: aperture-pulse 1.8s cubic-bezier(.17,.17,0,1) both,
+                                                                  aperture-pulse 1.8s cubic-bezier(.17,.17,0,1) 5.8s infinite; }
+      .scan-line      { animation: scan-sweep 2.4s linear 0.9s infinite; }
+      .doc-float      { transform-origin: 140px 125px; animation: doc-float 3.2s cubic-bezier(.45,0,.55,1) infinite; }
+      .lens-glow      { animation: glow-pulse 2.8s ease-in-out infinite; }
+      .shield-spin    { transform-origin: 100px 100px; animation: shield-rotate 24s linear infinite; }
+      @media (prefers-color-scheme: dark) {
+        .blade-fill stop:first-child { stop-color: #0078D4; }
+        .blade-fill stop:last-child  { stop-color: #60CDFF; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ap-blades, .scan-line, .doc-float, .lens-glow, .shield-spin { animation: none; }
+        .lens-glow { opacity: 0.85; }
+      }
+    ]]></style>
+  </defs>
+
+  <!-- Shield, large, rotating -->
+  <g class="shield-spin">
+    <path d="M 100 55 L 145 72 L 145 122 C 145 148 125 160 100 165 C 75 160 55 148 55 122 L 55 72 Z"
+          fill="none" stroke="url(#shieldGrad)" stroke-width="1.5"/>
+  </g>
+
+  <!-- Aperture blades (6-fold) -->
+  <g class="ap-blades">
+    <g transform="translate(100 100)">
+      <g id="heroBlade">
+        <path d="M0 -60 C 18 -56 30 -40 30 -22 C 30 -6 18 4 0 4 C -14 -6 -22 -18 -22 -34 C -22 -48 -14 -58 0 -60 Z"
+              fill="url(#blade)"/>
+        <path d="M0 -60 C -9 -58 -17 -54 -22 -34"
+              stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1" fill="none" stroke-linecap="round"/>
+      </g>
+      <use href="#heroBlade" transform="rotate(60)"/>
+      <use href="#heroBlade" transform="rotate(120)"/>
+      <use href="#heroBlade" transform="rotate(180)"/>
+      <use href="#heroBlade" transform="rotate(240)"/>
+      <use href="#heroBlade" transform="rotate(300)"/>
+    </g>
+  </g>
+
+  <!-- Lens glow (aperture opening) -->
+  <circle class="lens-glow" cx="100" cy="100" r="22" fill="url(#glow)"/>
+
+  <!-- Scan line, clipped to aperture circle -->
+  <g clip-path="url(#lensClip)">
+    <rect class="scan-line" x="78" y="99" width="44" height="2" fill="url(#scan)"/>
+  </g>
+
+  <!-- Document, bottom-right, rotated 15°, floats vertically -->
+  <g class="doc-float">
+    <g transform="translate(140 125) rotate(15)">
+      <rect x="-20" y="-25" width="40" height="50" rx="3" fill="#FFFFFF" fill-opacity="0.9"/>
+      <rect x="-20" y="-25" width="40" height="50" rx="3" fill="url(#docTint)"/>
+      <rect x="-12" y="-14" width="24" height="2" fill="#0078D4" fill-opacity="0.6"/>
+      <rect x="-12" y="-6"  width="24" height="2" fill="#0078D4" fill-opacity="0.5"/>
+      <rect x="-12" y="2"   width="18" height="2" fill="#0078D4" fill-opacity="0.4"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="20" height="20" role="img" aria-labelledby="tt">
+  <title id="tt">Audit</title>
+  <path d="M 10 2 L 17 4.5 L 17 11 C 17 14.5 14 16.5 10 18 C 6 16.5 3 14.5 3 11 L 3 4.5 Z"
+        fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M 7 9 H 13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M 7 11.5 H 13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M 7 14 H 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

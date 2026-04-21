@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-labelledby="tt desc">
+  <title id="tt">Vision-EviDex favicon</title>
+  <desc id="desc">VE lettermark monogram in primary gradient — browser favicon.</desc>
+  <defs>
+    <linearGradient id="v" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0078D4"/><stop offset="100%" stop-color="#0099BC"/></linearGradient>
+    <linearGradient id="e" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0099BC"/><stop offset="100%" stop-color="#6B2FBA"/></linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="6" fill="#FFFFFF"/>
+  <!-- E behind (right-shifted), V in front (left) -->
+  <g font-family="Segoe UI, Arial, sans-serif" font-weight="700" font-size="22" text-anchor="middle">
+    <text x="20" y="24" fill="url(#e)">E</text>
+    <text x="13" y="24" fill="url(#v)">V</text>
+  </g>
+</svg>

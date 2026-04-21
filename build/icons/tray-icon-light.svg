@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img" aria-labelledby="tt desc">
+  <title id="tt">Vision-EviDex tray (light)</title>
+  <desc id="desc">High-contrast shutter — dark strokes for light Windows taskbar.</desc>
+  <g transform="translate(8 8)" stroke="#003A6C" stroke-width="1.2" stroke-linecap="round">
+    <path d="M 0 -5 L 0 -2"/>
+    <path d="M 4.33 -2.5 L 1.73 -1"/>
+    <path d="M 4.33 2.5 L 1.73 1"/>
+    <path d="M 0 5 L 0 2"/>
+    <path d="M -4.33 2.5 L -1.73 1"/>
+    <path d="M -4.33 -2.5 L -1.73 -1"/>
+  </g>
+  <circle cx="8" cy="8" r="1.5" fill="#0078D4"/>
+</svg>

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" width="240" height="60" role="img" aria-labelledby="tt desc">
+  <title id="tt">Vision-EviDex report header (default branding)</title>
+  <desc id="desc">Default report header used when no custom company logo has been uploaded.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="75%"><stop offset="0%" stop-color="#0E3D7A"/><stop offset="100%" stop-color="#051D3D"/></radialGradient>
+    <linearGradient id="bl" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0078D4"/><stop offset="100%" stop-color="#00B4D8"/></linearGradient>
+    <radialGradient id="gl" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#60CDFF"/><stop offset="100%" stop-color="#0099BC"/></radialGradient>
+    <linearGradient id="ve" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0078D4"/><stop offset="100%" stop-color="#0099BC"/></linearGradient>
+  </defs>
+  <!-- 40x40 aperture mark, centred vertically in 60px row -->
+  <g transform="translate(30 30)">
+    <rect x="-20" y="-20" width="40" height="40" rx="9" fill="url(#bg)"/>
+    <g id="mb">
+      <path d="M0 -12 C 3.5 -11 6 -8 6 -4.5 C 6 -1.5 3.5 0 0 0 C -2.3 -1.5 -4.8 -4 -4.8 -7 C -4.8 -9.5 -2.3 -11.5 0 -12 Z" fill="url(#bl)"/>
+    </g>
+    <use href="#mb" transform="rotate(60)"/><use href="#mb" transform="rotate(120)"/><use href="#mb" transform="rotate(180)"/><use href="#mb" transform="rotate(240)"/><use href="#mb" transform="rotate(300)"/>
+    <circle r="5.5" fill="url(#gl)"/>
+  </g>
+  <!-- Separator -->
+  <line x1="64" y1="10" x2="64" y2="50" stroke="#0078D4" stroke-opacity="0.3" stroke-width="1"/>
+  <!-- Title + subtitle -->
+  <g font-family="Segoe UI Variable Display, Segoe UI, Arial, sans-serif">
+    <text x="74" y="28" font-size="16" font-weight="600" fill="url(#ve)">Vision-EviDex</text>
+    <text x="74" y="44" font-size="10" font-weight="400" fill="#616161" font-family="Segoe UI Variable Text, Segoe UI, Arial, sans-serif">Evidence Capture &amp; Report Generation</text>
+  </g>
+  <!-- UNBRANDED watermark -->
+  <text x="228" y="36" transform="rotate(-30 228 36)" font-size="8" fill="#B4B2A9" fill-opacity="0.4" font-family="Segoe UI, Arial, sans-serif" text-anchor="end">UNBRANDED</text>
+</svg>

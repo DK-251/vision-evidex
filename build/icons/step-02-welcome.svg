@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-labelledby="tt desc">
+  <title id="tt">Welcome</title>
+  <desc id="desc">Four-point sparkle with satellite sparkles — welcome / first light.</desc>
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0078D4"/>
+      <stop offset="100%" stop-color="#00B4D8"/>
+    </linearGradient>
+  </defs>
+  <!-- Main 4-point sparkle -->
+  <path d="M 16 4 L 18 14 L 28 16 L 18 18 L 16 28 L 14 18 L 4 16 L 14 14 Z"
+        fill="url(#g)" stroke="url(#g)" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Top-left small sparkle -->
+  <g opacity="0.4" fill="url(#g)">
+    <path d="M 5 6 L 5.6 8 L 7.5 8.5 L 5.6 9 L 5 11 L 4.4 9 L 2.5 8.5 L 4.4 8 Z"/>
+  </g>
+  <!-- Bottom-right small sparkle -->
+  <g opacity="0.4" fill="url(#g)">
+    <path d="M 27 24 L 27.6 26 L 29.5 26.5 L 27.6 27 L 27 29 L 26.4 27 L 24.5 26.5 L 26.4 26 Z"/>
+  </g>
+</svg>

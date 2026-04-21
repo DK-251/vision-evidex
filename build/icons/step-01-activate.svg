@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-labelledby="tt desc">
+  <title id="tt">Activate</title>
+  <desc id="desc">Digital licence key — activation step icon.</desc>
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0078D4"/>
+      <stop offset="100%" stop-color="#00B4D8"/>
+    </linearGradient>
+  </defs>
+  <g stroke="url(#g)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"
+     transform="rotate(45 16 16)">
+    <circle cx="10" cy="16" r="5" fill="url(#g)" fill-opacity="0.15"/>
+    <circle cx="10" cy="16" r="5"/>
+    <path d="M 10 13.5 H 12"/>
+    <path d="M 10 18.5 H 12"/>
+    <path d="M 15 16 H 26"/>
+    <path d="M 19 16 V 19"/>
+    <path d="M 22 16 V 19"/>
+    <path d="M 25 16 V 19"/>
+  </g>
+</svg>

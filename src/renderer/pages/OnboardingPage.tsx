@@ -12,6 +12,7 @@ import {
   selectIsFirst,
   selectIsLast,
 } from '../stores/onboarding-store';
+import { TitleBar } from '../components/shell/TitleBar';
 import { isStepValid } from '../onboarding/validators';
 import { detectHotkeyConflicts, DEFAULT_HOTKEYS } from '../onboarding/hotkey-utils';
 import { WelcomeBrandingStep } from '../onboarding/WelcomeBrandingStep';
@@ -86,11 +87,19 @@ export function OnboardingPage(): JSX.Element {
       style={{
         minHeight:      '100vh',
         display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        padding:        'var(--space-6)',
+        flexDirection:  'column',
       }}
     >
+      <TitleBar title="Vision-EviDex · Setup" />
+      <div
+        style={{
+          flex:           1,
+          display:        'flex',
+          alignItems:     'center',
+          justifyContent: 'center',
+          padding:        'var(--space-6)',
+        }}
+      >
       <div
         style={{
           width:          720,
@@ -144,6 +153,7 @@ export function OnboardingPage(): JSX.Element {
           onFinish={onFinish}
         />
       </div>
+      </div>
     </div>
   );
 }
@@ -182,6 +192,26 @@ function Nav({
   onNext: () => void;
   onFinish: () => void;
 }): JSX.Element {
+  if (isFirst) {
+    return (
+      <div
+        style={{
+          width:          '100%',
+          display:        'flex',
+          justifyContent: 'center',
+        }}
+      >
+        <Button
+          variant="accent"
+          onClick={onNext}
+          disabled={!canAdvance}
+          endIcon={<ChevronRightRegular fontSize={18} />}
+        >
+          {primaryLabel}
+        </Button>
+      </div>
+    );
+  }
   return (
     <div
       style={{
@@ -195,7 +225,6 @@ function Nav({
       <Button
         variant="subtle"
         onClick={onBack}
-        disabled={isFirst}
         startIcon={<ChevronLeftRegular fontSize={18} />}
       >
         Previous
@@ -234,11 +263,19 @@ function CompletedCard(): JSX.Element {
       style={{
         minHeight: '100vh',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 'var(--space-6)',
+        flexDirection: 'column',
       }}
     >
+      <TitleBar title="Vision-EviDex · Setup" />
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 'var(--space-6)',
+        }}
+      >
       <div
         className="card-elevated"
         style={{
@@ -272,6 +309,7 @@ function CompletedCard(): JSX.Element {
             Reset
           </Button>
         </div>
+      </div>
       </div>
     </div>
   );
