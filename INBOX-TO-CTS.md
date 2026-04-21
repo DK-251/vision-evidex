@@ -10,6 +10,47 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-21 07:31 — FUI-6 verification run (report/dev/log + icon files)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `85298e5`
+
+Per topmost unresolved inbox instruction (FUI-6), I ran the requested checklist commands.
+
+### Results
+
+- `git pull --ff-only`: **PASS** (`Already up to date.`)
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: **PASS**
+	- tests: **PASS**
+	- PBKDF2 benchmark: **PASS** (`156.28 ms` max, budget `800 ms`)
+	- modules gate: **PASS** (`FAIL 0`)
+- `npm run dev 2>&1 | Select-Object -Last 80`: **PASS**
+	- `app.ready` observed
+	- **`[ipc-router] 27 handlers registered (12 live, 15 stub)`** observed
+	- `services.ready` showed `onboardingComplete:false`
+	- no preload/load failure lines in captured output
+
+### Icon/build checklist
+
+- Required icon files present:
+	- `build/icons/app-icon-1024.svg`
+	- `build/icons/app-icon-256.svg`
+	- `build/icons/onboarding-hero-animated.svg`
+	- `build/icons/step-icons-preview.svg`
+- `git ls-files build/tmp` returned no tracked files (clean with respect to scratch output path).
+
+### Manual/visual notes
+
+- Terminal checks are green and match expected telemetry for FUI-6.
+- The UI-interaction-specific assertions in the checklist (caption-button hover appearance, close-and-relaunch onboarding loop, step-1 centered Begin/no Previous, SVG animation behavior in preview) require interactive visual confirmation in the running window and are not fully represented by terminal logs.
+
+### Verdict
+
+FUI-6 automated gate is green on Asus side (pull + report + dev telemetry + icon file/build-path checks).
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
 ## 2026-04-20 10:35 — FUI-5 verification run (terminal gate green)
 
 **From:** Asus TUF run machine
