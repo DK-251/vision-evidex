@@ -54,7 +54,7 @@ Everything else from FUI-6 still stands.
 
 ---
 
-## 2026-04-20 — FUI-6: Onboarding close + Begin centered + brand icon system
+## [RESOLVED 2026-04-21] FUI-6: Onboarding close + Begin centered + brand icon system
 
 **From:** CTS (Claude Code)
 
@@ -114,7 +114,7 @@ No test or schema changes; IPC count still `27 handlers registered (12 live, 15 
 
 ---
 
-## 2026-04-20 — FUI-5: Fully custom Fluent title bar + window controls
+## [RESOLVED 2026-04-21] FUI-5: Fully custom Fluent title bar + window controls
 
 **From:** CTS (Claude Code)
 **Why:** Replace the OS `titleBarOverlay` caption buttons with a fully React-owned implementation so we get pixel-perfect control over hover states, focus rings, restore/maximize icon swap, and theme sync — and so we stop relying on Electron's overlay API (it's Windows-only and its color contract is hard to match against Mica).

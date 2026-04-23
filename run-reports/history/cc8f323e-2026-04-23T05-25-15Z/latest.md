@@ -1,6 +1,6 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-23T05:26:08.696Z  
+**Date:** 2026-04-23T05:25:15.974Z  
 **Branch:** `main` · **Commit:** `cc8f323e`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
 **Duration:** 0 ms
@@ -23,8 +23,8 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 8588 ms | — |
-| tests | PASS | 11039 ms | 193/193 passed |
+| typecheck | FAIL | 6999 ms | src/renderer/onboarding/LicenceStep.tsx(85,16): error TS2304: Cannot find name 'KeyRegular'. |
+| tests | PASS | 12211 ms | 193/193 passed |
 
 ## Module results
 
@@ -53,7 +53,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 91.51 ms | 92.51 ms | 93.68 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 90.87 ms | 94.24 ms | 98.75 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +71,5 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [typecheck] FAIL — src/renderer/onboarding/LicenceStep.tsx(85,16): error TS2304: Cannot find name 'KeyRegular'.
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

@@ -649,5 +649,47 @@
     "mean_ms": 154.11,
     "budget_ms": 800,
     "passed": true
+  },
+  {
+    "ts": "2026-04-23T05:25:35.957Z",
+    "node": "22.22.2",
+    "platform": "win32-x64",
+    "iterations": 310000,
+    "key_len_bytes": 32,
+    "salt_len_bytes": 16,
+    "runs": 5,
+    "samples_ms": [
+      93.73,
+      92.88,
+      90.87,
+      98.75,
+      94.96
+    ],
+    "min_ms": 90.87,
+    "max_ms": 98.75,
+    "mean_ms": 94.24,
+    "budget_ms": 800,
+    "passed": true
+  },
+  {
+    "ts": "2026-04-23T05:26:29.047Z",
+    "node": "22.22.2",
+    "platform": "win32-x64",
+    "iterations": 310000,
+    "key_len_bytes": 32,
+    "salt_len_bytes": 16,
+    "runs": 5,
+    "samples_ms": [
+      93.23,
+      93.68,
+      92.19,
+      91.51,
+      91.94
+    ],
+    "min_ms": 91.51,
+    "max_ms": 93.68,
+    "mean_ms": 92.51,
+    "budget_ms": 800,
+    "passed": true
   }
 ]

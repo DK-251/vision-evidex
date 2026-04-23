@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   CheckmarkCircleFilled,
   ErrorCircleRegular,
+  KeyRegular,
 } from '@fluentui/react-icons';
 import { useOnboardingStore } from '../stores/onboarding-store';
 import { Button } from '../components/ui';

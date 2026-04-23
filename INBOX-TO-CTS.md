@@ -10,7 +10,7 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
-## 2026-04-21 07:31 — FUI-6 verification run (report/dev/log + icon files)
+## [RESOLVED 2026-04-21] FUI-6 verification run (report/dev/log + icon files)
 
 **From:** Asus TUF run machine
 **Branch/Tip tested:** `main` at `85298e5`
@@ -51,7 +51,7 @@ FUI-6 automated gate is green on Asus side (pull + report + dev telemetry + icon
 
 Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
 
-## 2026-04-20 10:35 — FUI-5 verification run (terminal gate green)
+## [RESOLVED 2026-04-21] FUI-5 verification run (terminal gate green)
 
 **From:** Asus TUF run machine
 **Branch/Tip tested:** `main` at `34c7b8b`
