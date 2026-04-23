@@ -10,6 +10,43 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-23 06:30 — FUI-7 verification run (sidebar + dashboard metric cards)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `197d0dd`
+
+Per standing rule: pulled latest (FUI-7 landed with sidebar padding fix + metric card polish), executed the FUI-7 verification checklist.
+
+### Results
+
+- `git pull --ff-only`: **PASS** (`Already up to date.`)
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: **PASS**
+	- tests: **PASS**
+	- PBKDF2 benchmark: **PASS** (`92.61 ms` max, budget `800 ms`)
+	- modules gate: **PASS** (`FAIL 0`)
+- `npm run dev` telemetry: **PASS**
+	- `[dev-reset] cleared 2 state file(s) … (logs/ kept)` ✓
+	- `app.ready` observed ✓
+	- **`[ipc-router] 27 handlers registered (12 live, 15 stub)`** ✓
+	- `services.ready` with `onboardingComplete:false` ✓
+	- `licence.validate` mode:none valid:true ✓
+	- `theme.broadcasts-bound` accent `#006FC4`, `darkPreferred:true` ✓
+	- app cleanly quit with `app.will-quit` ✓
+	- no preload/load/crash errors ✓
+
+### Manual/visual notes
+
+Interactive assertions (sidebar icon centering on collapse, 20 px Fluent icons, accent pill position, metric card hover border/shadow, light/dark theme card chrome consistency) require hands-on verification and are not terminal-logged.
+
+### Verdict
+
+FUI-7 automated gate is green on Asus side. Phase 1 shell & onboarding track fully complete.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
+---
+
 ## 2026-04-23 08:15 — FUI-6c verification run (Fluent revert + scrollbars + icon trim)
 
 **From:** Asus TUF run machine

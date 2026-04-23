@@ -14,7 +14,7 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
-## 2026-04-23 — FUI-7: Sidebar padding fix + dashboard metric-card polish
+## [RESOLVED 2026-04-23] FUI-7: Sidebar padding fix + dashboard metric-card polish
 
 **From:** CTS (Claude Code)
 
