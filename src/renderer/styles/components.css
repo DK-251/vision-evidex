@@ -363,13 +363,6 @@
 
 /* ── Fluent animated icon orb (used across onboarding) ───────────── */
 
-/**
- * Orbs host the renderer-side brand glyphs (see src/renderer/components/brand/
- * BrandIcons.tsx). Because those glyphs already carry the palette's full
- * gradient, the orb itself is a soft backplate — a subtle tinted surface
- * with a Fluent top-left highlight and a thin gradient ring — so the glyph
- * reads cleanly on both light Mica and dark Mica surfaces.
- */
 .icon-orb {
   display: inline-flex;
   align-items: center;
@@ -377,84 +370,53 @@
   border-radius: var(--radius-circle);
   position: relative;
   flex-shrink: 0;
-  /* Layered backdrop: Fluent highlight → palette tint → layer-1 base. */
-  background:
-    radial-gradient(circle at 28% 22%, rgba(255,255,255,0.5), transparent 55%),
-    linear-gradient(135deg, var(--orb-tint-1, rgba(0,120,212,0.12)), var(--orb-tint-2, rgba(0,180,216,0.08))),
-    var(--color-layer-1);
-  box-shadow:
-    0 10px 28px -10px var(--orb-shadow, rgba(0, 120, 212, 0.35)),
-    inset 0 0 0 1.5px var(--orb-ring, rgba(0, 120, 212, 0.28));
 }
 
 .icon-orb-accent {
-  --orb-tint-1: rgba(0, 120, 212, 0.14);
-  --orb-tint-2: rgba(0, 180, 216, 0.10);
-  --orb-ring:   rgba(0, 120, 212, 0.30);
-  --orb-shadow: rgba(0, 120, 212, 0.35);
-  color: #0078D4;
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-default) 0%,
+    var(--color-accent-dark-1) 100%
+  );
+  color: var(--color-text-on-accent);
+  box-shadow: 0 8px 24px -8px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.6);
 }
 .icon-orb-success {
-  --orb-tint-1: rgba(39, 166, 63, 0.16);
-  --orb-tint-2: rgba(74, 222, 128, 0.10);
-  --orb-ring:   rgba(39, 166, 63, 0.30);
-  --orb-shadow: rgba(14, 122, 13, 0.30);
-  color: #27A63F;
+  background: linear-gradient(135deg, #4ADE80 0%, #0E7A0D 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px -8px rgba(14, 122, 13, 0.5);
 }
 .icon-orb-warm {
-  --orb-tint-1: rgba(240, 165, 0, 0.16);
-  --orb-tint-2: rgba(250, 204, 21, 0.10);
-  --orb-ring:   rgba(219, 124, 0, 0.30);
-  --orb-shadow: rgba(219, 124, 0, 0.28);
-  color: #DB7C00;
+  background: linear-gradient(135deg, #FACC15 0%, #DB7C00 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px -8px rgba(219, 124, 0, 0.5);
 }
 .icon-orb-cool {
-  --orb-tint-1: rgba(0, 120, 212, 0.14);
-  --orb-tint-2: rgba(96, 205, 255, 0.12);
-  --orb-ring:   rgba(56, 189, 248, 0.32);
-  --orb-shadow: rgba(3, 105, 161, 0.28);
-  color: #0369A1;
+  background: linear-gradient(135deg, #38BDF8 0%, #0369A1 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px -8px rgba(3, 105, 161, 0.5);
 }
 .icon-orb-violet {
-  --orb-tint-1: rgba(107, 47, 186, 0.14);
-  --orb-tint-2: rgba(167, 139, 250, 0.10);
-  --orb-ring:   rgba(107, 47, 186, 0.32);
-  --orb-shadow: rgba(109, 40, 217, 0.30);
-  color: #6B2FBA;
-}
-
-:root[data-theme='dark'] .icon-orb {
-  background:
-    radial-gradient(circle at 28% 22%, rgba(255,255,255,0.08), transparent 55%),
-    linear-gradient(135deg, var(--orb-tint-1), var(--orb-tint-2)),
-    var(--color-layer-2);
-}
-:root[data-theme='dark'] .icon-orb-accent {
-  --orb-tint-1: rgba(96, 205, 255, 0.14);
-  --orb-tint-2: rgba(0, 120, 212, 0.08);
-  --orb-ring:   rgba(96, 205, 255, 0.32);
-  --orb-shadow: rgba(0, 120, 212, 0.40);
-}
-:root[data-theme='dark'] .icon-orb-success {
-  --orb-tint-1: rgba(74, 222, 128, 0.18);
-  --orb-ring:   rgba(74, 222, 128, 0.35);
-}
-:root[data-theme='dark'] .icon-orb-violet {
-  --orb-tint-1: rgba(167, 139, 250, 0.18);
-  --orb-ring:   rgba(167, 139, 250, 0.35);
+  background: linear-gradient(135deg, #A78BFA 0%, #6D28D9 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px -8px rgba(109, 40, 217, 0.5);
 }
 
 .icon-orb-56 { width: 56px; height: 56px; font-size: 28px; }
 .icon-orb-72 { width: 72px; height: 72px; font-size: 34px; }
 .icon-orb-96 { width: 96px; height: 96px; font-size: 44px; }
 
-/* Subtle float — wrapper only so the inset gradient ring is never
-   animated away. Respects reduced-motion. */
+/* Subtle float / breathe — only the wrapper, respects reduced-motion */
 @keyframes orb-float {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-4px); }
 }
+@keyframes orb-breathe {
+  0%, 100% { box-shadow: 0 8px 24px -8px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.55); }
+  50%      { box-shadow: 0 12px 32px -6px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.75); }
+}
 .icon-orb-animated { animation: orb-float 4s ease-in-out infinite; }
+.icon-orb-animated.icon-orb-accent { animation: orb-float 4s ease-in-out infinite, orb-breathe 4s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   .icon-orb-animated { animation: none; }

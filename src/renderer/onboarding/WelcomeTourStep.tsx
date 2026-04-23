@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+  SparkleRegular,
   CameraRegular,
   EditRegular,
   DocumentTextRegular,
@@ -8,7 +9,6 @@ import {
   ChevronRightRegular,
 } from '@fluentui/react-icons';
 import { StepLayout } from './StepLayout';
-import { StepWelcome } from '../components/brand/BrandIcons';
 
 const SCREENS = [
   {
@@ -45,7 +45,7 @@ export function WelcomeTourStep(): JSX.Element {
 
   return (
     <StepLayout
-      icon={StepWelcome}
+      icon={SparkleRegular}
       palette="violet"
       title="A quick tour"
       subtext="Three screens on what makes Vision-EviDex different. Skip any time."

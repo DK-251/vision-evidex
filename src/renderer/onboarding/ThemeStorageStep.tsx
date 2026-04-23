@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  PaintBrushRegular,
   WeatherSunnyRegular,
   WeatherMoonRegular,
   DesktopRegular,
@@ -10,7 +11,6 @@ import type { ComponentType } from 'react';
 import { useOnboardingStore } from '../stores/onboarding-store';
 import { StepLayout } from './StepLayout';
 import { Button } from '../components/ui';
-import { StepAppearance } from '../components/brand/BrandIcons';
 
 type FluentIcon = ComponentType<FluentIconsProps>;
 
@@ -76,7 +76,7 @@ export function ThemeStorageStep(): JSX.Element {
 
   return (
     <StepLayout
-      icon={StepAppearance}
+      icon={PaintBrushRegular}
       palette="violet"
       title="Theme & storage"
       subtext="Pick the app appearance and where new projects are saved by default."

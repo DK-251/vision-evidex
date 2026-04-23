@@ -14,6 +14,82 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-23 — FUI-6c: Revert step icons to Fluent + Fluent scrollbars + trim brand-SVG set (closes onboarding for real)
+
+**From:** CTS (Claude Code)
+
+Per direct user ask: keep the Fluent look for onboarding step headers (saturated coloured orbs, mono Fluent glyphs) and restrict the custom brand SVGs to only the Vision-EviDex identity surfaces.
+
+### Reverts
+
+- `.icon-orb` / `.icon-orb-{accent,success,warm,cool,violet}` restored to the pre-FUI-6b solid gradient fills with `color: #FFFFFF`. `orb-breathe` animation restored.
+- All 7 onboarding step headers switched back to their original Fluent icons:
+  - `LicenceStep` → `KeyRegular`
+  - `WelcomeTourStep` → `SparkleRegular`
+  - `UserProfileStep` → `PersonAccountsRegular`
+  - `BrandingStep` → `BuildingRegular`
+  - `DefaultTemplateStep` → `TextAlignLeftRegular`
+  - `HotkeyConfigStep` → `KeyboardRegular`
+  - `ThemeStorageStep` → `PaintBrushRegular`
+- `SummaryStep` step icon is now `CheckmarkCircleRegular` (still wrapped in `StepLayout` with "You're all set" heading/subtext and the `.summary-row` cards from FUI-6b — user wanted that polish kept).
+
+### Trimmed
+
+`src/renderer/components/brand/BrandIcons.tsx` reduced to **two** exports:
+- `AppMark` — used in `TitleBar.tsx`.
+- `OnboardingHero` — used in `WelcomeBrandingStep.tsx`.
+
+Removed the 8 `Step*` components.
+
+Under `build/icons/` 20 files removed (8 step pictograms + preview sheet + 5 status tags + 6 nav variants). 15 files kept — exactly the packaging set the user listed:
+
+```
+build/icons/
+├── app-icon-{1024,512,256,128,64,48,32,16}.svg
+├── app-icon-taskbar-32.svg
+├── favicon-32.svg
+├── tray-icon-{light,dark}.svg
+├── onboarding-hero-animated.svg
+├── report-default-branding.svg
+└── icon-manifest.md
+```
+
+`icon-manifest.md` rewritten to reflect the trimmed scope.
+
+### Fluent scrollbars (new)
+
+`src/renderer/styles/global.css` now ships a Fluent-correct scrollbar: 12 px wide, transparent track, pill-shaped thumb (3 px transparent border with `background-clip: padding-box` — the inset-pill trick), thumb colour `rgba(0,0,0,0.22)` (light) / `rgba(255,255,255,0.22)` (dark), deepens on hover/active, 120 ms colour transition. `::-webkit-scrollbar-button` disabled. Firefox covered via `scrollbar-width: thin` + `scrollbar-color`. Applies globally so every scroll context (card internals, sidebar, preview, long onboarding steps, future dashboard) gets it for free.
+
+### Design-system audit
+
+Cross-checked onboarding against `Docs MD/07-VisionEviDex-FluentUI-DesignSystem-v1_0.md`:
+- Tokens (`--color-layer-*`, `--color-fill-*`, `--color-stroke-control`): ✓
+- Materials (`material-mica`, `material-acrylic`): ✓
+- Components (`card-elevated`, `btn-accent`/`btn-standard`/`btn-subtle`, `field-floating`, `step-indicator`): ✓
+- Step header pattern (icon orb + `type-title` + `type-body` subtext): ✓
+- Step transitions (`pageForward`/`pageBack` framer-motion variants): ✓
+- Navigation row (Skip left, Back+Next right, Get Started accent on final): ✓ (step 1 overrides with a centred Begin per user ask)
+
+One intentional divergence from §S-02 Step 8: Summary uses `.summary-row` cards instead of the spec's `<dl>` description list — direct user preference, same edit-jump behaviour.
+
+### Checklist for Asus
+
+1. `git pull --ff-only`
+2. `npm run report` — expect PASS.
+3. `npm run dev`, walk the onboarding:
+   - **Welcome** step: still shows the animated aperture hero (kept).
+   - **Title bar**: still shows the navy `AppMark` top-left (kept).
+   - Every other step header: **coloured saturated gradient orb with a white Fluent glyph**, same look as before FUI-6a. Breath animation back on accent-palette orbs.
+   - **Summary** step: still wrapped in StepLayout with `CheckmarkCircleRegular` on a green success orb, "You're all set" heading, 6 `.summary-row` cards (hover turns border accent-blue, Edit links still jump).
+4. No references remain to `StepActivate` / `StepWelcome` / `StepProfile` / `StepBranding` / `StepTemplate` / `StepHotkeys` / `StepAppearance` / `StepComplete` in source (`grep` should return zero).
+5. **Scrollbars**: scroll inside any card or long onboarding step — thin 12 px pill thumb, transparent track, darkens on hover and again on drag. Light and dark theme both legible.
+
+### Next
+
+Onboarding truly closed. Ready for **FUI-7 — Dashboard sidebar padding + post-onboarding shell polish**.
+
+---
+
 ## [RESOLVED 2026-04-23] FUI-6b: Orb contrast fix + Summary step polish (closes onboarding)
 
 **From:** CTS (Claude Code)

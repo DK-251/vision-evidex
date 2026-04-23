@@ -1,10 +1,10 @@
+import { CheckmarkCircleRegular } from '@fluentui/react-icons';
 import { useOnboardingStore, selectVisibleSteps } from '../stores/onboarding-store';
 import type { UserProfileData, BrandingData } from './validators';
 import type { ThemeChoice } from './ThemeStorageStep';
 import { BUILTIN_TEMPLATES } from './DefaultTemplateStep';
 import { HOTKEY_ACTIONS } from './hotkey-utils';
 import { StepLayout } from './StepLayout';
-import { StepComplete } from '../components/brand/BrandIcons';
 
 /**
  * Step 8 — Summary. Read-only recap of every choice the user made in
@@ -36,7 +36,7 @@ export function SummaryStep(): JSX.Element {
 
   return (
     <StepLayout
-      icon={StepComplete}
+      icon={CheckmarkCircleRegular}
       palette="success"
       title="You're all set"
       subtext="Review the details below before we create your first project. Every row is editable — jump back with a single click."

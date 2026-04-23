@@ -1,18 +1,19 @@
-import type { CSSProperties, ComponentType } from 'react';
+import type { CSSProperties } from 'react';
 import type { FluentIconsProps } from '@fluentui/react-icons';
 
 /**
  * Vision-EviDex brand icon set. Inline React-SVG twins of the
- * authoritative `build/icons/*.svg` files (the `.svg` files are
- * the packaging source of truth; these are what the renderer
- * actually imports). Each step-icon component matches the
- * `@fluentui/react-icons` props shape so it is a drop-in for
- * the `StepLayout.icon` prop (typed as `FluentIcon`).
+ * authoritative `build/icons/*.svg` files (the SVG files are the
+ * packaging source of truth; these are what the renderer actually
+ * imports).
+ *
+ * Scope: only the two glyphs that carry the Vision-EviDex brand
+ * identity — the small app mark used in the title bar, and the
+ * animated hero used on the onboarding welcome screen. Per-step
+ * onboarding icons continue to use `@fluentui/react-icons`.
  */
 
 type BrandIconProps = FluentIconsProps;
-type GlyphProps = { size: number };
-export type BrandIcon = ComponentType<BrandIconProps>;
 
 function sizeOf(props: BrandIconProps): number {
   const v = props.fontSize;
@@ -37,23 +38,6 @@ function svgProps(props: BrandIconProps): {
     'aria-hidden': true,
     focusable: 'false',
   };
-}
-
-/* ─── Primary aperture + gradient defs (reused) ─────────────────── */
-
-function Defs({ id }: { id: string }): JSX.Element {
-  return (
-    <defs>
-      <linearGradient id={`${id}-bl`} x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#0078D4"/>
-        <stop offset="100%" stopColor="#00B4D8"/>
-      </linearGradient>
-      <linearGradient id={`${id}-tick`} x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#0078D4"/>
-        <stop offset="100%" stopColor="#6B2FBA"/>
-      </linearGradient>
-    </defs>
-  );
 }
 
 /* ─── AppMark — small aperture on navy rounded square ───────────── */
@@ -163,173 +147,5 @@ export function OnboardingHero({ size = 120 }: { size?: number } = {}): JSX.Elem
         </g>
       </g>
     </svg>
-  );
-}
-
-/* ─── 8 step icons — 32×32 — accept FluentIconsProps ────────────── */
-
-function Step({ children, props }: { children: (g: GlyphProps) => JSX.Element; props: BrandIconProps }): JSX.Element {
-  const size = sizeOf(props);
-  return (
-    <svg {...svgProps(props)} viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-      <Defs id={`s${size}`}/>
-      {children({ size })}
-    </svg>
-  );
-}
-
-export function StepActivate(props: BrandIconProps): JSX.Element {
-  const id = `s${sizeOf(props)}`;
-  return (
-    <Step props={props}>{() => (
-      <g stroke={`url(#${id}-bl)`} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" transform="rotate(45 16 16)">
-        <circle cx="10" cy="16" r="5" fill={`url(#${id}-bl)`} fillOpacity="0.15"/>
-        <circle cx="10" cy="16" r="5"/>
-        <path d="M 10 13.5 H 12"/>
-        <path d="M 10 18.5 H 12"/>
-        <path d="M 15 16 H 26"/>
-        <path d="M 19 16 V 19"/>
-        <path d="M 22 16 V 19"/>
-        <path d="M 25 16 V 19"/>
-      </g>
-    )}</Step>
-  );
-}
-
-export function StepWelcome(props: BrandIconProps): JSX.Element {
-  const id = `s${sizeOf(props)}`;
-  return (
-    <Step props={props}>{() => (
-      <>
-        <path d="M 16 4 L 18 14 L 28 16 L 18 18 L 16 28 L 14 18 L 4 16 L 14 14 Z"
-              fill={`url(#${id}-bl)`} stroke={`url(#${id}-bl)`} strokeWidth="1.5" strokeLinejoin="round"/>
-        <g opacity="0.4" fill={`url(#${id}-bl)`}>
-          <path d="M 5 6 L 5.6 8 L 7.5 8.5 L 5.6 9 L 5 11 L 4.4 9 L 2.5 8.5 L 4.4 8 Z"/>
-          <path d="M 27 24 L 27.6 26 L 29.5 26.5 L 27.6 27 L 27 29 L 26.4 27 L 24.5 26.5 L 26.4 26 Z"/>
-        </g>
-      </>
-    )}</Step>
-  );
-}
-
-export function StepProfile(props: BrandIconProps): JSX.Element {
-  const id = `s${sizeOf(props)}`;
-  return (
-    <Step props={props}>{() => (
-      <>
-        <circle cx="16" cy="11" r="5" fill={`url(#${id}-bl)`}/>
-        <path d="M 6 27 C 6 20 10 17 16 17 C 22 17 26 20 26 27"
-              fill="none" stroke={`url(#${id}-bl)`} strokeWidth="1.5" strokeLinecap="round"/>
-        <circle cx="21.5" cy="14.5" r="4" fill={`url(#${id}-bl)`} stroke="#FFFFFF" strokeWidth="1"/>
-        <path d="M 19.8 14.5 L 21 15.7 L 23.2 13.3"
-              fill="none" stroke="#FFFFFF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-      </>
-    )}</Step>
-  );
-}
-
-export function StepBranding(props: BrandIconProps): JSX.Element {
-  const id = `s${sizeOf(props)}`;
-  return (
-    <Step props={props}>{() => (
-      <>
-        <g stroke={`url(#${id}-bl)`} strokeWidth="1.5" strokeLinejoin="round" fill="none">
-          <rect x="5"  y="12" width="6"  height="14" rx="1"/>
-          <rect x="13" y="7"  width="6"  height="19" rx="1"/>
-          <rect x="21" y="14" width="6"  height="12" rx="1"/>
-        </g>
-        <g transform="translate(24 22)">
-          <circle r="4" fill={`url(#${id}-bl)`}/>
-          <circle r="1" cx="-1.5" cy="-1" fill="#FFFFFF" opacity="0.9"/>
-          <circle r="1" cx="1.5"  cy="-1" fill="#FFFFFF" opacity="0.7"/>
-          <circle r="1" cx="0"    cy="1.5" fill="#FFFFFF" opacity="0.8"/>
-        </g>
-      </>
-    )}</Step>
-  );
-}
-
-export function StepTemplate(props: BrandIconProps): JSX.Element {
-  const id = `s${sizeOf(props)}`;
-  return (
-    <Step props={props}>{() => (
-      <>
-        <rect x="5" y="4" width="22" height="24" rx="2"
-              fill="none" stroke={`url(#${id}-bl)`} strokeWidth="1.5" strokeLinejoin="round"/>
-        <rect x="7" y="6" width="18" height="5" rx="1" fill={`url(#${id}-bl)`}/>
-        <rect x="7"  y="13" width="8" height="13" rx="1" fill="none" stroke={`url(#${id}-bl)`} strokeWidth="1.5"/>
-        <rect x="17" y="13" width="8" height="13" rx="1" fill="none" stroke={`url(#${id}-bl)`} strokeWidth="1.5"/>
-        <g transform="translate(26 6)">
-          <path d="M 0 -3 L 0.9 -1 L 3 -0.7 L 1.4 0.8 L 1.9 3 L 0 1.8 L -1.9 3 L -1.4 0.8 L -3 -0.7 L -0.9 -1 Z"
-                fill={`url(#${id}-bl)`} stroke={`url(#${id}-bl)`} strokeWidth="0.5" strokeLinejoin="round"/>
-        </g>
-      </>
-    )}</Step>
-  );
-}
-
-export function StepHotkeys(props: BrandIconProps): JSX.Element {
-  const id = `s${sizeOf(props)}`;
-  return (
-    <Step props={props}>{() => (
-      <>
-        <rect x="3" y="9" width="26" height="17" rx="2.5"
-              fill="none" stroke={`url(#${id}-bl)`} strokeWidth="1.5" strokeLinejoin="round"/>
-        <g fill="none" stroke={`url(#${id}-bl)`} strokeWidth="1.3">
-          <circle cx="8"  cy="14" r="1"/><circle cx="14" cy="14" r="1"/><circle cx="20" cy="14" r="1"/>
-          <circle cx="7"  cy="18" r="1"/><circle cx="11" cy="18" r="1"/><circle cx="15" cy="18" r="1"/><circle cx="19" cy="18" r="1"/>
-          <circle cx="8"  cy="22" r="1"/><circle cx="14" cy="22" r="1"/><circle cx="20" cy="22" r="1"/>
-        </g>
-        <path d="M 26 6 L 21 16 L 25 16 L 22 27 L 29 14 L 25 14 Z"
-              fill={`url(#${id}-bl)`} stroke={`url(#${id}-bl)`} strokeWidth="1" strokeLinejoin="round"/>
-      </>
-    )}</Step>
-  );
-}
-
-export function StepAppearance(props: BrandIconProps): JSX.Element {
-  const id = `s${sizeOf(props)}`;
-  const clipL = `s${sizeOf(props)}-cl`;
-  const clipR = `s${sizeOf(props)}-cr`;
-  return (
-    <svg {...svgProps(props)} viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-      <Defs id={id}/>
-      <defs>
-        <clipPath id={clipL}><rect x="0" y="0" width="16" height="32"/></clipPath>
-        <clipPath id={clipR}><rect x="16" y="0" width="16" height="32"/></clipPath>
-      </defs>
-      <g clipPath={`url(#${clipL})`}>
-        <circle cx="16" cy="16" r="10" fill={`url(#${id}-bl)`}/>
-        <circle cx="19" cy="14" r="9" fill="var(--color-layer-1)"/>
-      </g>
-      <g clipPath={`url(#${clipR})`} stroke={`url(#${id}-bl)`} strokeWidth="1.5" strokeLinecap="round" fill="none">
-        <circle cx="16" cy="16" r="5" fill={`url(#${id}-bl)`}/>
-        <path d="M 16 5 V 8"/>
-        <path d="M 16 24 V 27"/>
-        <path d="M 27 16 H 24"/>
-        <path d="M 23.8 8.2 L 21.7 10.3"/>
-        <path d="M 23.8 23.8 L 21.7 21.7"/>
-      </g>
-      <line x1="16" y1="4" x2="16" y2="28" stroke={`url(#${id}-bl)`} strokeWidth="1" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-export function StepComplete(props: BrandIconProps): JSX.Element {
-  const id = `s${sizeOf(props)}`;
-  return (
-    <Step props={props}>{() => (
-      <>
-        <circle cx="16" cy="16" r="10" fill="none" stroke={`url(#${id}-bl)`} strokeWidth="1.5"/>
-        <path d="M 11 16.5 L 14.4 19.7 L 21 13 L 22.2 14.3 L 14.5 22 L 9.8 17.7 Z"
-              fill={`url(#${id}-tick)`} stroke={`url(#${id}-tick)`} strokeWidth="0.4" strokeLinejoin="round"/>
-        <g stroke={`url(#${id}-bl)`} strokeWidth="1.5" strokeLinecap="round" opacity="0.6">
-          <path d="M 25 7  L 27.8 4.2"/>
-          <path d="M 7  7  L 4.2 4.2"/>
-          <path d="M 25 25 L 27.8 27.8"/>
-          <path d="M 7  25 L 4.2 27.8"/>
-        </g>
-      </>
-    )}</Step>
   );
 }

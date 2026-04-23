@@ -41,3 +41,62 @@ code, pre, .mono {
   background: var(--color-fill-accent-subtle);
   color: var(--color-accent-default);
 }
+
+/* ── Fluent scrollbars ───────────────────────────────────────────────
+ * Windows 11 Fluent scrollbar contract: thin, rounded, transparent
+ * track, thumb uses the neutral stroke-control token so it reads on
+ * both Mica light and Mica dark without competing with content. The
+ * 3 px transparent border-with-background-clip trick creates the
+ * pill-shaped inset thumb that Fluent uses.
+ */
+*::-webkit-scrollbar {
+  width:  12px;
+  height: 12px;
+}
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background:      rgba(0, 0, 0, 0.22);
+  background-clip: padding-box;
+  border:          3px solid transparent;
+  border-radius:   999px;
+  min-height:      32px;
+  transition:      background-color 120ms ease;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background:      rgba(0, 0, 0, 0.38);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:active {
+  background:      rgba(0, 0, 0, 0.52);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-button {
+  display: none;
+  height:  0;
+  width:   0;
+}
+
+:root[data-theme='dark'] *::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  background-clip: padding-box;
+}
+:root[data-theme='dark'] *::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.38);
+  background-clip: padding-box;
+}
+:root[data-theme='dark'] *::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.56);
+  background-clip: padding-box;
+}
+
+/* Firefox fallback — the same colour contract via scrollbar-color. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
+}
+:root[data-theme='dark'] * {
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
