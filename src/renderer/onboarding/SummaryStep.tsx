@@ -3,12 +3,14 @@ import type { UserProfileData, BrandingData } from './validators';
 import type { ThemeChoice } from './ThemeStorageStep';
 import { BUILTIN_TEMPLATES } from './DefaultTemplateStep';
 import { HOTKEY_ACTIONS } from './hotkey-utils';
+import { StepLayout } from './StepLayout';
+import { StepComplete } from '../components/brand/BrandIcons';
 
 /**
- * Step 8 — Summary.
- *
- * Read-only recap of everything the user picked. The wizard's Finish
- * button (rendered by OnboardingPage) runs the persistence flow.
+ * Step 8 — Summary. Read-only recap of every choice the user made in
+ * the wizard, wrapped in the shared StepLayout so the hero icon,
+ * heading, and subtext match the other steps. The wizard's Finish
+ * button (owned by OnboardingPage) runs the persistence flow.
  */
 
 export function SummaryStep(): JSX.Element {
@@ -24,6 +26,8 @@ export function SummaryStep(): JSX.Element {
     | undefined;
 
   const templateName = BUILTIN_TEMPLATES.find((t) => t.id === template?.templateId)?.name ?? '(not selected)';
+  const profileValue =
+    profile?.name && profile.role ? `${profile.name} · ${profile.role}` : '(missing)';
 
   const stepIndexOf = (id: string): number => {
     const idx = visible.findIndex((s) => s.id === id);
@@ -31,34 +35,29 @@ export function SummaryStep(): JSX.Element {
   };
 
   return (
-    <div className="space-y-3 text-sm">
-      <SummaryRow label="Profile" value={profile?.name && profile.role ? `${profile.name} · ${profile.role}` : '(missing)'} onEdit={() => goTo(stepIndexOf('profile'))} />
-      <SummaryRow
-        label="Branding"
-        value={branding?.companyName ?? '(missing)'}
-        onEdit={() => goTo(stepIndexOf('branding'))}
-      />
-      <SummaryRow
-        label="Default template"
-        value={templateName}
-        onEdit={() => goTo(stepIndexOf('template'))}
-      />
-      <SummaryRow
-        label="Hotkeys"
-        value={`${HOTKEY_ACTIONS.length} actions configured`}
-        onEdit={() => goTo(stepIndexOf('hotkeys'))}
-      />
-      <SummaryRow
-        label="Theme"
-        value={themeStorage?.theme ?? 'system'}
-        onEdit={() => goTo(stepIndexOf('themeStorage'))}
-      />
-      <SummaryRow
-        label="Storage folder"
-        value={themeStorage?.storagePath || '(not selected)'}
-        onEdit={() => goTo(stepIndexOf('themeStorage'))}
-      />
-    </div>
+    <StepLayout
+      icon={StepComplete}
+      palette="success"
+      title="You're all set"
+      subtext="Review the details below before we create your first project. Every row is editable — jump back with a single click."
+      maxWidth={560}
+    >
+      <div
+        style={{
+          display:       'flex',
+          flexDirection: 'column',
+          gap:           'var(--space-2)',
+          textAlign:     'left',
+        }}
+      >
+        <SummaryRow label="Profile"          value={profileValue}                               onEdit={() => goTo(stepIndexOf('profile'))} />
+        <SummaryRow label="Organisation"     value={branding?.companyName ?? '(missing)'}        onEdit={() => goTo(stepIndexOf('branding'))} />
+        <SummaryRow label="Default template" value={templateName}                                onEdit={() => goTo(stepIndexOf('template'))} />
+        <SummaryRow label="Hotkeys"          value={`${HOTKEY_ACTIONS.length} actions configured`} onEdit={() => goTo(stepIndexOf('hotkeys'))} />
+        <SummaryRow label="Theme"            value={themeStorage?.theme ?? 'system'}             onEdit={() => goTo(stepIndexOf('themeStorage'))} />
+        <SummaryRow label="Storage folder"   value={themeStorage?.storagePath || '(not selected)'} onEdit={() => goTo(stepIndexOf('themeStorage'))} />
+      </div>
+    </StepLayout>
   );
 }
 
@@ -72,16 +71,12 @@ function SummaryRow({
   onEdit: () => void;
 }): JSX.Element {
   return (
-    <div className="flex items-center justify-between p-2 rounded-md border border-border-subtle">
-      <div>
-        <div className="text-text-secondary text-xs uppercase">{label}</div>
-        <div className="text-text-primary">{value}</div>
+    <div className="summary-row">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+        <span className="summary-row-label">{label}</span>
+        <span className="summary-row-value">{value}</span>
       </div>
-      <button
-        type="button"
-        onClick={onEdit}
-        className="text-xs text-accent-primary"
-      >
+      <button type="button" onClick={onEdit} className="summary-row-edit">
         Edit
       </button>
     </div>

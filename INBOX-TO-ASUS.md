@@ -14,6 +14,54 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-23 — FUI-6b: Orb contrast fix + Summary step polish (closes onboarding)
+
+**From:** CTS (Claude Code)
+
+Closes the onboarding track. Two user-visible fixes and a polish pass.
+
+### 1. Icon orbs fight the brand icon gradients
+
+Before: `.icon-orb-accent` (and siblings) used a solid saturated gradient fill — same palette as the brand SVG glyphs we wired in FUI-6a. Result: gradient-on-gradient, the step icons barely read.
+
+After: `.icon-orb` is now a **soft backplate**: `layer-1` base, a palette-tinted linear gradient overlay (≈12–16 % opacity), a Fluent-style white top-left gloss, and a 1.5 px inset ring in the palette accent. Shadow is palette-matched rgba (no more global `--accent-r`). All five palettes (accent / success / warm / cool / violet) exposed via CSS custom properties (`--orb-tint-1`, `--orb-tint-2`, `--orb-ring`, `--orb-shadow`) so the pattern is swappable per palette.
+
+Dark theme: same pattern over `--color-layer-2` with slightly punchier tint/ring opacities so the orb stays visible on dark Mica.
+
+Also dropped the old `orb-breathe` box-shadow animation — it was overwriting the inset ring every tick. The subtle float (`orb-float`) still runs.
+
+### 2. Summary step now uses StepLayout
+
+Before: `SummaryStep` was a bare list of rows with no heading/icon, rendered directly inside the card — breaks the visual rhythm the other seven steps establish.
+
+After: wrapped in `<StepLayout icon={StepComplete} palette="success" title="You're all set" subtext="…" />`. Review rows rebuilt as a dedicated `.summary-row` component:
+- `layer-1` card surface, 1 px subtle divider border.
+- Hover: border flips to accent, background lifts one layer.
+- Uppercase micro-label + body value.
+- Right-side Edit link styled as a subtle accent button with focus-visible ring.
+- Goes through `useOnboardingStore.goTo(stepIndex)` — same jump-back behaviour as before.
+
+### Files
+
+- `src/renderer/styles/components.css` — `.icon-orb` + 5 palette variants re-skinned, summary-row rules added, `orb-breathe` removed.
+- `src/renderer/onboarding/SummaryStep.tsx` — wrapped with `StepLayout`, `StepComplete` icon, heading + subtext, Tailwind utility classes swapped for dedicated `.summary-row` CSS.
+
+### Checklist for Asus
+
+1. `git pull --ff-only`
+2. `npm run report` — expect PASS.
+3. `npm run dev`, walk the onboarding end-to-end:
+   - Every step's orb reads as a **soft tinted disc with a thin ring**, and the gradient brand icon sits **clearly** on top (no same-on-same blending).
+   - Tour step (cool), Summary (success), Licence/Profile/Branding/Template/Hotkeys/Theme (accent) all render differently enough to tell the palettes apart.
+   - Final step shows a centred StepComplete hero + "You're all set" + subtext + 6 review rows; hover turns row border accent-blue; clicking Edit jumps back to that step.
+4. Flip theme to dark via the Theme step → orbs re-skin with the dark-theme tint/ring automatically; summary rows use `layer-1`-dark.
+
+### Onboarding status
+
+With this commit the onboarding track is **done**. Next per the plan is **FUI-7 = Dashboard sidebar padding + post-onboarding shell polish**.
+
+---
+
 ## 2026-04-21 — FUI-6a: Wire brand icons into the renderer (fix for "old icons still showing")
 
 **From:** CTS (Claude Code)
