@@ -27,13 +27,14 @@ import { NamingService } from '../src/main/services/naming.service';
 const RAW_BYTES = 320 * 200 * 4; // 320×200 RGBA — small enough for fast tests
 
 async function makeRawBuffer(): Promise<Buffer> {
-  // A real framebuffer would be uncompressed pixels; use a raw RGBA
-  // blob so sharp can actually process it without complaining about
-  // missing dimensions.
+  // The real desktopCapturer returns PNG-encoded data. For the test,
+  // we create a small PNG image (320×200) that sharp can process.
+  // The SHA-256 will be computed on this PNG data (the actual raw framebuffer
+  // that comes from the system), and the test verifies it's hashed BEFORE compression.
   return sharp({
     create: { width: 320, height: 200, channels: 4, background: { r: 10, g: 40, b: 120, alpha: 1 } },
   })
-    .raw()
+    .png()
     .toBuffer();
 }
 

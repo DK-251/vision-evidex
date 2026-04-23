@@ -14,7 +14,7 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
-## 2026-04-23 — PH2-1: CaptureService scaffold + 9-step pipeline invariant tests (Phase 2 Wk 7 / D32 prep)
+## [RESOLVED 2026-04-23] PH2-1: CaptureService scaffold + 9-step pipeline invariant tests (Phase 2 Wk 7 / D32 prep)
 
 **From:** CTS (Claude Code)
 
