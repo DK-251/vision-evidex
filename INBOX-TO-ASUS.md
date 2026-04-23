@@ -14,6 +14,51 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-23 — FUI-7: Sidebar padding fix + dashboard metric-card polish
+
+**From:** CTS (Claude Code)
+
+Per the standing "Dashboard sidebar padding + post-onboarding shell polish" plan item.
+
+### Sidebar padding — root cause + fix
+
+**Problem:** the collapsed nav rail (48 px) has 8 px of internal padding on `.nav-sidebar`, giving a 32 px interior. `.nav-item` shipped with `padding: 0 12px` and a 16 px icon = 40 px wide total, so every icon overflowed the rail by 8 px. Icons appeared left-shifted and the hover background was clipped.
+
+**Fix (`src/renderer/styles/components.css`):**
+- Added a collapsed-state override: `.nav-sidebar.collapsed .nav-item, .nav-sidebar.collapsed .nav-sidebar-toggle { padding: 0; gap: 0; justify-content: center; }`. Icons now centre cleanly in the rail.
+- Bumped nav icon from `--icon-xs` (16 px) to `--icon-sm` (20 px) to match the Windows 11 Fluent Navigation View spec. `.nav-item-icon > svg` forces the inner Fluent SVG to 20 × 20 regardless of its default `1em` inherit.
+- Active accent bar redesigned: was a ~20 px rectangle at `left: 0; top: 10px; bottom: 10px`; now a vertically-centred **16 × 3 px pill** at `left: 2px` (height grows to 20 px on collapsed rows for visibility). Matches Windows 11's accent indicator.
+
+### Dashboard metric cards
+
+Promoted the inline-styled metric card to a real `.metric-card` / `.metric-card-label` / `.metric-card-value` ruleset in `components.css`:
+- `layer-1` background + 1 px subtle divider border (reads as a card, not a coloured block).
+- Hover: border flips to accent, adds `--shadow-layer-1`, feels interactive even though it isn't a button.
+- 160 ms transitions.
+
+`DashboardPage.tsx` now uses the class names instead of inline style objects.
+
+### Files touched
+
+- `src/renderer/styles/components.css` — sidebar collapsed overrides, icon size, accent pill, new `.metric-card*` rules.
+- `src/renderer/pages/DashboardPage.tsx` — swap inline styles for `.metric-card*` classes.
+
+### Checklist for Asus
+
+1. `git pull --ff-only`
+2. `npm run report` — expect PASS (typecheck + tests + benchmark unchanged; no IPC or schema changes).
+3. `npm run dev`:
+   - **Sidebar expanded (220 px):** 20 px icons with the familiar label + 12 px gap; active item shows a 3 × 16 px accent pill on the left edge and the accent-tinted row background.
+   - **Sidebar collapsed (48 px):** click the Menu button; icons re-centre with no horizontal overflow, no clipping, hover background fills the row evenly, active-state pill still visible at `left: 4px`.
+   - **Dashboard metric cards:** layer-1 background with a 1 px border; hover turns the border accent-blue and lifts a subtle shadow; skeleton cards inherit the same card chrome.
+4. Light + dark theme both clean (cards use `layer-1` / `stroke-divider` tokens that already flip per theme).
+
+### Next
+
+After Asus verifies this commit: Phase 1 closes. Per plan → **Phase 2 Week 7** opens with the **Capture pipeline** (CaptureService + toolbar + annotation editor + session gallery).
+
+---
+
 ## [RESOLVED 2026-04-23] FUI-6c: Revert step icons to Fluent + Fluent scrollbars + trim brand-SVG set (closes onboarding for real)
 
 **From:** CTS (Claude Code)

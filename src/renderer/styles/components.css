@@ -422,6 +422,35 @@
   .icon-orb-animated { animation: none; }
 }
 
+/* ── Dashboard metric card ───────────────────────────────────────── */
+
+.metric-card {
+  position: relative;
+  background: var(--color-layer-1);
+  border: 1px solid var(--color-stroke-divider, rgba(0, 0, 0, 0.08));
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+.metric-card:hover {
+  border-color: var(--color-accent-default);
+  box-shadow: var(--shadow-layer-1, 0 2px 8px -2px rgba(0, 0, 0, 0.08));
+}
+.metric-card-label {
+  font-size: var(--type-caption-size);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.metric-card-value {
+  font-family: var(--font-family-display);
+  font-size: var(--type-title-size);
+  font-weight: var(--type-title-weight);
+  line-height: var(--type-title-height);
+  color: var(--color-text-primary);
+  margin-top: var(--space-1);
+}
+
 /* ── Summary review row (final onboarding step) ──────────────────── */
 
 .summary-row {
@@ -1079,7 +1108,12 @@ body:fullscreen .caption-buttons {
   margin: 0 auto;
 }
 
-/* Sidebar — §5.6. 220px expanded / 48px collapsed. Acrylic material. */
+/* Sidebar — §5.6. 220px expanded / 48px collapsed. Acrylic material.
+   Rows share a 40px height. Expanded rows use a 12px left-inset with a
+   12px gap before the label; collapsed rows collapse the padding to
+   zero and centre the 20px nav icon inside the 48px rail so nothing
+   overflows. Active state renders as a vertically-centred 16px Fluent
+   accent pill pinned to the left edge. */
 
 .nav-sidebar {
   width: 220px;
@@ -1141,14 +1175,17 @@ body:fullscreen .caption-buttons {
   background: var(--color-fill-accent-subtle);
   color:      var(--color-accent-default);
 }
+/* Windows 11-style 16px accent pill, vertically centred on the row. */
 .nav-item.active::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 10px; bottom: 10px;
-  width: 3px;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width:  3px;
+  height: 16px;
   background: var(--color-accent-default);
-  border-radius: 0 2px 2px 0;
+  border-radius: 2px;
 }
 .nav-item:disabled {
   color: var(--color-text-disabled);
@@ -1157,9 +1194,16 @@ body:fullscreen .caption-buttons {
 .nav-item:disabled:hover { background: transparent; }
 
 .nav-item-icon {
-  width: var(--icon-xs);
-  height: var(--icon-xs);
+  width:  var(--icon-sm);
+  height: var(--icon-sm);
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-item-icon > svg {
+  width:  var(--icon-sm);
+  height: var(--icon-sm);
 }
 .nav-item-label {
   white-space: nowrap;
@@ -1167,8 +1211,21 @@ body:fullscreen .caption-buttons {
   text-overflow: ellipsis;
   transition: opacity var(--duration-ultra-fast) var(--easing-standard);
 }
+
+/* Collapsed rail: centre the icon, drop the horizontal padding/gap so
+   the 20px glyph sits inside the 48px rail's 32px interior cleanly. */
+.nav-sidebar.collapsed .nav-item,
+.nav-sidebar.collapsed .nav-sidebar-toggle {
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+}
 .nav-sidebar.collapsed .nav-item-label,
 .nav-sidebar.collapsed .nav-sidebar-toggle-label { display: none; }
+.nav-sidebar.collapsed .nav-item.active::before {
+  left: 4px;
+  height: 20px;
+}
 
 /* ── Visually hidden (a11y live region helper) ───────────────────── */
 

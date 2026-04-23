@@ -145,48 +145,16 @@ export function DashboardPage(): JSX.Element {
 
 function MetricCard({ label, value }: { label: string; value: number }): JSX.Element {
   return (
-    <div
-      style={{
-        background:    'var(--color-fill-subtle)',
-        borderRadius:  'var(--radius-card)',
-        padding:       'var(--space-4)',
-      }}
-    >
-      <div
-        style={{
-          fontSize:    'var(--type-caption-size)',
-          color:       'var(--color-text-secondary)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.04em',
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontFamily:  'var(--font-family-display)',
-          fontSize:    'var(--type-title-size)',
-          fontWeight:  'var(--type-title-weight)',
-          lineHeight:  'var(--type-title-height)',
-          color:       'var(--color-text-primary)',
-          marginTop:   'var(--space-1)',
-        }}
-      >
-        {value}
-      </div>
+    <div className="metric-card">
+      <div className="metric-card-label">{label}</div>
+      <div className="metric-card-value">{value}</div>
     </div>
   );
 }
 
 function MetricCardSkeleton(): JSX.Element {
   return (
-    <div
-      style={{
-        background:   'var(--color-fill-subtle)',
-        borderRadius: 'var(--radius-card)',
-        padding:      'var(--space-4)',
-      }}
-    >
+    <div className="metric-card">
       <FluentSkeleton height={12} width={96} />
       <div style={{ marginTop: 'var(--space-2)' }}>
         <FluentSkeleton height={28} width={56} />
