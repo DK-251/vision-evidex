@@ -5,9 +5,9 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Phase 1 Week 5 — Onboarding flow + Dashboard shell (D21–D25)
+- **SPRINT:** Phase 2 Week 7 — CaptureService + global hotkeys + region overlay (D31–D35)
 - **BRANCH:** `main`
-- **GOAL:** Full onboarding wizard with real forms for 8 steps (Licence + Tour + Profile + Branding + Template + Hotkeys + Theme/Storage + Summary) that persists on Finish via `settings:*` / `branding:save` / `dialog:selectDirectory` IPC. Dashboard shell (S-03) with metrics panel, quick links, recent projects. App settings page (S-23) with 6 mode-aware tabs. Routing gate: render Dashboard when `settings.onboardingComplete`, else Onboarding. Exit criteria: D25 Asus smoke shows 7-step wizard end-to-end, Finish persists settings + branding row, Dashboard displays recent projects count, all tabs read/write settings.json.
+- **GOAL:** Land the end-to-end capture pipeline (Tech Spec §9.2 / Architectural Rule 7: SHA-256 BEFORE JPEG compression). `CaptureService` writes compressed originals into the active `.evidex`, inserts the capture row + manifest entry in one logical transaction, and emits `capture:flash`. `ShortcutService` registers Ctrl+Shift+1/2/3 for fullscreen/window/region and unregisters on session end + app quit. A 4th `BrowserWindow` (`src/region/`) drives the S-08 rubber-band region selector. Phase 2 exit criteria ultimately require a tester to run a full session end-to-end by Wk 11.
 
 ## 2. IPC channels (`src/shared/ipc-channels.ts`)
 

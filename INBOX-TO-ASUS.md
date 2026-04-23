@@ -14,6 +14,53 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-23 — PH2-1: CaptureService scaffold + 9-step pipeline invariant tests (Phase 2 Wk 7 / D32 prep)
+
+**From:** CTS (Claude Code)
+
+Phase 1 is closed on Asus as of FUI-7 / `197d0dd`. Opening Phase 2 (Wk 7 — CaptureService + global hotkeys + region overlay). This commit lands the CaptureService in isolation, with real dependencies wired through constructor injection so tests can drive the full pipeline without an Electron runtime.
+
+### What landed
+
+- `src/main/services/capture.service.ts` — `CaptureService` class, 9-step pipeline per Tech Spec §9.2. Step 3 (SHA-256) runs on the untouched `rawBuffer` BEFORE any `sharp().jpeg()` call (Architectural Rule 7). Step 7 writes into `EvidexContainerService`, Step 8 inserts the `Capture` row and appends a matching `ManifestEntry`, Step 9 fires the optional `onFlash` callback.
+- Abstractions so tests (and later IPC wiring) can stay clean:
+  - `CaptureSource` — wraps `desktopCapturer` in the real runtime, a fake Buffer in tests.
+  - `SessionLookup` — `SessionService` (D39) will implement this; tests pass a stub.
+  - `RuntimeInfo` — machine / OS / app version injected, not hard-coded.
+- `__tests__/capture-service.spec.ts` — 10 tests covering:
+  - Hash-before-compression invariant (`result.sha256Hash === sha256(rawBuffer)`; would break if sharp ran first)
+  - Compression actually happens (fileSizeBytes < raw)
+  - Thumbnail is a valid base64 JPEG (magic bytes FF D8 FF)
+  - Capture row hash matches manifest entry hash matches result hash
+  - Persist-then-manifest ordering (addImage → insertCapture → appendManifest)
+  - `onFlash` fires after persistence (step 9 last)
+  - Default + explicit `statusTag` handling
+  - `region` passthrough to the capture source
+  - Deterministic filename from NamingContext
+- `CLAUDE.md §1` updated — sprint focus moves to Phase 2 Week 7.
+
+### What's explicitly NOT in this commit
+
+- IPC wiring. `capture:screenshot` is still the stub in `ipc-router.ts` — CaptureService isn't yet instantiated in `app.ts`. Comes in the next commit (PH2-2) once we have a `SessionService` skeleton to fulfil the `SessionLookup` contract.
+- `desktopCapturer` real source. The `ElectronCaptureSource` adapter is D31/D32 Asus-side work that needs the real runtime to verify.
+- ShortcutService + region window — D33/D34.
+
+### Checklist for Asus
+
+1. `git pull --ff-only`
+2. `npm run report` — expect PASS with **+10 tests** (should land at 199/199).
+   - `CaptureService` specs must all pass; if any assertion about step ordering fails, the pipeline was refactored in a way that breaks Architectural Rule 7 — flag immediately, do not patch.
+3. `npm run dev`:
+   - `[ipc-router] 27 handlers registered (12 live, 15 stub)` — unchanged from FUI-7 (no IPC churn this commit).
+   - No capture-related startup lines yet — wiring lands next commit.
+4. Read through `src/main/services/capture.service.ts` — the step comments in `screenshot()` are the contract. If any future diff moves step 3 below step 4, we've broken the invariant.
+
+### Next
+
+PH2-2: wire a minimal `SessionService` (just `getSessionContext`) + a `RandomCaptureSource` for dev testing, register the real `capture:screenshot` IPC, and run the first end-to-end fake capture through the pipeline on Asus.
+
+---
+
 ## [RESOLVED 2026-04-23] FUI-7: Sidebar padding fix + dashboard metric-card polish
 
 **From:** CTS (Claude Code)
