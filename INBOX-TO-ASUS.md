@@ -14,7 +14,7 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
-## 2026-04-23 — FUI-6b: Orb contrast fix + Summary step polish (closes onboarding)
+## [RESOLVED 2026-04-23] FUI-6b: Orb contrast fix + Summary step polish (closes onboarding)
 
 **From:** CTS (Claude Code)
 
@@ -62,7 +62,7 @@ With this commit the onboarding track is **done**. Next per the plan is **FUI-7 
 
 ---
 
-## 2026-04-21 — FUI-6a: Wire brand icons into the renderer (fix for "old icons still showing")
+## [RESOLVED 2026-04-23] FUI-6a: Wire brand icons into the renderer (fix for "old icons still showing")
 
 **From:** CTS (Claude Code)
 

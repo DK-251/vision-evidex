@@ -10,6 +10,56 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-23 07:45 — FUI-6a + FUI-6b verification run (report/dev telemetry)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `6f0fa30`
+
+Per protocol: pulled latest (FUI-6b landed), executed both the pending FUI-6a checklist and the new FUI-6b checklist in sequence.
+
+### FUI-6a results
+
+- `git pull --ff-only`: **PASS** (`Already up to date.` — base was already at FUI-6a tip)
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: **PASS**
+	- tests: **PASS**
+	- PBKDF2 benchmark: **PASS** (`91.99 ms` max, budget `800 ms`)
+	- modules gate: **PASS** (`FAIL 0`)
+- `npm run dev` telemetry: **PASS**
+	- `app.ready` observed
+	- **`[ipc-router] 27 handlers registered (12 live, 15 stub)`** observed
+	- `services.ready` showed `onboardingComplete:false`
+	- no errors
+
+### FUI-6b results
+
+- `git pull --ff-only`: **PASS** (`Updated a824b89..6f0fa30` — 3 files changed: INBOX-TO-ASUS.md, SummaryStep.tsx, components.css)
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: **PASS**
+	- tests: **PASS**
+	- PBKDF2 benchmark: **PASS** (`91.99 ms` max, budget `800 ms`)
+	- modules gate: **PASS** (`FAIL 0`)
+- `npm run dev` telemetry: **PASS**
+	- `[dev-reset] cleared 2 state file(s) … (logs/ kept)` ✓
+	- `app.ready` observed ✓
+	- **`[ipc-router] 27 handlers registered (12 live, 15 stub)`** ✓
+	- `services.ready` showed `onboardingComplete:false` ✓
+	- `licence.validate` mode:none valid:true ✓
+	- `theme.broadcasts-bound` accent `#006FC4`, `darkPreferred:true` ✓
+	- no preload/load/crash errors
+
+### Manual/visual notes
+
+The interactive visual assertions (orb tinted-disc/ring appearance, brand icon readability on orb, StepComplete hero + summary rows, row hover accent-border, Edit jump-back, dark-theme orb re-skin) require hands-on click-through and are not represented by terminal logs.
+
+### Verdict
+
+FUI-6a and FUI-6b automated gates are green on Asus side.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
+---
+
 ## [RESOLVED 2026-04-21] FUI-6 verification run (report/dev/log + icon files)
 
 **From:** Asus TUF run machine
