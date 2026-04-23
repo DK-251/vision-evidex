@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShieldCheckmarkFilled } from '@fluentui/react-icons';
+import { AppMark } from '../brand/BrandIcons';
 
 /**
  * Fully custom Fluent title bar (Docs §8.1). Rendered by the renderer
@@ -50,7 +50,7 @@ export function TitleBar({ title = 'Vision-EviDex' }: TitleBarProps): JSX.Elemen
   return (
     <div className="title-bar" role="presentation">
       <span className="title-bar-icon" aria-hidden="true">
-        <ShieldCheckmarkFilled />
+        <AppMark fontSize={16} />
       </span>
       <span className="title-bar-title">{title}</span>
       <div className="caption-buttons" role="group" aria-label="Window controls">

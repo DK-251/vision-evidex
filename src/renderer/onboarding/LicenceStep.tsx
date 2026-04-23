@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import {
-  KeyRegular,
   CheckmarkCircleFilled,
   ErrorCircleRegular,
 } from '@fluentui/react-icons';
 import { useOnboardingStore } from '../stores/onboarding-store';
 import { Button } from '../components/ui';
 import { StepLayout } from './StepLayout';
+import { StepActivate } from '../components/brand/BrandIcons';
 
 /**
  * Step 2 — Licence activation (keygen mode only).
@@ -70,7 +70,7 @@ export function LicenceStep(): JSX.Element | null {
 
   return (
     <StepLayout
-      icon={KeyRegular}
+      icon={StepActivate}
       palette="accent"
       title="Activate your licence"
       subtext="Paste the licence key you received with your Vision-EviDex download. Activation binds this copy to your machine."

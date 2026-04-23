@@ -4,13 +4,13 @@ import {
   ClipboardTaskListLtrRegular,
   BugRegular,
   ShieldCheckmarkRegular,
-  TextAlignLeftRegular,
 } from '@fluentui/react-icons';
 import type { FluentIconsProps } from '@fluentui/react-icons';
 import type { ComponentType } from 'react';
 import { useOnboardingStore } from '../stores/onboarding-store';
 import type { BrandingData } from './validators';
 import { StepLayout } from './StepLayout';
+import { StepTemplate } from '../components/brand/BrandIcons';
 
 type FluentIcon = ComponentType<FluentIconsProps>;
 
@@ -77,7 +77,7 @@ export function DefaultTemplateStep(): JSX.Element {
 
   return (
     <StepLayout
-      icon={TextAlignLeftRegular}
+      icon={StepTemplate}
       palette="violet"
       title="Default report template"
       subtext="New projects start with this layout. Preview uses your organisation's primary colour."

@@ -1,11 +1,11 @@
-import { ShieldCheckmarkFilled } from '@fluentui/react-icons';
+import { OnboardingHero } from '../components/brand/BrandIcons';
 
 /**
- * First onboarding screen — the Vision-EviDex brand. Rendered inside
- * the OnboardingPage card but with its own hero layout: large animated
- * icon, brand name in display type, one-line caption. The card's
- * navigation row (owned by OnboardingPage) renders the Begin button
- * via the "Get Started"-on-first-step branch.
+ * First onboarding screen — the Vision-EviDex brand. Renders the
+ * animated Fluent brand mark (aperture + shield + document + scan
+ * line) as the hero, followed by the brand name and one-line caption.
+ * The card's navigation row (owned by OnboardingPage) renders the
+ * Begin button via the first-step branch.
  */
 
 export function WelcomeBrandingStep(): JSX.Element {
@@ -20,12 +20,7 @@ export function WelcomeBrandingStep(): JSX.Element {
         padding:        'var(--space-4) 0',
       }}
     >
-      <div
-        className="icon-orb icon-orb-accent icon-orb-96 icon-orb-animated"
-        aria-hidden="true"
-      >
-        <ShieldCheckmarkFilled fontSize={44} />
-      </div>
+      <OnboardingHero size={120} />
 
       <div>
         <div

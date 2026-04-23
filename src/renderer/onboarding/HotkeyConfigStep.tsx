@@ -1,7 +1,7 @@
-import { KeyboardRegular } from '@fluentui/react-icons';
 import { useOnboardingStore } from '../stores/onboarding-store';
 import { detectHotkeyConflicts, formatKeyEvent, DEFAULT_HOTKEYS, HOTKEY_ACTIONS } from './hotkey-utils';
 import { StepLayout } from './StepLayout';
+import { StepHotkeys } from '../components/brand/BrandIcons';
 
 /**
  * Step 7 — Hotkey configuration. Centred layout; each action renders as
@@ -27,7 +27,7 @@ export function HotkeyConfigStep(): JSX.Element {
 
   return (
     <StepLayout
-      icon={KeyboardRegular}
+      icon={StepHotkeys}
       palette="cool"
       title="Keyboard shortcuts"
       subtext="Click a binding to remap it. Defaults are shown; each shortcut must be unique."

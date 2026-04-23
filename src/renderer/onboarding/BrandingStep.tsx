@@ -9,6 +9,7 @@ import {
 import { useOnboardingStore } from '../stores/onboarding-store';
 import type { BrandingData } from './validators';
 import { StepLayout } from './StepLayout';
+import { StepBranding } from '../components/brand/BrandIcons';
 
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 const DEFAULT_COLOR = '#0078D4';
@@ -53,7 +54,7 @@ export function BrandingStep(): JSX.Element {
 
   return (
     <StepLayout
-      icon={BuildingRegular}
+      icon={StepBranding}
       palette="warm"
       title="Organisation & branding"
       subtext="These details appear on every exported Word, PDF, and HTML report."

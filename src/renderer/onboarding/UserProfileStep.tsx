@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   PersonRegular,
-  PersonAccountsRegular,
   MailRegular,
   PeopleRegular,
   BriefcaseRegular,
@@ -12,6 +11,7 @@ import {
 import { useOnboardingStore } from '../stores/onboarding-store';
 import type { UserProfileData } from './validators';
 import { StepLayout } from './StepLayout';
+import { StepProfile } from '../components/brand/BrandIcons';
 
 const ROLES = ['Tester', 'Test Lead', 'Project Manager', 'Auditor', 'Other'] as const;
 type Role = typeof ROLES[number];
@@ -74,7 +74,7 @@ export function UserProfileStep(): JSX.Element {
 
   return (
     <StepLayout
-      icon={PersonAccountsRegular}
+      icon={StepProfile}
       palette="cool"
       title="Your profile"
       subtext="We use this to attribute captures, sign-offs, and exported reports."

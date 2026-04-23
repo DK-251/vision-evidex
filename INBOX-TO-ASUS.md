@@ -14,6 +14,46 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-04-21 — FUI-6a: Wire brand icons into the renderer (fix for "old icons still showing")
+
+**From:** CTS (Claude Code)
+
+**Problem:** FUI-6 added the Fluent brand SVGs under `build/icons/` but the renderer was never updated to use them — onboarding still imported `@fluentui/react-icons` components like `ShieldCheckmarkFilled`, `KeyRegular`, `SparkleRegular`, etc. The `build/icons/` assets are the packaging source of truth (for `.ico` bundling) but Vite doesn't import them directly.
+
+**Fix:** added `src/renderer/components/brand/BrandIcons.tsx` containing inline React-SVG twins of the SVG files — each component accepts `FluentIconsProps` so it drops into any `FluentIcon` slot (e.g., `StepLayout.icon`) without touching the type.
+
+Components exported:
+- `AppMark(fontSize)` — small aperture on navy rounded square, used in `TitleBar`.
+- `OnboardingHero(size)` — full 200×200 animated aperture with all 5 `@keyframes` + `prefers-reduced-motion` fallback.
+- `StepActivate`, `StepWelcome`, `StepProfile`, `StepBranding`, `StepTemplate`, `StepHotkeys`, `StepAppearance`, `StepComplete` — 32×32 step-header pictograms (rendered at ~36 px inside the StepLayout orb).
+
+### Wired into
+
+- `src/renderer/components/shell/TitleBar.tsx` — `ShieldCheckmarkFilled` → `AppMark fontSize={16}`.
+- `src/renderer/onboarding/WelcomeBrandingStep.tsx` — removed the old shield orb; renders `<OnboardingHero size={120} />` directly.
+- `src/renderer/onboarding/LicenceStep.tsx` — `KeyRegular` → `StepActivate`.
+- `src/renderer/onboarding/WelcomeTourStep.tsx` — `SparkleRegular` → `StepWelcome`.
+- `src/renderer/onboarding/UserProfileStep.tsx` — `PersonAccountsRegular` → `StepProfile`.
+- `src/renderer/onboarding/BrandingStep.tsx` — `BuildingRegular` → `StepBranding` (field-level `BuildingRegular` inside the form kept — it's a different icon slot).
+- `src/renderer/onboarding/DefaultTemplateStep.tsx` — `TextAlignLeftRegular` → `StepTemplate`.
+- `src/renderer/onboarding/HotkeyConfigStep.tsx` — `KeyboardRegular` → `StepHotkeys`.
+- `src/renderer/onboarding/ThemeStorageStep.tsx` — `PaintBrushRegular` → `StepAppearance`.
+
+No other changes: `SummaryStep` has its own summary-row layout without a step icon; the per-choice sub-icons inside BrandingStep / ThemeStorageStep / WelcomeTourStep screens are still Fluent icons.
+
+### Checklist for Asus
+
+1. `git pull --ff-only`
+2. `npm run report` — expect PASS.
+3. `npm run dev`:
+   - Onboarding **Welcome** screen: animated aperture/document/shield/scan hero in place of the old shield orb — the aperture breathes, the scan line sweeps, the shield rotates slowly.
+   - Step headers (Licence → Profile → Branding → Template → Hotkeys → Appearance) render the brand step icons (gradient `#0078D4 → #00B4D8`) instead of Fluent mono icons.
+   - Title bar top-left shows the rounded navy app mark, not the shield checkmark.
+
+Everything else from FUI-6 still stands.
+
+---
+
 ## 2026-04-20 — FUI-6: Onboarding close + Begin centered + brand icon system
 
 **From:** CTS (Claude Code)
