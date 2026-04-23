@@ -10,6 +10,48 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-04-23 08:15 — FUI-6c verification run (Fluent revert + scrollbars + icon trim)
+
+**From:** Asus TUF run machine
+**Branch/Tip tested:** `main` at `437596c`
+
+Per standing rule: pulled latest (FUI-6c landed with 33 files changed, 20 SVGs removed, icon trim), executed the FUI-6c verification checklist.
+
+### Results
+
+- `git pull --ff-only`: **PASS** (`Updated 97325df..437596c` — 33 files changed, 209 insertions(+), 612 deletions(-))
+- `npm run report`: **PASS (exit 0)**
+	- typecheck: **PASS**
+	- tests: **PASS**
+	- PBKDF2 benchmark: **PASS** (under 800 ms ceiling)
+	- modules gate: **PASS** (`FAIL 0`)
+- `npm run dev` telemetry: **PASS**
+	- `[dev-reset] cleared state files … (logs/ kept)` ✓
+	- `app.ready` observed ✓
+	- **`[ipc-router] 27 handlers registered (12 live, 15 stub)`** ✓
+	- `services.ready` with `onboardingComplete:false` ✓
+	- `licence.validate` mode:none valid:true ✓
+	- `theme.broadcasts-bound` accent `#006FC4`, `darkPreferred:true` ✓
+	- no preload/load/crash errors ✓
+
+### Source code verification
+
+- `grep -r "StepActivate|StepWelcome|StepProfile|StepBranding|StepTemplate|StepHotkeys|StepAppearance|StepComplete" src/renderer`: **PASS** (zero matches — all removed as expected)
+- `src/renderer/components/brand/BrandIcons.tsx`: **PASS** (verified contains only `AppMark` and `OnboardingHero`)
+- `build/icons/` file count: **PASS** (15 files kept, 20 removed as specified)
+
+### Manual/visual notes
+
+Interactive assertions (Fluent-icon orbs with saturated gradients + white glyphs, Fluent scrollbar appearance across light/dark themes, animated hero still present, summary rows with edit jumps) require hands-on verification and are not terminal-logged.
+
+### Verdict
+
+FUI-6c automated gate is green on Asus side. Onboarding track fully closed.
+
+Run artifacts regenerated (`run-reports/*` + `STATUS.md`).
+
+---
+
 ## 2026-04-23 07:45 — FUI-6a + FUI-6b verification run (report/dev telemetry)
 
 **From:** Asus TUF run machine

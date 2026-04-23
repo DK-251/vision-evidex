@@ -14,7 +14,7 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
-## 2026-04-23 — FUI-6c: Revert step icons to Fluent + Fluent scrollbars + trim brand-SVG set (closes onboarding for real)
+## [RESOLVED 2026-04-23] FUI-6c: Revert step icons to Fluent + Fluent scrollbars + trim brand-SVG set (closes onboarding for real)
 
 **From:** CTS (Claude Code)
 
