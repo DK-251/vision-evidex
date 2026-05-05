@@ -174,32 +174,18 @@ export function registerAllHandlers(services: ServiceRegistry): void {
       );
     }
 
-    // 2. Resolve the active container (single-slot per Rule 11). When
-    //    no container is open we are in pre-Project-open mode — let the
-    //    pipeline run anyway; CaptureService will fail at addImage and
-    //    the error propagates as IpcResult. That is the expected D35
-    //    plumbing-mode behaviour per AQ5.
-    const handle = services.container.getCurrentHandle();
-    const containerOpenForSession =
-      handle !== null && handle.projectId === session.projectId;
-    if (!containerOpenForSession) {
-      // eslint-disable-next-line no-console
-      console.warn(
-        '[ipc-router] CAPTURE_SCREENSHOT — no container open for project',
-        { projectId: session.projectId, hasHandle: handle !== null }
-      );
-    }
-
-    // 3. Fire the pipeline. CaptureService resolves the rest of the
-    //    context (projectName, clientName, containerId, sequenceNum)
-    //    via the SessionLookup adapter wired in app.ts.
+    // 2. Fire the pipeline. CaptureService's own getDb-guard surfaces
+    //    PROJECT_NOT_FOUND if no container is open for this session,
+    //    so we no longer need the pre-Wk8 NO_CONTAINER sentinel branch.
+    //    SessionLookup (app.ts) reads projectName / clientName from the
+    //    per-container project DB.
     const { region, ...rest } = input;
     const result = await services.capture.screenshot({
       ...rest,
       ...(region !== undefined ? { region } : {}),
     });
 
-    // 4. Push the live counter update + flash to all windows.
+    // 3. Push the live counter update + flash to all windows.
     const updated = services.session.get(input.sessionId);
     if (updated) {
       broadcast(IPC_EVENTS.SESSION_STATUS_UPDATE, {
@@ -212,9 +198,11 @@ export function registerAllHandlers(services: ServiceRegistry): void {
     }
     broadcast(IPC_EVENTS.CAPTURE_FLASH);
 
-    // 5. Storage warning. Skipped when no real container — getSizeBytes
-    //    needs an open handle.
-    if (containerOpenForSession && handle) {
+    // 4. Storage warning — getSizeBytes needs an open handle which is
+    //    guaranteed by the time we reach this point (capture.screenshot
+    //    above would have thrown otherwise).
+    const handle = services.container.getCurrentHandle();
+    if (handle && handle.projectId === session.projectId) {
       try {
         const sizeBytes = await services.container.getSizeBytes(handle.containerId);
         const pct = Math.round((sizeBytes / PROJECT_SIZE_BUDGET_BYTES) * 100);

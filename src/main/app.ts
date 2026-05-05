@@ -130,11 +130,11 @@ function bootstrap(): void {
 
     const namingService = new NamingService();
 
-    // SessionLookup adapter — D35 plumbing variant. projectName / clientName
-    // are stubbed pre-Wk8 because the project-DB lookup ships alongside
-    // Project-open. Container ID resolves to 'NO_CONTAINER' when nothing
-    // is open, and the capture pipeline will fail at addImage — that
-    // failure is the expected D35 behaviour per AQ5.
+    // SessionLookup adapter — Wk 8 final form. projectName / clientName
+    // come from the per-container project DB; the NO_CONTAINER sentinel
+    // is gone. Surface PROJECT_NOT_FOUND if the user somehow reaches the
+    // capture pipeline without a project open (the SessionService /
+    // CaptureService getDb guards normally catch this earlier).
     const sessionLookup: SessionLookup = {
       async getSessionContext(sessionId: string): Promise<CaptureSessionContext> {
         const sess = sessionService?.get(sessionId) ?? null;
@@ -146,21 +146,38 @@ function bootstrap(): void {
           );
         }
         const handle = containerService.getCurrentHandle();
-        const containerId =
-          handle && handle.projectId === sess.projectId
-            ? handle.containerId
-            : 'NO_CONTAINER';
+        if (!handle || handle.projectId !== sess.projectId) {
+          throw new EvidexError(
+            EvidexErrorCode.PROJECT_NOT_FOUND,
+            'No project is open for this session.',
+            { sessionId, projectId: sess.projectId }
+          );
+        }
+        const projectDb = containerService.getProjectDb();
+        const project = projectDb?.getProject(sess.projectId) ?? null;
+        if (!project || !projectDb) {
+          throw new EvidexError(
+            EvidexErrorCode.PROJECT_NOT_FOUND,
+            'Project record missing from the open container.',
+            { projectId: sess.projectId }
+          );
+        }
         return {
           sessionId,
           projectId:       sess.projectId,
-          containerId,
+          containerId:     handle.containerId,
           testerName:      sess.testerName,
-          // STUB — Phase 2 Wk 8 project.store wires real values
-          projectName:     'Pre-Wk8 Project',
-          clientName:      'Pre-Wk8 Client',
+          projectName:     project.name,
+          clientName:      project.clientName,
+          // namingPattern is required-string in Project but optional in
+          // CaptureSessionContext — guard against an empty pattern row
+          // landing in the spread.
+          ...(project.namingPattern ? { namingPattern: project.namingPattern } : {}),
           testId:          sess.testId,
           environment:     sess.environment,
-          nextSequenceNum: appDb!.getNextSequenceNum(sess.projectId),
+          // The captures table is project-DB scoped; query it through
+          // projectDb, NOT appDb (the latter has no captures table).
+          nextSequenceNum: projectDb.getNextSequenceNum(sess.projectId),
         };
       },
     };
