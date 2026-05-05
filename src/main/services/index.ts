@@ -5,6 +5,8 @@ export { NamingService } from './naming.service';
 export { ManifestService } from './manifest.service';
 export { MetricsService } from './metrics.service';
 export { SettingsService } from './settings.service';
+export { ShortcutService, DEFAULT_HOTKEY_BINDINGS, type HotkeyBindings } from './shortcut.service';
+export { SessionService, makeSessionWindowControls } from './session.service';
 export {
   getSystemAccent,
   shouldUseDarkColors,

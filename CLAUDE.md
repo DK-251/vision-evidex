@@ -5,9 +5,15 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Phase 2 Week 7 — CaptureService + global hotkeys + region overlay (D31–D35)
+- **SPRINT:** Phase 2 Week 8 — Project-open flow + `EvidexContainerService.open()` wiring + `ProjectListPage` + `CreateProjectPage`.
 - **BRANCH:** `main`
-- **GOAL:** Land the end-to-end capture pipeline (Tech Spec §9.2 / Architectural Rule 7: SHA-256 BEFORE JPEG compression). `CaptureService` writes compressed originals into the active `.evidex`, inserts the capture row + manifest entry in one logical transaction, and emits `capture:flash`. `ShortcutService` registers Ctrl+Shift+1/2/3 for fullscreen/window/region and unregisters on session end + app quit. A 4th `BrowserWindow` (`src/region/`) drives the S-08 rubber-band region selector. Phase 2 exit criteria ultimately require a tester to run a full session end-to-end by Wk 11.
+- **GOAL:** Replace the `'NO_CONTAINER'` sentinel with real container handles. Unblock full `capture:screenshot` end-to-end on Asus TUF. First P0 feature ticks expected after the Asus gate.
+- **GATE:** `npm run report` after Wk 8 — the `capture` module must show PASS with real `desktopCapturer` → encrypted `.evidex` on disk.
+- **STUBS TO CLOSE THIS SPRINT:**
+  - `SessionIntakePage` `projectName` (awaits `project.store.ts`)
+  - `SessionLookup` adapter `projectName` / `clientName` (Pre-Wk8 placeholders)
+  - Capture-arrival push to renderer `captures` array
+  - `derivedCounts` `passCount`/`failCount`/`blockedCount` from `CaptureResult`
 
 ## 2. IPC channels (`src/shared/ipc-channels.ts`)
 
@@ -25,7 +31,7 @@ Events (main → renderer, 4):
 ## 3. Service map (`src/main/services/`)
 
 - `CaptureService` → DatabaseService, EvidexContainerService, ManifestService, NamingService, WindowManager
-- `SessionService` → DatabaseService, EvidexContainerService, ShortcutService, WindowManager
+- `SessionService` → DatabaseService, EvidexContainerService, ShortcutService, SettingsService (hotkey lookup), WindowManager
 - `EvidexContainerService` → node:crypto (AES-256-GCM), archiver, DatabaseService, ManifestService
 - `DatabaseService` → better-sqlite3 (sync, main-process only; two instances: evidex.db + app.db)
 - `ExportService` → DatabaseService, EvidexContainerService, docx, printToPDF, archiver, TemplateRenderer
@@ -62,7 +68,7 @@ No service calls another service directly. All communication is via IPC or const
 - Results: `SessionSummary`, `SessionStatus`, `CaptureResult`, `AnnotationResult`, `IpcResult<T>`
 - Annotation: `FabricCanvasJSON`, `FabricObject`, `BlurRegion`, `AnnotationSaveInput`
 - Enums: `StatusTag`, `CaptureMode`, `ExportFormat`, `SignOffDecision`, `UserRole`, `LicenceMode`, `ModuleStatus`
-- Error codes: `EvidexErrorCode` (27 values, see `src/shared/types/ipc.ts`)
+- Error codes: `EvidexErrorCode` (32 values, see `src/shared/types/ipc.ts`)
 
 ## 6. File naming conventions
 
@@ -84,8 +90,10 @@ No service calls another service directly. All communication is via IPC or const
 
 - **Known Phase 0 issue:** CTS laptop hits a corporate SSL cert error in `node-gyp` when building native modules (`unable to get local issuer certificate` downloading Node headers). Mitigation: Asus TUF performs the real install + `electron-rebuild`. CTS is code-authoring only.
 - **Native-ABI rebuild rhythm (better-sqlite3):** `npm run dev` and `npm test` need different NODE_MODULE_VERSION for the same `.node` binary. Automated via `predev` → `rebuild:electron` and `pretest` → `rebuild:node` npm scripts. No manual rebuild needed; each command is self-healing.
-- **Run report gates code health:** `npm run report` runs `npm run typecheck` + `npm test` as prechecks and exits 1 on either failure. Failing tests / TS errors surface in `latest.md` "Pre-checks" section and block STATUS.md PASS.
+- **Run report gates code health:** `npm run report` runs `npm run typecheck` + `npm test` as prechecks and exits 1 on either failure. Failing tests / TS errors surface in `latest.md` "Pre-checks" section and block STATUS.md PASS. Test count: **CTS reports 323 across 23 files** as of the PH2-TEST commit (was 223/19 at the last Asus gate `32ac2719` / 2026-04-23). Asus must confirm the new total in the next run.
 - **Run report measures Risk R-07:** every `npm run report` also runs the PBKDF2 benchmark (5 samples after one warm-up), records to `run-reports/sprint0-benchmark.json`, and surfaces WARN in next_actions if max > 800 ms. Asus TUF reference: mean ≈ 91 ms (88% headroom). Standalone: `npm run bench:pbkdf2`.
+- **Rule 4 audit (DB prepared statements) — overdue:** the BACKLOG-tracked Phase 1 Wk 4 audit window has passed. Elevated to **must-do before Phase 2 exit**: spot-check every `db.prepare(...)` call site in `database.service.ts` and confirm zero string-interpolated SQL.
+- **Rule 6 audit (atomic file writes) — SUSPECT:** verified for `EvidexContainerService.save()` only (`writeFile(.tmp)` → `rename`). Not yet verified for `ManifestService`, `SettingsService`, or any branding-logo writer. Treat new file writers as needing the `.tmp` + `rename` pattern by default until audited.
 
 ## 8a. Two-machine comms layer (read these first in every session)
 

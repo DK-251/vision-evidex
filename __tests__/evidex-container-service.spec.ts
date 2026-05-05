@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -180,6 +180,42 @@ describe('EvidexContainerService', () => {
       // Mutating the returned handle must not mutate internal state.
       if (returned) returned.projectId = 'mutated';
       expect(svc.getCurrentHandle()?.projectId).toBe('proj_1');
+    });
+  });
+
+  describe('getSizeBytes', () => {
+    it('returns a positive byte count for a non-empty container', async () => {
+      const fp = containerPath();
+      const handle = await svc.create({ projectId: 'proj_1', filePath: fp });
+      await svc.addImage(handle.containerId, 'a.jpg', Buffer.from('A'.repeat(2048)), 'original');
+      await svc.save(handle.containerId);
+      const size = await svc.getSizeBytes(handle.containerId);
+      expect(size).toBeGreaterThan(0);
+    });
+  });
+
+  describe('atomic save resilience (Rule 6)', () => {
+    it('preserves the original .evidex when a second save fails mid-write', async () => {
+      // First save succeeds — the file on disk is the canonical original.
+      const fp = containerPath('resilient.evidex');
+      const handle = await svc.create({ projectId: 'proj_1', filePath: fp });
+      await svc.addImage(handle.containerId, 'a.jpg', Buffer.from('original-bytes'), 'original');
+      await svc.save(handle.containerId);
+      const originalBytes = fs.readFileSync(fp);
+
+      // Second save: make writeFile throw before the rename can run. The
+      // .evidex on disk must still be the original byte-for-byte (atomic
+      // rename pattern means a failed write never lands at the final path).
+      const writeSpy = vi.spyOn(fs.promises, 'writeFile')
+        .mockRejectedValueOnce(new Error('ENOSPC simulated'));
+
+      await svc.addImage(handle.containerId, 'b.jpg', Buffer.from('new-bytes'), 'original');
+      await expect(svc.save(handle.containerId)).rejects.toThrow(/ENOSPC simulated/);
+
+      const afterFailure = fs.readFileSync(fp);
+      expect(afterFailure.equals(originalBytes)).toBe(true);
+
+      writeSpy.mockRestore();
     });
   });
 });

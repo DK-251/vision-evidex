@@ -42,6 +42,12 @@ describe('NamingService', () => {
       expect(svc().generate(baseCtx({ pattern: '{TesterInitials}' }))).toBe('DS.jpg');
     });
 
+    it('TesterInitials: handles 3+ word names ("Alice Van Der Berg" → "AVDB")', () => {
+      expect(
+        svc().generate(baseCtx({ pattern: '{TesterInitials}', testerName: 'Alice Van Der Berg' }))
+      ).toBe('AVDB.jpg');
+    });
+
     it('Date: UTC YYYY-MM-DD from now()', () => {
       expect(svc().generate(baseCtx({ pattern: '{Date}' }))).toBe('2026-04-18.jpg');
     });

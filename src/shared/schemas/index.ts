@@ -46,6 +46,10 @@ export const SessionEndSchema = z.object({
   sessionId: z.string().min(1),
 });
 
+export const SessionGetSchema = z.object({
+  sessionId: z.string().min(1),
+});
+
 // ─── Capture ────────────────────────────────────────────────────────────
 
 export const ScreenRegionSchema = z.object({

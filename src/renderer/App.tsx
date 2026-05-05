@@ -2,6 +2,8 @@ import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from '
 import { OnboardingPage } from './pages/OnboardingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AppSettingsPage } from './pages/AppSettingsPage';
+import { SessionIntakePage } from './pages/SessionIntakePage';
+import { SessionGalleryPage } from './pages/SessionGalleryPage';
 import { useOnboardingStore } from './stores/onboarding-store';
 import { useNavStore } from './stores/nav-store';
 import { BootSkeleton } from './components/Skeleton';
@@ -74,10 +76,24 @@ function AppShell(): JSX.Element {
     <>
       {bootBanner}
       <Shell>
-        {shellPage === 'settings' ? <AppSettingsPage /> : <DashboardPage />}
+        <ShellPageSwitch page={shellPage} />
       </Shell>
     </>
   );
+}
+
+function ShellPageSwitch({ page }: { page: ReturnType<typeof useNavStore.getState>['page'] }): JSX.Element {
+  switch (page) {
+    case 'settings':
+      return <AppSettingsPage />;
+    case 'session-intake':
+      return <SessionIntakePage />;
+    case 'session-gallery':
+      return <SessionGalleryPage />;
+    case 'dashboard':
+    default:
+      return <DashboardPage />;
+  }
 }
 
 interface BoundaryState {

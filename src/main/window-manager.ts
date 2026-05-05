@@ -2,6 +2,7 @@ import { BrowserWindow } from 'electron';
 import path from 'node:path';
 import { baseWindowConfig } from './window-config';
 import { IPC_EVENTS } from '@shared/ipc-channels';
+import type { Session, SessionStatus } from '@shared/types/entities';
 import { logger } from './logger';
 
 /**
@@ -137,6 +138,47 @@ export function getMainWindow(): BrowserWindow | undefined {
 
 export function getToolbarWindow(): BrowserWindow | undefined {
   return toolbarWindow;
+}
+
+/**
+ * Show the floating toolbar bound to an active session. Lifecycle is
+ * driven by `SessionService.create()` / `.end()` (not by the user) so
+ * the toolbar is only visible while a session is active.
+ *
+ * The session is pushed once on show via `SESSION_STATUS_UPDATE` so the
+ * toolbar renderer can display the test ID and initialise its counter
+ * without re-querying the DB on every render.
+ */
+export function showToolbarWindow(session: Session): void {
+  const win = toolbarWindow && !toolbarWindow.isDestroyed()
+    ? toolbarWindow
+    : createToolbarWindow();
+
+  const initialStatus: SessionStatus = {
+    sessionId:    session.id,
+    captureCount: session.captureCount,
+    passCount:    session.passCount,
+    failCount:    session.failCount,
+    blockedCount: session.blockedCount,
+  };
+
+  const pushInitial = (): void => {
+    if (win.isDestroyed()) return;
+    win.webContents.send(IPC_EVENTS.SESSION_STATUS_UPDATE, initialStatus);
+  };
+  if (win.webContents.isLoading()) {
+    win.webContents.once('did-finish-load', pushInitial);
+  } else {
+    pushInitial();
+  }
+
+  if (!win.isVisible()) win.show();
+}
+
+export function hideToolbarWindow(): void {
+  if (toolbarWindow && !toolbarWindow.isDestroyed() && toolbarWindow.isVisible()) {
+    toolbarWindow.hide();
+  }
 }
 
 export function getAnnotationWindow(): BrowserWindow | undefined {

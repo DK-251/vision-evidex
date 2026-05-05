@@ -1,6 +1,13 @@
 import { app, BrowserWindow, globalShortcut, session } from 'electron';
 import path from 'node:path';
-import { createMainWindow, destroyAllWindows, getMainWindow } from './window-manager';
+import os from 'node:os';
+import {
+  createMainWindow,
+  destroyAllWindows,
+  getMainWindow,
+  showToolbarWindow,
+  hideToolbarWindow,
+} from './window-manager';
 import { CSP_HEADER } from './window-config';
 import { registerAllHandlers } from './ipc-router';
 import { getAppDataRoot, getLicencePath, getSettingsPath } from './app-paths';
@@ -9,7 +16,22 @@ import { LicenceService } from './services/licence.service';
 import { SettingsService } from './services/settings.service';
 import { DatabaseService } from './services/database.service';
 import { MetricsService } from './services/metrics.service';
+import { ShortcutService } from './services/shortcut.service';
+import { SessionService, makeSessionWindowControls } from './services/session.service';
+import { EvidexContainerService } from './services/evidex-container.service';
+import { NamingService } from './services/naming.service';
+import {
+  CaptureService,
+  type CaptureSessionContext,
+  type SessionLookup,
+} from './services/capture.service';
+import { electronCaptureSource } from './services/electron-capture-source';
+import { getMachineFingerprint } from './services/machine-fingerprint';
 import { bindThemeBroadcasts, pushAccentToAllWindows, pushSystemThemeToAllWindows } from './services/theme.service';
+import { IPC_EVENTS } from '@shared/ipc-channels';
+import { EvidexError } from '@shared/types/errors';
+import { EvidexErrorCode } from '@shared/types/ipc';
+import type { CaptureMode } from '@shared/types/entities';
 
 export const isDev = !app.isPackaged;
 
@@ -20,6 +42,9 @@ const LICENCE_MODE = ((process.env['EVIDEX_LICENCE_MODE'] ?? 'none') === 'keygen
 let licenceService: LicenceService | undefined;
 let settingsService: SettingsService | undefined;
 let appDb: DatabaseService | undefined;
+let shortcutService: ShortcutService | undefined;
+let sessionService: SessionService | undefined;
+let captureService: CaptureService | undefined;
 
 function applyCSP(): void {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -85,11 +110,120 @@ function bootstrap(): void {
     appDb.initAppSchema();
 
     const metricsService = new MetricsService(appDb);
+
+    // Container password is derived from EVIDEX_APP_SECRET + the per-machine
+    // fingerprint so a .evidex only opens on the machine that created it.
+    // Wk 8 (Project-open) will switch this to a proper key-stretching path.
+    const containerService = new EvidexContainerService({
+      password: Buffer.from(
+        (process.env['EVIDEX_APP_SECRET'] ?? '') + getMachineFingerprint(),
+        'utf8'
+      ),
+    });
+
+    const namingService = new NamingService();
+
+    // SessionLookup adapter — D35 plumbing variant. projectName / clientName
+    // are stubbed pre-Wk8 because the project-DB lookup ships alongside
+    // Project-open. Container ID resolves to 'NO_CONTAINER' when nothing
+    // is open, and the capture pipeline will fail at addImage — that
+    // failure is the expected D35 behaviour per AQ5.
+    const sessionLookup: SessionLookup = {
+      async getSessionContext(sessionId: string): Promise<CaptureSessionContext> {
+        const sess = sessionService?.get(sessionId) ?? null;
+        if (!sess) {
+          throw new EvidexError(
+            EvidexErrorCode.SESSION_NOT_FOUND,
+            `SessionLookup: session ${sessionId} not found`,
+            { sessionId }
+          );
+        }
+        const handle = containerService.getCurrentHandle();
+        const containerId =
+          handle && handle.projectId === sess.projectId
+            ? handle.containerId
+            : 'NO_CONTAINER';
+        return {
+          sessionId,
+          projectId:       sess.projectId,
+          containerId,
+          testerName:      sess.testerName,
+          // STUB — Phase 2 Wk 8 project.store wires real values
+          projectName:     'Pre-Wk8 Project',
+          clientName:      'Pre-Wk8 Client',
+          testId:          sess.testId,
+          environment:     sess.environment,
+          nextSequenceNum: appDb!.getNextSequenceNum(sess.projectId),
+        };
+      },
+    };
+
+    captureService = new CaptureService({
+      source:    electronCaptureSource,
+      sessions:  sessionLookup,
+      container: containerService,
+      db:        appDb,
+      naming:    namingService,
+      runtime: {
+        machineName: os.hostname(),
+        osVersion:   `${process.platform}-${os.release()}`,
+        appVersion:  app.getVersion(),
+      },
+    });
+
+    shortcutService = new ShortcutService({
+      onCapture: async (sessionId: string, mode: CaptureMode): Promise<void> => {
+        if (!sessionService || !captureService) return;
+        const sess = sessionService.get(sessionId);
+        if (!sess || sess.endedAt !== undefined) return;
+        try {
+          await captureService.screenshot({ sessionId, mode });
+          const updated = sessionService.get(sessionId);
+          for (const win of BrowserWindow.getAllWindows()) {
+            if (win.isDestroyed()) continue;
+            if (updated) {
+              win.webContents.send(IPC_EVENTS.SESSION_STATUS_UPDATE, {
+                sessionId:    updated.id,
+                captureCount: updated.captureCount,
+                passCount:    updated.passCount,
+                failCount:    updated.failCount,
+                blockedCount: updated.blockedCount,
+              });
+            }
+            win.webContents.send(IPC_EVENTS.CAPTURE_FLASH);
+          }
+        } catch (err) {
+          // Never throw from a globalShortcut callback. In D35 plumbing
+          // mode the failure is expected (NO_CONTAINER sentinel blocks
+          // step 7 of the capture pipeline) — the tester sees a logger
+          // entry, not a crash.
+          logger.warn('hotkey.capture failed', {
+            sessionId, mode, err: err instanceof Error ? err.message : String(err),
+          });
+        }
+      },
+    });
+
+    sessionService = new SessionService({
+      db: appDb,
+      container: containerService,
+      shortcuts: shortcutService,
+      settings: settingsService,
+      windows: makeSessionWindowControls(
+        showToolbarWindow,
+        hideToolbarWindow,
+        () => BrowserWindow.getAllWindows()
+      ),
+    });
+
     registerAllHandlers({
       licence: licenceService,
       settings: settingsService,
       appDb: appDb,
       metrics: metricsService,
+      session: sessionService,
+      capture: captureService,
+      container: containerService,
       getMainWindow,
     });
 
@@ -128,7 +262,10 @@ function bootstrap(): void {
   });
 
   app.on('will-quit', () => {
-    globalShortcut.unregisterAll();
+    // Order matters per AQ6: clear ShortcutService's internal state first
+    // (active sessionId + bindings), then run the globalShortcut backstop.
+    shortcutService?.unregisterSessionShortcuts();
+    globalShortcut.unregisterAll(); // defensive — runs even if ShortcutService not initialised
     destroyAllWindows();
     try {
       appDb?.close();

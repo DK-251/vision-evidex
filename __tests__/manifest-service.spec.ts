@@ -137,6 +137,15 @@ describe('ManifestService', () => {
       expect(result.mismatches).toHaveLength(1);
       expect(result.mismatches[0]?.captureId).toBe('cap_x');
       expect(result.mismatches[0]?.actualHash).toBe(sha256(bytes));
+      expect(result.mismatches[0]?.expectedHash).toBe('f'.repeat(64));
+    });
+
+    it('empty manifest produces passed:true totalChecked:0 with no throw', async () => {
+      const result = await manifest.integrityCheck('proj_1');
+      expect(result.totalChecked).toBe(0);
+      expect(result.passed).toBe(0);
+      expect(result.failed).toBe(0);
+      expect(result.mismatches).toEqual([]);
     });
 
     it('detects a missing image referenced by the manifest', async () => {

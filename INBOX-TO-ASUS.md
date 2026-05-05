@@ -14,6 +14,186 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-05-05 19:00 — CONSOLIDATED RUN GATE — single Asus action covers PH2-1.5 + PH2-W7 + PH2-TEST
+
+**From:** CTS (Claude Code)
+
+CTS just pushed everything from this Phase 2 Week 7 sprint as a single commit on `main`. The three earlier gate entries below (PH2-1.5 mock fix, PH2-W7 capture-pipeline plumbing, PH2-TEST expanded suite) describe distinct *layers* but they all sit on the same HEAD now — **one `npm run report` answers all three**.
+
+### One-shot Asus action
+
+```
+git pull --ff-only
+npm run report
+git add run-reports/latest.{json,md} run-reports/history/ STATUS.md
+git commit -m "[INBOX] PH2-W7 + PH2-TEST Asus verification — automated gate"
+git push
+```
+
+### Pass/fail criteria (all must hold)
+
+| Check | Expected | Notes |
+|---|---|---|
+| `prechecks.typecheck` | PASS | `tsc --noEmit` clean |
+| `prechecks.tests` | PASS, **323 tests** | Was 223 at the last gate (`32ac2719`). +100 across 23 files. |
+| Modules | All 18 still SKIP | Real assertions land at Wk 8 with Project-open. |
+| `pbkdf2` benchmark | mean ≤ 200 ms | Budget 800 ms; baseline 94.47 ms at `32ac2719`. **Watch for cold-start regression** — `EvidexContainerService` is now constructed at app start (was previously not instantiated). |
+| `dependencyAudit` | 0 critical | 5 high acceptable per `VULNERABILITIES.md` baseline. |
+
+### Manual UI checks (not in automated report — only do if you have 10 minutes)
+
+These are nice-to-haves; PASS on the report above is the actual sprint gate. The full plumbing-mode behaviour is documented in the PH2-W7 entry below — short version:
+
+1. **Hotkey path is wired but won't write to disk.** Press `Ctrl+Shift+1` while a session is active. Logger should show `hotkey.capture failed` because `containerId === 'NO_CONTAINER'`. **Expected** in D35 plumbing mode.
+2. **Session create → toolbar shows.** From the dashboard, devtools-trigger `useNavStore.getState().navigate('session-intake', { projectId: 'proj_test' })`, fill the form, submit. Toolbar should appear with counter showing `0`, not blank.
+3. **Session end → Rule 8.** Click "End session" in the gallery. Logger should show `session.end.noActiveContainer — Rule 8 save skipped` (because no real container is open) — Container `.save()` is *attempted* but skipped, with a warning. Expected pre-Wk8.
+
+### What ships in this commit (one-paragraph summary)
+
+- **D32-D33 plumbing:** `ShortcutService` (9 tests) + `SessionService` (11 tests) + `SHORTCUT_CONFLICT` error code. Architectural Rule 8 closed (`container.save()` on session end). Rule 12 enforced (single active session per project).
+- **D34 renderer:** `SessionIntakeModal` (560 px S-04 form, submit-only validation), `SessionIntakePage`, `SessionGalleryPage`, `GallerySkeleton`, `CaptureThumbnail`. `nav-store` extended with `session-intake` / `session-gallery` pages + history stack. `session.store` Zustand store with optimistic tag updates.
+- **D35 wiring:** `CAPTURE_SCREENSHOT` IPC handler with session active-guard + `SESSION_STATUS_UPDATE` / `CAPTURE_FLASH` / `STORAGE_WARNING` broadcasts. `CAPTURE_TAG_UPDATE` handler live. `electronCaptureSource` adapter (`desktopCapturer`-backed, region crop via sharp). Real `onCapture` hotkey path in `app.ts`. `SESSION_GET` IPC channel added end-to-end. **16 live / 12 stub** handlers.
+- **PH2-TEST:** 4 new spec files + 7 audit additions to existing specs. **+100 tests, +4 files (223/19 → 323/23).**
+
+### Three known stubs left for Wk 8
+
+These are documented in CLAUDE.md §1 and won't move until Project-open lands:
+
+- `'NO_CONTAINER'` sentinel everywhere `EvidexContainerService.getCurrentHandle()` returns `null`
+- `SessionLookup` adapter `projectName` / `clientName` hardcoded `'Pre-Wk8 …'`
+- `SessionIntakePage` `projectName` literal `'Active Project'`
+
+### When done
+
+Push `latest.json` + `latest.md` + `run-reports/history/`. Append a one-line note to `INBOX-TO-CTS.md` referencing this entry. Mark this entry **AND** the three below it (`PH2-TEST`, `PH2-W7`, `PH2-1.5`) `[RESOLVED YYYY-MM-DD]` in the same edit — they're all redeemed by this single run.
+
+---
+
+## 2026-05-05 18:30 — PH2-TEST: Expanded test suite run gate
+
+**From:** CTS (Claude Code)
+
+Post-D35 expansion of the automated test coverage. Scope A from the brief: 4 new spec files plus a coverage audit that filled 7 specific gaps in the existing specs. No new packages, no `vitest.config.ts` env changes — all renderer-store specs run in node by shimming `window` manually (until the deferred PH2-REACT-TESTS PR lands jsdom + testing-library).
+
+### Test count delta
+
+| | Files | `it()` blocks |
+|---|---|---|
+| Before this commit (at `32ac2719`) | 19 | 223 |
+| After PH2-W7 (Tasks 1–6 prior commits) | 21 | 243 |
+| **After PH2-TEST (this commit)** | **23** | **323** |
+
+CTS-side grep produces 323. Asus must confirm `tests` precheck reports a matching count.
+
+### What's new
+
+**Audit additions (7 tests across 4 existing files):**
+- `naming-service.spec.ts` → 22 (was 21): +1 — TesterInitials from a 4-word name
+- `manifest-service.spec.ts` → 10 (was 9): +1 — empty-manifest integrityCheck (also strengthened mismatch test to assert `expectedHash`)
+- `licence-service.spec.ts` → 15 (was 12): +3 — `fs.existsSync` not called, `fetch` not called, validate ignores pre-existing `licence.sig`
+- `evidex-container-service.spec.ts` → 14 (was 12): +2 — `getSizeBytes()` positive, atomic-rename resilience (writeFile rejection preserves original byte-for-byte)
+
+**New files (93 tests across 4 files):**
+- `__tests__/ipc-schemas.spec.ts` (44) — pure Zod parse coverage for every IPC payload schema. Sister to `ipc-router.spec.ts` (which tests the dispatch wrapper).
+- `__tests__/nav-store.spec.ts` (15) — extended store from D34 (session-intake / session-gallery / history cap / goBack).
+- `__tests__/session.store.spec.ts` (15) — Zustand store with optimistic tag updates, mocked `window.evidexAPI` (nested `session.create` / `capture.updateTag` shape — matches the actual preload bridge).
+- `__tests__/integration.session-lifecycle.spec.ts` (19) — end-to-end exercise of `SessionService` + `ShortcutService` + `DatabaseService(':memory:')`. Asserts Rule 8 (`container.save` on end), `SESSION_ALREADY_ACTIVE` guard, append-only `access_log` rows, hotkey register/unregister, rollback on shortcut-register failure.
+
+### Checklist for Asus
+
+1. `git pull --ff-only`. Confirm HEAD matches whatever CTS pushed for this commit.
+2. `npm run report` — expectations:
+   - `prechecks.typecheck` PASS.
+   - `prechecks.tests` PASS — count must be **323** (or higher if Asus added anything in parallel; lower means a regression).
+   - All 18 modules can still report SKIP — Project-open is still Wk 8 work.
+3. **Critical for the integration spec:** `integration.session-lifecycle.spec.ts` instantiates `new DatabaseService(':memory:')` and calls `initProjectSchema()` to apply the migration. If the better-sqlite3 native binding mismatches the active Node ABI (rebuild rhythm in CLAUDE.md §8), this spec will fail at construction time. The auto `pretest` → `rebuild:node` script should handle this — verify `npm test` ran cleanly.
+
+### What this run does NOT cover
+
+React component specs (`SessionIntakeModal` / `CaptureThumbnail` / `GallerySkeleton`) are deferred to `[PH2-REACT-TESTS]` in BACKLOG. Adding them needs four `npm install` lines + a `vitest.config.ts` env split + `__tests__/setup.ts`. None of those changes are in this commit.
+
+### When done
+
+Push `latest.json` + `latest.md` + `run-reports/history/`. Append a one-line note to `INBOX-TO-CTS.md`. Mark this entry `[RESOLVED YYYY-MM-DD]`.
+
+---
+
+## 2026-05-05 17:00 — PH2-W7: Run gate for D32–D35 (Phase 2 Week 7 complete)
+
+**From:** CTS (Claude Code)
+
+End-of-sprint gate for Phase 2 Wk 7 D32–D35. The PH2-1.5 mock-fix gate is superseded by this one — that commit is part of the chain landing here, so the new run-report covers it implicitly. (You can still mark PH2-1.5 below `[RESOLVED 2026-05-05]` once you've pushed `latest.json` for this gate.)
+
+### What landed since `32ac2719` (last gated commit)
+
+- `ShortcutService` + 9 tests — `SHORTCUT_CONFLICT` error code, partial-registration rollback, `app.will-quit` dual-unregister.
+- `SessionService` + 11 tests — Architectural Rule 8 closed (`container.save()` on every session end). `SESSION_ALREADY_ACTIVE` / `SESSION_NOT_FOUND` / `SESSION_NOT_ACTIVE` guards.
+- `SESSION_GET` IPC channel (channel + schema + router + preload).
+- `CAPTURE_SCREENSHOT` and `CAPTURE_TAG_UPDATE` IPC handlers wired (was stubs). 16 live / 12 stub.
+- `electronCaptureSource` — `desktopCapturer`-backed `CaptureSource`. Region-mode crops via sharp before the buffer reaches `CaptureService` so Rule 7 still holds.
+- D35 `SessionLookup` adapter in `app.ts` — `projectName`/`clientName` stubbed `'Pre-Wk8 …'`; `containerId` resolves to `'NO_CONTAINER'` when nothing is open. **This is the critical D35 plumbing-mode boundary** (per AQ5).
+- Renderer: `session.store.ts`, `SessionIntakeModal` (560 px, S-04 form), `SessionIntakePage`, `SessionGalleryPage`, `GallerySkeleton`, `CaptureThumbnail`. `nav-store` extended for session pages.
+
+### Checklist for Asus
+
+1. `git pull --ff-only`. Confirm HEAD matches whatever CTS pushed for this commit.
+2. `npm run report` — expectations:
+   - `prechecks.typecheck` PASS.
+   - `prechecks.tests` PASS — count is **203 + 9 (ShortcutService) + 11 (SessionService) = 223** if no other tests changed. Anything in that ballpark is green; the exact count surfaces in `latest.md`.
+   - All 18 modules can still report SKIP — no module reaches PASS until Project-open lands in Wk 8 (container handles are still the `'NO_CONTAINER'` sentinel).
+   - `pbkdf2` PASS, mean ≤ 200 ms (R-07 budget 800 ms). **Watch for regression**: `EvidexContainerService` is now constructed at app start (was previously not instantiated), so cold-start could be sensitive. Compare the `sprint0-benchmark.json` row against the 2026-04-23 baseline (mean 94.47 ms).
+   - `dependencyAudit` 0 critical (5 high acceptable per VULNERABILITIES.md baseline).
+
+### Manual checks (UI flow — not in automated report)
+
+3. **Session create end-to-end.** Navigate to session-intake (need to wire a "New session" button on the Dashboard or use devtools to trigger `useNavStore.getState().navigate('session-intake', { projectId: 'proj_test' })`), fill the form, submit. Verify a session row appears in `app.db` `sessions` table.
+4. **Hotkey path doesn't crash.** With a session active, press `Ctrl+Shift+1`. App should NOT crash. Logger should show:
+   - `shortcut.callback` (or similar) firing.
+   - `hotkey.capture failed` warn from `app.ts` because `containerId === 'NO_CONTAINER'`. **This is EXPECTED and correct for D35 plumbing mode.**
+5. **End session.** Click "End session" in the gallery header. Verify:
+   - a. Hotkeys are released — pressing `Ctrl+Shift+1` after end does nothing.
+   - b. `session.endedAt` is set in the DB.
+   - c. Logger shows `session.end.noActiveContainer — Rule 8 save skipped` (because no container is open). Container `.save()` is **attempted** but skipped, with a warning. That's the expected pre-Wk8 behaviour.
+6. **`SESSION_STATUS_UPDATE` push.** The toolbar counter should display "0" immediately after session create — not blank, not flicker. Visual check.
+
+### Why this matters
+
+This commit closes the Phase 2 Wk 7 plumbing scope. Wk 8 (Project-open) replaces every `'NO_CONTAINER'` sentinel and `'Pre-Wk8 …'` stub with real values, after which the `capture` module can actually move from SKIP to PASS. The current gate just confirms the wiring is sound enough that nothing crashes when the container is absent.
+
+### When done
+
+Push `latest.json` + `latest.md` + `run-reports/history/`. Append a one-line note on this gate to `INBOX-TO-CTS.md`. Mark this entry `[RESOLVED YYYY-MM-DD]`. The PH2-1.5 entry below can be marked resolved at the same time.
+
+---
+
+## 2026-05-05 09:30 — PH2-1.5: Run gate for CaptureService test-mock fix (HEAD `85a61bd`)
+
+**From:** CTS (Claude Code)
+
+The PH2-1 CaptureService scaffold was gated on `32ac2719` (last `latest.json`, 2026-04-23). One follow-up commit (`85a61bd`, "Fix CaptureService test mocks — use PNG buffer instead of raw RGBA") sits at HEAD without an Asus run report. CTS-side `vitest` reports 203/203 PASS but CTS can't run native modules — Asus is the source of truth. This is a non-blocking gate: D32–D35 work continues on CTS while Asus runs the report.
+
+### What changed since last gate
+
+Test fixture only — `CaptureService.spec.ts` mocks now feed a real PNG buffer to `sharp(...)` via `await sharp({create:{...}}).png().toBuffer()` instead of a synthetic RGBA `Buffer.alloc(...)`. Previously the raw-RGBA mock passed by accident on CTS but blew up under sharp's image-format detection on the `electron-rebuild`'d native binary. No production-path code was touched.
+
+### Checklist for Asus
+
+1. `git pull --ff-only` — confirm HEAD is `85a61bd`.
+2. `npm run report` — expectations:
+   - `prechecks.typecheck` PASS.
+   - `prechecks.tests` PASS, **203/203** (no test count change vs `32ac2719`; only mock fixtures touched).
+   - All 18 modules still SKIP (no module assertions yet — that lands D33–D35).
+   - `pbkdf2` PASS, mean ≤ 200 ms (R-07 budget 800 ms).
+   - `dependencyAudit`: 0 critical (5 high acceptable per VULNERABILITIES.md baseline).
+3. Push `run-reports/latest.{json,md}`, `run-reports/history/`, `STATUS.md`.
+4. Mark this entry `[RESOLVED YYYY-MM-DD]` after push.
+
+### Why this matters
+
+Closes the gap between snapshot 2026-05-05 and the last green Asus gate. Before the next CTS commit moves the `capture` module assertions toward PASS (D33–D35: SessionService + ShortcutService + capture↔session wiring), HEAD must be confirmed-green on Asus so any failure during D33–D35 has a clean baseline to bisect against.
+
+---
+
 ## [RESOLVED 2026-04-23] PH2-1: CaptureService scaffold + 9-step pipeline invariant tests (Phase 2 Wk 7 / D32 prep)
 
 **From:** CTS (Claude Code)

@@ -45,6 +45,8 @@ const evidexAPI = {
       ipcRenderer.invoke(IPC.SESSION_CREATE, input),
     end: (sessionId: string): Promise<IpcResult<SessionSummary>> =>
       ipcRenderer.invoke(IPC.SESSION_END, { sessionId }),
+    get: (sessionId: string): Promise<IpcResult<Session | null>> =>
+      ipcRenderer.invoke(IPC.SESSION_GET, { sessionId }),
   },
 
   capture: {

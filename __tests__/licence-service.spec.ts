@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -54,6 +54,39 @@ describe('LicenceService', () => {
     it('deactivate is a no-op', async () => {
       const svc = new LicenceService({ mode: 'none', licenceFilePath: licencePath });
       await expect(svc.deactivate()).resolves.toBeUndefined();
+    });
+
+    it('validate does not call fs.existsSync — no-licence short-circuits before any fs probe', () => {
+      const existsSpy = vi.spyOn(fs, 'existsSync');
+      const svc = new LicenceService({ mode: 'none', licenceFilePath: licencePath });
+      svc.validate();
+      expect(existsSpy).not.toHaveBeenCalledWith(licencePath);
+      existsSpy.mockRestore();
+    });
+
+    it('activate makes no network call — global fetch is never invoked', async () => {
+      const fetchSpy = vi.fn();
+      const originalFetch = (globalThis as { fetch?: typeof fetch }).fetch;
+      (globalThis as { fetch?: unknown }).fetch = fetchSpy;
+      try {
+        const svc = new LicenceService({ mode: 'none', licenceFilePath: licencePath });
+        await svc.activate({ licenceKey: 'anything' });
+        expect(fetchSpy).not.toHaveBeenCalled();
+      } finally {
+        if (originalFetch) (globalThis as { fetch?: unknown }).fetch = originalFetch;
+        else delete (globalThis as { fetch?: unknown }).fetch;
+      }
+    });
+
+    it('validate ignores a pre-existing licence.sig file in no-licence mode', () => {
+      // Someone manually dropped a licence.sig — none mode must NOT read it.
+      fs.writeFileSync(licencePath, 'pretend-keygen-token-bytes');
+      const readSpy = vi.spyOn(fs, 'readFileSync');
+      const svc = new LicenceService({ mode: 'none', licenceFilePath: licencePath });
+      const result = svc.validate();
+      expect(result).toEqual({ valid: true, mode: 'none' });
+      expect(readSpy).not.toHaveBeenCalledWith(licencePath, expect.anything());
+      readSpy.mockRestore();
     });
   });
 

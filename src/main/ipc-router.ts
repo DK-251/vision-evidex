@@ -1,18 +1,19 @@
 import {
   ipcMain,
   dialog,
-  type BrowserWindow,
+  BrowserWindow,
   type IpcMainInvokeEvent,
   type OpenDialogOptions,
 } from 'electron';
 import { ulid } from 'ulid';
 import type { z } from 'zod';
-import { IPC, type IpcChannel } from '@shared/ipc-channels';
+import { IPC, IPC_EVENTS, type IpcChannel } from '@shared/ipc-channels';
 import { EvidexError, isEvidexError } from '@shared/types/errors';
 import { EvidexErrorCode, type IpcResult } from '@shared/types/ipc';
 import {
   SessionIntakeSchema,
   SessionEndSchema,
+  SessionGetSchema,
   CaptureRequestSchema,
   AnnotationSaveSchema,
   CaptureTagUpdateSchema,
@@ -37,14 +38,39 @@ import type { LicenceService } from './services/licence.service';
 import type { SettingsService } from './services/settings.service';
 import type { DatabaseService } from './services/database.service';
 import type { MetricsService } from './services/metrics.service';
+import type { SessionService } from './services/session.service';
+import type { CaptureService } from './services/capture.service';
+import type { EvidexContainerService } from './services/evidex-container.service';
 
 export interface ServiceRegistry {
   licence: LicenceService;
   settings: SettingsService;
   appDb: DatabaseService;
   metrics: MetricsService;
+  session: SessionService;
+  capture: CaptureService;
+  container: EvidexContainerService;
   /** Owner of the currently-focused BrowserWindow for modal dialogs. */
   getMainWindow: () => BrowserWindow | undefined;
+}
+
+/**
+ * Project-size threshold for STORAGE_WARNING (Tech Spec §11). Default
+ * .evidex budget is 20 MiB; we surface a warning at 75% — gives the
+ * tester time to wrap the session before the hard cap kicks in.
+ */
+const PROJECT_SIZE_BUDGET_BYTES = 20 * 1024 * 1024;
+const STORAGE_WARNING_THRESHOLD_PCT = 75;
+
+function broadcast<T>(channel: string, payload?: T): void {
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (win.isDestroyed()) continue;
+    if (payload === undefined) {
+      win.webContents.send(channel);
+    } else {
+      win.webContents.send(channel, payload);
+    }
+  }
 }
 
 type Handler<TInput, TOutput> = (input: TInput, event: IpcMainInvokeEvent) => Promise<TOutput>;
@@ -98,11 +124,88 @@ export function registerHandler<TSchema extends z.ZodTypeAny, TOutput>(
 export function registerAllHandlers(services: ServiceRegistry): void {
   const stub = async (): Promise<null> => null;
 
-  registerHandler(IPC.SESSION_CREATE, SessionIntakeSchema, stub);
-  registerHandler(IPC.SESSION_END, SessionEndSchema, stub);
-  registerHandler(IPC.CAPTURE_SCREENSHOT, CaptureRequestSchema, stub);
+  registerHandler(IPC.SESSION_CREATE, SessionIntakeSchema, async (intake) =>
+    services.session.create(intake)
+  );
+  registerHandler(IPC.SESSION_END, SessionEndSchema, async (input) =>
+    services.session.end(input.sessionId)
+  );
+  registerHandler(IPC.SESSION_GET, SessionGetSchema, async (input) =>
+    services.session.get(input.sessionId)
+  );
+  registerHandler(IPC.CAPTURE_SCREENSHOT, CaptureRequestSchema, async (input) => {
+    // 1. Session must exist and still be active.
+    const session = services.session.get(input.sessionId);
+    if (!session) {
+      throw new EvidexError(
+        EvidexErrorCode.SESSION_NOT_FOUND,
+        `Session ${input.sessionId} not found`,
+        { sessionId: input.sessionId }
+      );
+    }
+    if (session.endedAt !== undefined) {
+      throw new EvidexError(
+        EvidexErrorCode.SESSION_NOT_ACTIVE,
+        `Session ${input.sessionId} has already ended`,
+        { sessionId: input.sessionId, endedAt: session.endedAt }
+      );
+    }
+
+    // 2. Resolve the active container (single-slot per Rule 11). When
+    //    no container is open we are in pre-Project-open mode — let the
+    //    pipeline run anyway; CaptureService will fail at addImage and
+    //    the error propagates as IpcResult. That is the expected D35
+    //    plumbing-mode behaviour per AQ5.
+    const handle = services.container.getCurrentHandle();
+    const containerOpenForSession =
+      handle !== null && handle.projectId === session.projectId;
+    if (!containerOpenForSession) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[ipc-router] CAPTURE_SCREENSHOT — no container open for project',
+        { projectId: session.projectId, hasHandle: handle !== null }
+      );
+    }
+
+    // 3. Fire the pipeline. CaptureService resolves the rest of the
+    //    context (projectName, clientName, containerId, sequenceNum)
+    //    via the SessionLookup adapter wired in app.ts.
+    const result = await services.capture.screenshot(input);
+
+    // 4. Push the live counter update + flash to all windows.
+    const updated = services.session.get(input.sessionId);
+    if (updated) {
+      broadcast(IPC_EVENTS.SESSION_STATUS_UPDATE, {
+        sessionId:    updated.id,
+        captureCount: updated.captureCount,
+        passCount:    updated.passCount,
+        failCount:    updated.failCount,
+        blockedCount: updated.blockedCount,
+      });
+    }
+    broadcast(IPC_EVENTS.CAPTURE_FLASH);
+
+    // 5. Storage warning. Skipped when no real container — getSizeBytes
+    //    needs an open handle.
+    if (containerOpenForSession && handle) {
+      try {
+        const sizeBytes = await services.container.getSizeBytes(handle.containerId);
+        const pct = Math.round((sizeBytes / PROJECT_SIZE_BUDGET_BYTES) * 100);
+        if (pct >= STORAGE_WARNING_THRESHOLD_PCT) {
+          broadcast(IPC_EVENTS.STORAGE_WARNING, pct);
+        }
+      } catch {
+        // size check failures must not poison the capture response
+      }
+    }
+
+    return result;
+  });
   registerHandler(IPC.CAPTURE_ANNOTATE_SAVE, AnnotationSaveSchema, stub);
-  registerHandler(IPC.CAPTURE_TAG_UPDATE, CaptureTagUpdateSchema, stub);
+  registerHandler(IPC.CAPTURE_TAG_UPDATE, CaptureTagUpdateSchema, async (input) => {
+    services.capture.updateTag(input.captureId, input.tag);
+    return null;
+  });
   registerHandler(IPC.PROJECT_CREATE, ProjectCreateSchema, stub);
   registerHandler(IPC.PROJECT_OPEN, ProjectOpenSchema, stub);
   registerHandler(IPC.PROJECT_CLOSE, ProjectCloseSchema, stub);
@@ -211,7 +314,7 @@ export function registerAllHandlers(services: ServiceRegistry): void {
   });
 
   // eslint-disable-next-line no-console
-  console.info(`[ipc-router] ${Object.values(IPC).length} handlers registered (12 live, 15 stub)`);
+  console.info(`[ipc-router] ${Object.values(IPC).length} handlers registered (16 live, 12 stub)`);
 }
 
 /**

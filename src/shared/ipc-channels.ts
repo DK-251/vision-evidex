@@ -8,6 +8,7 @@ export const IPC = {
   // Session
   SESSION_CREATE: 'session:create',
   SESSION_END: 'session:end',
+  SESSION_GET: 'session:get',
 
   // Capture
   CAPTURE_SCREENSHOT: 'capture:screenshot',

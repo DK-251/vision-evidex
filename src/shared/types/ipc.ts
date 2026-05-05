@@ -56,6 +56,9 @@ export enum EvidexErrorCode {
   FS_READ_FAILED = 'FS_READ_FAILED',
   FS_PATH_INVALID = 'FS_PATH_INVALID',
 
+  // Shortcut
+  SHORTCUT_CONFLICT = 'SHORTCUT_CONFLICT',
+
   // Generic
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }

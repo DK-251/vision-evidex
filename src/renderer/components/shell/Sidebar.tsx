@@ -41,7 +41,7 @@ const FOOTER_ITEMS: NavDestination[] = [
 export function Sidebar(): JSX.Element {
   const page = useNavStore((s) => s.page);
   const collapsed = useNavStore((s) => s.sidebarCollapsed);
-  const goTo = useNavStore((s) => s.goTo);
+  const navigate = useNavStore((s) => s.navigate);
   const toggleSidebar = useNavStore((s) => s.toggleSidebar);
 
   function renderItem(item: NavDestination): JSX.Element {
@@ -55,7 +55,7 @@ export function Sidebar(): JSX.Element {
         active={active}
         collapsed={collapsed}
         disabled={disabled}
-        onClick={disabled ? undefined : () => goTo(item.page!)}
+        onClick={disabled ? undefined : () => navigate(item.page!)}
       />
     );
   }

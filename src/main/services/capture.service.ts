@@ -77,6 +77,14 @@ export interface CaptureServiceDeps {
 export class CaptureService {
   constructor(private readonly deps: CaptureServiceDeps) {}
 
+  /**
+   * Tag update is intentionally lightweight: only the row changes;
+   * the .evidex container is saved on the next session end (Rule 8).
+   */
+  updateTag(captureId: string, tag: StatusTag): void {
+    this.deps.db.updateCaptureTag(captureId, tag);
+  }
+
   async screenshot(input: CaptureRequestInput): Promise<CaptureResult> {
     const capturedAt = (this.deps.now ? this.deps.now() : new Date()).toISOString();
 

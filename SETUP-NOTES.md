@@ -16,14 +16,14 @@ Environment snapshot as of the first scaffold commit. Update this file whenever 
 
 ## Asus TUF (run machine)
 
-Fill in after first `setup-asus.ps1` run.
+First run reports started flowing on 2026-04-23 (`run-reports/latest.json` shows Node 22.22.2, Electron 30.x, all checks green). Tool-version cells below are still TBD — populate from `npm run verify-setup` output the next time the Asus TUF is in front of someone, and overwrite this row.
 
 | Tool | Version | Notes |
 |---|---|---|
 | OS | Windows 11 | |
-| Node | TBD | Should be v22 LTS via nvm-windows |
-| npm | TBD | |
-| Git | TBD | |
+| Node | 22.22.2 (confirmed via run-report) | Should be v22 LTS via nvm-windows; full version still TBD |
+| npm | TBD | To be populated after first Asus setup run |
+| Git | TBD | To be populated after first Asus setup run |
 | VS Build Tools | TBD | "Desktop development with C++" workload required |
 | Python | TBD | node-gyp needs 3.9+ on PATH |
 
@@ -42,17 +42,18 @@ Fill in after first `setup-asus.ps1` run.
 
 ## Two-machine sync verification
 
-- [ ] First commit pushed from CTS
-- [ ] `git clone` + `git pull` works from Asus TUF
-- [ ] `scripts/setup-asus.ps1` run on Asus TUF
-- [ ] `npm run verify-setup` passes on Asus TUF
-- [ ] `npm run dev` launches the app on Asus TUF
-- [ ] `npm run report` writes `run-reports/latest.md` on Asus TUF
-- [ ] `run-reports/` pushed from Asus TUF
-- [ ] CTS pulls the run report
+- [x] First commit pushed from CTS
+- [x] `git clone` + `git pull` works from Asus TUF
+- [x] `scripts/setup-asus.ps1` run on Asus TUF
+- [x] `npm run verify-setup` passes on Asus TUF
+- [x] `npm run dev` launches the app on Asus TUF
+- [x] `npm run report` writes `run-reports/latest.md` on Asus TUF
+- [x] `run-reports/` pushed from Asus TUF
+- [x] CTS pulls the run report
 
 ## Updates
 
 | Date | Change |
 |---|---|
 | 2026-04-17 | Initial scaffold — CTS environment confirmed; Asus TUF pending first run |
+| 2026-04-23 | Asus TUF first run-report green (`32ac2719`): typecheck PASS, 203/203 tests, PBKDF2 mean 94 ms (R-07 88% headroom), `npm audit --omit=dev` 0 critical. Two-machine sync verification all ticked. Tool-version cells in the Asus TUF table still TBD — populate next time the machine is in person. |
