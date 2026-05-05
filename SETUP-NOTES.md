@@ -51,9 +51,35 @@ First run reports started flowing on 2026-04-23 (`run-reports/latest.json` shows
 - [x] `run-reports/` pushed from Asus TUF
 - [x] CTS pulls the run report
 
+## Audits
+
+### Rule 4 audit — DB prepared statements — PASS (2026-05-05)
+
+Phase 1 Week 4 rule, overdue per BACKLOG, closed at start of Phase 2 Week 8.
+
+- Three `db.exec()` call sites in [`database.service.ts`](src/main/services/database.service.ts): lines 46 (`initAppSchema` DDL), 87 (`initProjectSchema` DDL — `schema_migrations` only), and 104 (`db.exec(m.up)` running migration strings from `PROJECT_MIGRATIONS`). All three are static SQL: schema CREATE TABLE statements + migration `up` literals. None take user input. `db.exec` is required because better-sqlite3's `prepare()` is single-statement only — DDL multi-statement is a known acceptable pattern.
+- All data-path writes use `db.prepare(sql).run(args)` / `.get()` / `.all()` with `?` positional or `@key` named bound parameters. Spot-checked: `insertProject` (line 132 — `@`-style), `updateCaptureTag` (line 346 — `?`-style), `updateCaptureNotes` (line 358 — `?`-style), `upsertRecentProject` (line 661), `getProject` (line 156), all `insert*` / `select*` / `get*` variants.
+- Zero string-interpolated SQL found anywhere in DatabaseService.
+
+### Rule 6 audit — atomic file writes — PASS (2026-05-05)
+
+Phase 1 Week 4 rule, partially verified per CLAUDE.md §8 (only `EvidexContainerService.save()` was confirmed). All remaining file writers audited:
+
+| Service | Path | Pattern | Verdict |
+|---|---|---|---|
+| `EvidexContainerService.save()` | [`evidex-container.service.ts:134-138`](src/main/services/evidex-container.service.ts#L134-L138) | `writeFile(.tmp)` → `copyFile(orig→.bak)` → `rename(.tmp→final)` | atomic ✓ |
+| `LicenceService.writeLicenceFile()` | [`licence.service.ts:168-169`](src/main/services/licence.service.ts#L168-L169) | `writeFileSync(.tmp)` → `renameSync(.tmp→final)` | atomic ✓ |
+| `SettingsService.saveSettings()` | [`settings.service.ts:72-73`](src/main/services/settings.service.ts#L72-L73) | `writeFileSync(.tmp)` → `renameSync(.tmp→final)` | atomic ✓ |
+| `ManifestService` | [`manifest.service.ts`](src/main/services/manifest.service.ts) | Pure delegation to `container.appendManifest()` (in-memory map). No direct disk I/O — persistence flows via container.save's atomic path | N/A ✓ |
+| `logger.ts` (log lines) | [`logger.ts:43`](src/main/logger.ts#L43) | `appendFileSync` (intentional append) | N/A — append-only log files do not atomic-rename ✓ |
+| Branding logos | n/a | Rule 9 enforces `BrandingProfile.logoBase64` as a base64 string in DB; no disk write to atomicise | N/A ✓ |
+
+All reachable file writers verified. CLAUDE.md §8 SUSPECT entries can be removed.
+
 ## Updates
 
 | Date | Change |
 |---|---|
 | 2026-04-17 | Initial scaffold — CTS environment confirmed; Asus TUF pending first run |
 | 2026-04-23 | Asus TUF first run-report green (`32ac2719`): typecheck PASS, 203/203 tests, PBKDF2 mean 94 ms (R-07 88% headroom), `npm audit --omit=dev` 0 critical. Two-machine sync verification all ticked. Tool-version cells in the Asus TUF table still TBD — populate next time the machine is in person. |
+| 2026-05-05 | Rule 4 + Rule 6 audits both PASS — see *Audits* section above. CLAUDE.md §8 SUSPECT entries cleared. |
