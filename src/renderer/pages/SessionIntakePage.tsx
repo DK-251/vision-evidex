@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
 import type { Settings, Session } from '@shared/types/entities';
 import { useNavStore } from '../stores/nav-store';
+import { useProjectStore } from '../stores/project.store';
 import { SessionIntakeModal } from '../components/modals/SessionIntakeModal';
 
 /**
  * S-04 route wrapper. The modal IS the page — when it closes successfully
- * we navigate the gallery; when cancelled we go back. Project name is
- * stubbed until project.store.ts ships in Phase 2 Wk 8 (PH2-ROUTING /
- * project-open work tracked in BACKLOG).
+ * we navigate the gallery; when cancelled we go back. Project name now
+ * resolves from `useProjectStore.activeProject` (Wk 8 closes the
+ * pre-Wk8 'Active Project' stub).
  */
 
 export function SessionIntakePage(): JSX.Element | null {
   const projectId = useNavStore((s) => s.currentProjectId);
   const navigate = useNavStore((s) => s.navigate);
   const goBack = useNavStore((s) => s.goBack);
+  const activeProject = useProjectStore((s) => s.activeProject);
 
   // Pull tester-name default from settings so the form pre-fills sensibly.
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -36,7 +38,9 @@ export function SessionIntakePage(): JSX.Element | null {
 
   if (!projectId) return null;
 
-  const projectName = 'Active Project'; // STUB — Phase 2 Wk 8 project.store
+  // Resolve from the open project; the fallback covers the brief window
+  // after onboarding where the user hits the hotkey before opening one.
+  const projectName = activeProject?.name ?? 'Active Project';
   const testerNameDefault = settings?.profile?.name ?? '';
 
   return (

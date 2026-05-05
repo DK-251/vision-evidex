@@ -20,16 +20,23 @@ import {
   ProjectCreateSchema,
   ProjectOpenSchema,
   ProjectCloseSchema,
+  ProjectGetSchema,
+  ProjectListSchema,
+  ProjectRecentSchema,
   ExportOptionsSchema,
   MetricsImportSchema,
   TemplateSaveSchema,
+  TemplateListSchema,
   SignOffSubmitSchema,
   LicenceActivateSchema,
   LicenceValidateSchema,
   SettingsGetSchema,
   SettingsUpdateSchema,
   BrandingSaveSchema,
+  BrandingListSchema,
   DialogSelectDirectorySchema,
+  DialogOpenFolderSchema,
+  NamingPreviewSchema,
   MetricsSummarySchema,
   RecentProjectsListSchema,
   WindowControlSchema,
@@ -226,15 +233,40 @@ export function registerAllHandlers(services: ServiceRegistry): void {
     services.capture.updateTag(input.captureId, input.tag);
     return null;
   });
-  registerHandler(IPC.PROJECT_CREATE, ProjectCreateSchema, stub);
-  registerHandler(IPC.PROJECT_OPEN, ProjectOpenSchema, stub);
-  registerHandler(IPC.PROJECT_CLOSE, ProjectCloseSchema, stub);
+  // ─── Project (Wk 8 — wired to ProjectService) ─────────────────────
+  registerHandler(IPC.PROJECT_CREATE, ProjectCreateSchema, async (input) => {
+    // Same Zod-optional → exactOptional dance as session:create.
+    const { description, ...rest } = input;
+    return services.project.create({
+      ...rest,
+      ...(description !== undefined ? { description } : {}),
+    });
+  });
+  registerHandler(IPC.PROJECT_OPEN, ProjectOpenSchema, async (input) =>
+    services.project.open(input.filePath)
+  );
+  registerHandler(IPC.PROJECT_CLOSE, ProjectCloseSchema, async (input) => {
+    await services.project.close(input.projectId);
+    return null;
+  });
+  registerHandler(IPC.PROJECT_GET, ProjectGetSchema, async (input) =>
+    services.project.get(input.projectId)
+  );
+  registerHandler(IPC.PROJECT_LIST, ProjectListSchema, async () =>
+    services.project.list()
+  );
+  registerHandler(IPC.PROJECT_RECENT, ProjectRecentSchema, async () =>
+    services.project.getRecent()
+  );
   registerHandler(IPC.EXPORT_WORD, ExportOptionsSchema, stub);
   registerHandler(IPC.EXPORT_PDF, ExportOptionsSchema, stub);
   registerHandler(IPC.EXPORT_HTML, ExportOptionsSchema, stub);
   registerHandler(IPC.EXPORT_AUDIT_BUNDLE, ExportOptionsSchema, stub);
   registerHandler(IPC.METRICS_IMPORT, MetricsImportSchema, stub);
   registerHandler(IPC.TEMPLATE_SAVE, TemplateSaveSchema, stub);
+  registerHandler(IPC.TEMPLATE_LIST, TemplateListSchema, async () =>
+    services.appDb.getTemplates()
+  );
   registerHandler(IPC.SIGNOFF_SUBMIT, SignOffSubmitSchema, stub);
 
   registerHandler(IPC.LICENCE_ACTIVATE, LicenceActivateSchema, (input) =>
@@ -276,6 +308,33 @@ export function registerAllHandlers(services: ServiceRegistry): void {
         : {}),
     };
     return services.settings.saveSettings(normalized);
+  });
+
+  registerHandler(IPC.BRANDING_LIST, BrandingListSchema, async () =>
+    services.appDb.getBrandingProfiles()
+  );
+
+  registerHandler(IPC.NAMING_PREVIEW, NamingPreviewSchema, async (input) => {
+    const ctx: { projectName?: string; clientName?: string } = {};
+    if (input.projectName !== undefined) ctx.projectName = input.projectName;
+    if (input.clientName !== undefined) ctx.clientName = input.clientName;
+    return services.naming.preview(input.pattern, ctx);
+  });
+
+  registerHandler(IPC.DIALOG_OPEN_FOLDER, DialogOpenFolderSchema, async (input) => {
+    const win = services.getMainWindow();
+    const options: OpenDialogOptions = {
+      properties: ['openDirectory', 'createDirectory'],
+      ...(input.title !== undefined ? { title: input.title } : { title: 'Choose folder' }),
+      ...(input.defaultPath !== undefined ? { defaultPath: input.defaultPath } : {}),
+    };
+    const result = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    return {
+      cancelled: result.canceled,
+      path: result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0]!,
+    };
   });
 
   registerHandler(IPC.BRANDING_SAVE, BrandingSaveSchema, async (input) => {
@@ -334,7 +393,9 @@ export function registerAllHandlers(services: ServiceRegistry): void {
   });
 
   // eslint-disable-next-line no-console
-  console.info(`[ipc-router] ${Object.values(IPC).length} handlers registered (16 live, 12 stub)`);
+  console.info(
+    `[ipc-router] ${Object.values(IPC).length} handlers registered (26 live, 9 stub)`
+  );
 }
 
 /**

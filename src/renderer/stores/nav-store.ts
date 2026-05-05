@@ -12,7 +12,9 @@ export type Page =
   | 'dashboard'
   | 'settings'
   | 'session-intake'
-  | 'session-gallery';
+  | 'session-gallery'
+  | 'project-list'
+  | 'create-project';
 
 /** Back-compat alias — older imports may still reference this name. */
 export type ShellPage = Page;

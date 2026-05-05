@@ -125,6 +125,33 @@ export const ProjectCloseSchema = z.object({
   projectId: z.string().min(1),
 });
 
+export const ProjectGetSchema = z.object({
+  projectId: z.string().min(1),
+});
+
+export const ProjectListSchema = z.object({});
+export const ProjectRecentSchema = z.object({});
+
+export const TemplateListSchema = z.object({});
+export const BrandingListSchema = z.object({});
+
+/**
+ * Live filename preview — CreateProjectPage debounces this on each
+ * keystroke in the naming-pattern field. NamingService.preview() fills
+ * unspecified context with sensible placeholders ('T-001', etc.) so a
+ * partially-filled form still produces a believable filename.
+ */
+export const NamingPreviewSchema = z.object({
+  pattern: z.string(),
+  projectName: z.string().optional(),
+  clientName: z.string().optional(),
+});
+
+export const DialogOpenFolderSchema = z.object({
+  title: z.string().optional(),
+  defaultPath: z.string().optional(),
+});
+
 // ─── Export ─────────────────────────────────────────────────────────────
 
 export const ExportOptionsSchema = z.object({

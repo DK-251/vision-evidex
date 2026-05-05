@@ -19,6 +19,9 @@ export const IPC = {
   PROJECT_CREATE: 'project:create',
   PROJECT_OPEN: 'project:open',
   PROJECT_CLOSE: 'project:close',
+  PROJECT_GET: 'project:get',
+  PROJECT_LIST: 'project:list',
+  PROJECT_RECENT: 'project:recent',
 
   // Export
   EXPORT_WORD: 'export:word',
@@ -31,6 +34,7 @@ export const IPC = {
 
   // Template
   TEMPLATE_SAVE: 'template:save',
+  TEMPLATE_LIST: 'template:list',
 
   // Sign-off
   SIGNOFF_SUBMIT: 'signoff:submit',
@@ -43,7 +47,12 @@ export const IPC = {
   SETTINGS_GET: 'settings:get',
   SETTINGS_UPDATE: 'settings:update',
   BRANDING_SAVE: 'branding:save',
+  BRANDING_LIST: 'branding:list',
   DIALOG_SELECT_DIRECTORY: 'dialog:selectDirectory',
+  DIALOG_OPEN_FOLDER: 'dialog:openFolder',
+
+  // Naming pattern preview (CreateProjectPage live preview)
+  NAMING_PREVIEW: 'naming:preview',
 
   // Dashboard metrics + recent projects
   METRICS_SUMMARY: 'metrics:summary',

@@ -61,10 +61,20 @@ const evidexAPI = {
   project: {
     create: (input: unknown): Promise<IpcResult<Project>> =>
       ipcRenderer.invoke(IPC.PROJECT_CREATE, input),
-    open: (filePath: string): Promise<IpcResult<Project>> =>
+    open: (filePath: string): Promise<IpcResult<{ project: Project; handle: { containerId: string; projectId: string; filePath: string; openedAt: string } }>> =>
       ipcRenderer.invoke(IPC.PROJECT_OPEN, { filePath }),
     close: (projectId: string): Promise<IpcResult<void>> =>
       ipcRenderer.invoke(IPC.PROJECT_CLOSE, { projectId }),
+    get: (projectId: string): Promise<IpcResult<Project | null>> =>
+      ipcRenderer.invoke(IPC.PROJECT_GET, { projectId }),
+    list: (): Promise<IpcResult<Project[]>> =>
+      ipcRenderer.invoke(IPC.PROJECT_LIST, {}),
+    getRecent: (): Promise<IpcResult<RecentProject[]>> =>
+      ipcRenderer.invoke(IPC.PROJECT_RECENT, {}),
+    previewNamingPattern: (
+      input: { pattern: string; projectName?: string; clientName?: string }
+    ): Promise<IpcResult<string>> =>
+      ipcRenderer.invoke(IPC.NAMING_PREVIEW, input),
   },
 
   export: {
@@ -86,6 +96,8 @@ const evidexAPI = {
   template: {
     save: (input: TemplateSaveInput): Promise<IpcResult<Template>> =>
       ipcRenderer.invoke(IPC.TEMPLATE_SAVE, input),
+    list: (): Promise<IpcResult<Template[]>> =>
+      ipcRenderer.invoke(IPC.TEMPLATE_LIST, {}),
   },
 
   signoff: {
@@ -109,6 +121,8 @@ const evidexAPI = {
   branding: {
     save: (input: BrandingSaveInput): Promise<IpcResult<BrandingProfile>> =>
       ipcRenderer.invoke(IPC.BRANDING_SAVE, input),
+    list: (): Promise<IpcResult<BrandingProfile[]>> =>
+      ipcRenderer.invoke(IPC.BRANDING_LIST, {}),
   },
 
   dialog: {
@@ -116,6 +130,10 @@ const evidexAPI = {
       input: { title?: string; defaultPath?: string } = {}
     ): Promise<IpcResult<{ path: string | null }>> =>
       ipcRenderer.invoke(IPC.DIALOG_SELECT_DIRECTORY, input),
+    openFolder: (
+      input: { title?: string; defaultPath?: string } = {}
+    ): Promise<IpcResult<{ cancelled: boolean; path: string | null }>> =>
+      ipcRenderer.invoke(IPC.DIALOG_OPEN_FOLDER, input),
   },
 
   windowControls: {
