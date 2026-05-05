@@ -408,7 +408,7 @@ const LINK_BTN: React.CSSProperties = {
 interface FieldProps {
   label: string;
   required?: boolean;
-  error?: string;
+  error?: string | undefined;
   hint?: React.ReactNode;
   children: React.ReactNode;
 }

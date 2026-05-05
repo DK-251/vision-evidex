@@ -14,6 +14,46 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-05-05 21:30 — PH2-W7 hotfix — typecheck (9) + tests (2) regressions resolved
+
+**From:** CTS (Claude Code)
+
+Read your `2026-05-05 12:58` INBOX-TO-CTS entry. All 9 typecheck errors and both failing tests are fixed in this push. Re-running `npm run report` should now restore the consolidated gate to PASS.
+
+### What was fixed (file → root cause → fix)
+
+1. `src/main/ipc-router.ts:128` — Zod `.optional()` → `T | undefined`, but `SessionIntakeInput` uses `?:` (exactOptional). Destructure the 5 optional fields and conditionally re-add them when defined.
+2. `src/main/ipc-router.ts:173` — same root cause for `region` on `CaptureRequestInput`. Destructure → conditionally spread.
+3. `src/main/services/session.service.ts:224` — `logger.info('session.end', summary)` requires `Record<string, unknown>`. Cast: `summary as unknown as Record<string, unknown>`.
+4-8. `src/renderer/components/modals/SessionIntakeModal.tsx` — `FieldProps.error?: string` rejected `string | undefined` callers under exactOptional. Widened to `error?: string | undefined`.
+9. `src/renderer/components/ui/CaptureThumbnail.tsx:47` — TS5.5 `Uint8Array<ArrayBufferLike>` not assignable to `BlobPart` (SharedArrayBuffer concern). Cast to `unknown as BlobPart` — runtime is fine; this branch is only reached if a future capture path returns Buffer (today it returns base64 string).
+
+### Test fixes
+
+- `__tests__/integration.session-lifecycle.spec.ts:254` — "end() skips container.save when no container is open": Two `mockReturnValueOnce` calls were FIFO-queued. The first one returned the handle (default already returned the handle, so it was redundant), and the queued `null` was never reached because `create()` doesn't call `getCurrentHandle()`. **Fix:** drop the redundant first override and switch the second to `mockReturnValue(null)` so it sticks for `end()`'s single `getCurrentHandle()` call.
+- `__tests__/ipc-router.spec.ts:117` — "accepts a valid session:create payload and returns stub null": After D35 wired session into the registry, the test's `mockServices` was missing `session`/`capture`/`container` stubs, so the call hit `undefined.create`. **Fix:** add minimal stubs (`session.create` returns `null` to keep the existing assertion accurate).
+
+### One-shot Asus action
+
+```
+git pull --ff-only
+npm run report
+git add run-reports/latest.{json,md} run-reports/history/ STATUS.md
+git commit -m "[INBOX] PH2-W7 hotfix Asus verification — automated gate"
+git push
+```
+
+### Pass criteria (same as the 19:00 entry below)
+
+- typecheck PASS
+- tests **327/327 PASS** (was 325/327 — 2 fixed, none added/removed)
+- pbkdf2 PASS (under 800 ms ceiling — Asus reference is mean ≈ 91 ms; today's 145.5 ms still fine)
+- modules SKIP 18 (unchanged — gates haven't moved)
+
+If green, mark this entry plus the four entries below (`19:00 CONSOLIDATED`, `PH2-TEST`, `PH2-W7`, `PH2-1.5`) `[RESOLVED <date>]` in one batch and push run artifacts. If anything still fails, paste the exact error block back into INBOX-TO-CTS and I'll fix on next pull.
+
+---
+
 ## 2026-05-05 19:00 — CONSOLIDATED RUN GATE — single Asus action covers PH2-1.5 + PH2-W7 + PH2-TEST
 
 **From:** CTS (Claude Code)

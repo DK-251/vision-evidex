@@ -221,7 +221,7 @@ export class SessionService {
       blockedCount: existing.blockedCount,
     });
 
-    logger.info('session.end', summary);
+    logger.info('session.end', summary as unknown as Record<string, unknown>);
     return summary;
   }
 

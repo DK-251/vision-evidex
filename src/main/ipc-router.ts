@@ -124,9 +124,19 @@ export function registerHandler<TSchema extends z.ZodTypeAny, TOutput>(
 export function registerAllHandlers(services: ServiceRegistry): void {
   const stub = async (): Promise<null> => null;
 
-  registerHandler(IPC.SESSION_CREATE, SessionIntakeSchema, async (intake) =>
-    services.session.create(intake)
-  );
+  registerHandler(IPC.SESSION_CREATE, SessionIntakeSchema, async (intake) => {
+    // Zod's optional() yields `T | undefined`; the service input type uses
+    // `?:` semantics under exactOptionalPropertyTypes — strip undefined keys.
+    const { testDataMatrix, scenario, requirementId, requirementDesc, testerEmail, ...required } = intake;
+    return services.session.create({
+      ...required,
+      ...(testDataMatrix !== undefined ? { testDataMatrix } : {}),
+      ...(scenario !== undefined ? { scenario } : {}),
+      ...(requirementId !== undefined ? { requirementId } : {}),
+      ...(requirementDesc !== undefined ? { requirementDesc } : {}),
+      ...(testerEmail !== undefined ? { testerEmail } : {}),
+    });
+  });
   registerHandler(IPC.SESSION_END, SessionEndSchema, async (input) =>
     services.session.end(input.sessionId)
   );
@@ -170,7 +180,11 @@ export function registerAllHandlers(services: ServiceRegistry): void {
     // 3. Fire the pipeline. CaptureService resolves the rest of the
     //    context (projectName, clientName, containerId, sequenceNum)
     //    via the SessionLookup adapter wired in app.ts.
-    const result = await services.capture.screenshot(input);
+    const { region, ...rest } = input;
+    const result = await services.capture.screenshot({
+      ...rest,
+      ...(region !== undefined ? { region } : {}),
+    });
 
     // 4. Push the live counter update + flash to all windows.
     const updated = services.session.get(input.sessionId);

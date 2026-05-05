@@ -77,6 +77,21 @@ const mockServices: ServiceRegistry = {
       exportsThisWeek: 0,
     }),
   } as unknown as ServiceRegistry['metrics'],
+  session: {
+    // Wired in PH2-W7 D35. Tests below cover happy-path validation only;
+    // the stub returns null so the existing assertion stays accurate.
+    create: async () => null,
+    end: async () => null,
+    get: () => null,
+  } as unknown as ServiceRegistry['session'],
+  capture: {
+    screenshot: async () => null,
+    updateTag: () => undefined,
+  } as unknown as ServiceRegistry['capture'],
+  container: {
+    getCurrentHandle: () => null,
+    getSizeBytes: async () => 0,
+  } as unknown as ServiceRegistry['container'],
   getMainWindow: () => undefined,
 };
 

@@ -44,7 +44,9 @@ export function CaptureThumbnail({
       return;
     }
     if (raw instanceof Uint8Array) {
-      const blob = new Blob([raw], { type: 'image/jpeg' });
+      // Cast to BlobPart — TS5.5 narrows Uint8Array<ArrayBufferLike> too tightly
+      // for the Blob ctor; runtime is fine.
+      const blob = new Blob([raw as unknown as BlobPart], { type: 'image/jpeg' });
       const url = URL.createObjectURL(blob);
       setImgSrc(url);
       return () => URL.revokeObjectURL(url);

@@ -244,12 +244,12 @@ describe('Session lifecycle integration', () => {
   });
 
   it('end() skips container.save when no container is open (no throw — pre-Wk8 mode)', async () => {
-    container.getCurrentHandle.mockReturnValueOnce({
-      containerId: 'cont_01TEST', projectId: 'proj_01TEST',
-      filePath: '/tmp/test.evidex', openedAt: '2026-04-18T09:00:00Z',
-    });
+    // Default mock returns a handle; create() doesn't read it, so we drop
+    // the leading mockReturnValueOnce (its queue ordering ate the null
+    // override end() needed). Switch to mockReturnValue so the override
+    // sticks for the single getCurrentHandle() call in end().
     const session = await sessions.create(stubIntake());
-    container.getCurrentHandle.mockReturnValueOnce(null);
+    container.getCurrentHandle.mockReturnValue(null);
     const summary = await sessions.end(session.id);
     expect(container.save).not.toHaveBeenCalled();
     expect(summary.sessionId).toBe(session.id);
