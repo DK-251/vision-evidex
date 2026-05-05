@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-05-05T07:22:31.496Z",
+  "timestamp": "2026-05-05T07:38:02.682Z",
   "branch": "main",
-  "commitSha": "42e0291544e5cc2af95ddd41998b17075e5d4e20",
-  "shortSha": "42e02915",
+  "commitSha": "88185b00c794f527ef449a0d0e7e8935098eeb1e",
+  "shortSha": "88185b00",
   "nodeVersion": "22.22.2",
   "electronVersion": "^30.4.0",
-  "totalDurationMs": 0,
+  "totalDurationMs": 1,
   "modules": [
     {
       "name": "licence",
@@ -204,45 +204,23 @@
   },
   "prechecks": {
     "typecheck": {
-      "ok": false,
-      "duration_ms": 12101,
-      "errors": [
-        "src/main/ipc-router.ts(128,29): error TS2379: Argument of type '{ projectId: string; testId: string; testName: string; environment: string; testerName: string; applicationUnderTest: string; testDataMatrix?: string | undefined; scenario?: string | undefined; requirementId?: string | undefined; requirementDesc?: string | undefined; testerEmail?: string | undefined; }' is not assignable to parameter of type 'SessionIntakeInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r",
-        "src/main/ipc-router.ts(173,54): error TS2379: Argument of type '{ sessionId: string; mode: \"fullscreen\" | \"active-window\" | \"region\"; statusTag: \"pass\" | \"fail\" | \"blocked\" | \"skip\" | \"untagged\"; region?: { width: number; height: number; x: number; y: number; } | undefined; }' is not assignable to parameter of type 'CaptureRequestInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r",
-        "src/main/services/session.service.ts(224,32): error TS2345: Argument of type 'SessionSummary' is not assignable to parameter of type 'Record<string, unknown>'.\r",
-        "src/renderer/components/modals/SessionIntakeModal.tsx(192,14): error TS2375: Type '{ children: Element; label: string; required: true; error: string | undefined; }' is not assignable to type 'FieldProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r",
-        "src/renderer/components/modals/SessionIntakeModal.tsx(202,14): error TS2375: Type '{ children: Element; label: string; required: true; error: string | undefined; }' is not assignable to type 'FieldProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r",
-        "src/renderer/components/modals/SessionIntakeModal.tsx(214,12): error TS2375: Type '{ children: Element; label: string; required: true; error: string | undefined; }' is not assignable to type 'FieldProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r",
-        "src/renderer/components/modals/SessionIntakeModal.tsx(284,14): error TS2375: Type '{ children: Element; label: string; required: true; error: string | undefined; }' is not assignable to type 'FieldProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r",
-        "src/renderer/components/modals/SessionIntakeModal.tsx(303,14): error TS2375: Type '{ children: Element; label: string; required: true; error: string | undefined; }' is not assignable to type 'FieldProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r",
-        "src/renderer/components/ui/CaptureThumbnail.tsx(47,30): error TS2322: Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'BlobPart'.\r"
-      ]
+      "ok": true,
+      "duration_ms": 12462
     },
     "tests": {
-      "ok": false,
-      "duration_ms": 24723,
+      "ok": true,
+      "duration_ms": 13487,
       "total": 327,
-      "passed": 325,
-      "failed": 2,
-      "failures": [
-        {
-          "file": "__tests__\\integration.session-lifecycle.spec.ts",
-          "name": "Session lifecycle integration end() skips container.save when no container is open (no throw — pre-Wk8 mode)",
-          "message": "AssertionError: expected \"spy\" to not be called at all, but actually been called 1 times\u001b[90m\n\nReceived: \n\n\u001b[1m  1st spy call:\n\n\u001b[22m    Array [\n      \"cont_01TEST\",\n    ]\n\u001b[39m\u001b[90m\n\nNumber of calls: \u001b[1m1\u001b[22m\n\u001b[39m\n    at Proxy.<anonymous> (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/expect/dist/index.js:1448:13)\n    at Proxy.<anonymous> (file:///D:/DEV/projects/vision-evidex/nod"
-        },
-        {
-          "file": "__tests__\\ipc-router.spec.ts",
-          "name": "ipc-router (Phase 1 Wk3 security gate) accepts a valid session:create payload and returns stub null",
-          "message": "AssertionError: expected { ok: false, error: { …(2) } } to deeply equal { ok: true, data: null }\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\ipc-router.spec.ts:117:20\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:533:5\n    at runTest (file:///D:/DEV/projects/vision-evidex/node_mod"
-        }
-      ]
+      "passed": 327,
+      "failed": 0,
+      "failures": []
     }
   },
   "pbkdf2": {
     "ok": true,
-    "duration_ms": 897,
+    "duration_ms": 868,
     "record": {
-      "ts": "2026-05-05T07:23:09.482Z",
+      "ts": "2026-05-05T07:38:29.738Z",
       "node": "22.22.2",
       "platform": "win32-x64",
       "iterations": 310000,
@@ -250,15 +228,15 @@
       "salt_len_bytes": 16,
       "runs": 5,
       "samples_ms": [
-        141.51,
-        148.25,
-        140.73,
-        150.45,
-        146.56
+        138.57,
+        145.42,
+        142.28,
+        138.86,
+        153.44
       ],
-      "min_ms": 140.73,
-      "max_ms": 150.45,
-      "mean_ms": 145.5,
+      "min_ms": 138.57,
+      "max_ms": 153.44,
+      "mean_ms": 143.72,
       "budget_ms": 800,
       "passed": true
     }
@@ -273,13 +251,9 @@
       "critical": 0,
       "total": 8
     },
-    "duration_ms": 12853
+    "duration_ms": 8983
   },
   "next_actions": [
-    "PRECHECK [tests] FAIL — 2/327 failed",
-    "PRECHECK [typecheck] FAIL — src/main/ipc-router.ts(128,29): error TS2379: Argument of type '{ projectId: string; testId: string; testName: string; environment: string; testerName: string; applicationUnderTest: string; testDataMatrix?: string | undefined; scenario?: string | undefined; requirementId?: string | undefined; requirementDesc?: string | undefined; testerEmail?: string | undefined; }' is not assignable to parameter of type 'SessionIntakeInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r",
-    "  · __tests__\\integration.session-lifecycle.spec.ts › Session lifecycle integration end() skips container.save when no container is open (no throw — pre-Wk8 mode)",
-    "  · __tests__\\ipc-router.spec.ts › ipc-router (Phase 1 Wk3 security gate) accepts a valid session:create payload and returns stub null",
     "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
   ]
 }

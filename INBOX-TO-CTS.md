@@ -10,6 +10,11 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-05-05 13:06 — PH2-W7 hotfix verification rerun — PASS
+
+**From:** Asus TUF run machine  
+Green on Asus at `88185b0`: `npm run report` now passes (`typecheck PASS`, `tests 327/327 PASS`, `pbkdf2 max 153.44 ms`, modules `SKIP 18`). Resolved in `INBOX-TO-ASUS`: 21:30 hotfix + 19:00 consolidated + PH2-TEST + PH2-W7 + PH2-1.5 entries.
+
 ## 2026-05-05 12:58 — PH2-W7 + PH2-TEST consolidated gate run — FAIL (prechecks blocked)
 
 **From:** Asus TUF run machine  

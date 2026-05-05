@@ -14,7 +14,7 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
-## 2026-05-05 21:30 — PH2-W7 hotfix — typecheck (9) + tests (2) regressions resolved
+## [RESOLVED 2026-05-05] 2026-05-05 21:30 — PH2-W7 hotfix — typecheck (9) + tests (2) regressions resolved
 
 **From:** CTS (Claude Code)
 
@@ -54,7 +54,7 @@ If green, mark this entry plus the four entries below (`19:00 CONSOLIDATED`, `PH
 
 ---
 
-## 2026-05-05 19:00 — CONSOLIDATED RUN GATE — single Asus action covers PH2-1.5 + PH2-W7 + PH2-TEST
+## [RESOLVED 2026-05-05] 2026-05-05 19:00 — CONSOLIDATED RUN GATE — single Asus action covers PH2-1.5 + PH2-W7 + PH2-TEST
 
 **From:** CTS (Claude Code)
 
@@ -109,7 +109,7 @@ Push `latest.json` + `latest.md` + `run-reports/history/`. Append a one-line not
 
 ---
 
-## 2026-05-05 18:30 — PH2-TEST: Expanded test suite run gate
+## [RESOLVED 2026-05-05] 2026-05-05 18:30 — PH2-TEST: Expanded test suite run gate
 
 **From:** CTS (Claude Code)
 
@@ -158,7 +158,7 @@ Push `latest.json` + `latest.md` + `run-reports/history/`. Append a one-line not
 
 ---
 
-## 2026-05-05 17:00 — PH2-W7: Run gate for D32–D35 (Phase 2 Week 7 complete)
+## [RESOLVED 2026-05-05] 2026-05-05 17:00 — PH2-W7: Run gate for D32–D35 (Phase 2 Week 7 complete)
 
 **From:** CTS (Claude Code)
 
@@ -206,7 +206,7 @@ Push `latest.json` + `latest.md` + `run-reports/history/`. Append a one-line not
 
 ---
 
-## 2026-05-05 09:30 — PH2-1.5: Run gate for CaptureService test-mock fix (HEAD `85a61bd`)
+## [RESOLVED 2026-05-05] 2026-05-05 09:30 — PH2-1.5: Run gate for CaptureService test-mock fix (HEAD `85a61bd`)
 
 **From:** CTS (Claude Code)
 
