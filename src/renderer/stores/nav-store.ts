@@ -39,7 +39,11 @@ interface NavState {
 }
 
 export const useNavStore = create<NavState>()((set) => ({
-  page: 'dashboard',
+  // Wk 8 (AQ5) — post-onboarding home is the project list, not the
+  // dashboard. Dashboard is still reachable via the sidebar but it's
+  // a metrics overview, not the right landing for "open / create a
+  // project to start capturing".
+  page: 'project-list',
   currentProjectId: null,
   currentSessionId: null,
   history: [],
@@ -65,7 +69,7 @@ export const useNavStore = create<NavState>()((set) => ({
   goBack: () =>
     set((s) => {
       if (s.history.length === 0) {
-        return { page: 'dashboard', history: [] };
+        return { page: 'project-list', history: [] };
       }
       const previous = s.history[s.history.length - 1]!;
       return { page: previous, history: s.history.slice(0, -1) };

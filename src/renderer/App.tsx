@@ -4,6 +4,8 @@ import { DashboardPage } from './pages/DashboardPage';
 import { AppSettingsPage } from './pages/AppSettingsPage';
 import { SessionIntakePage } from './pages/SessionIntakePage';
 import { SessionGalleryPage } from './pages/SessionGalleryPage';
+import { ProjectListPage } from './pages/ProjectListPage';
+import { CreateProjectPage } from './pages/CreateProjectPage';
 import { useOnboardingStore } from './stores/onboarding-store';
 import { useNavStore } from './stores/nav-store';
 import { BootSkeleton } from './components/Skeleton';
@@ -91,8 +93,13 @@ function ShellPageSwitch({ page }: { page: ReturnType<typeof useNavStore.getStat
     case 'session-gallery':
       return <SessionGalleryPage />;
     case 'dashboard':
-    default:
       return <DashboardPage />;
+    case 'create-project':
+      return <CreateProjectPage />;
+    case 'project-list':
+    default:
+      // Wk 8 (AQ5) — post-onboarding home is the project list.
+      return <ProjectListPage />;
   }
 }
 

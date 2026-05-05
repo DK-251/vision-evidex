@@ -1,5 +1,6 @@
 import {
   DataBarVerticalRegular,
+  FolderRegular,
   ImageMultipleRegular,
   DocumentBulletListRegular,
   DocumentTextRegular,
@@ -11,22 +12,27 @@ import { useNavStore, type ShellPage } from '../../stores/nav-store';
 import { NavItem } from './NavItem';
 
 /**
- * Fluent navigation rail (Docs §5.6). Six destinations in the order
- * specified by the design system: Dashboard, Sessions, Templates,
- * Reports, Audit Pack, Settings (footer). Only Dashboard and Settings
- * are wired today — the rest render disabled and surface as "coming
- * soon" tooltips via the button title in collapsed mode. Screens for
- * the disabled items land in Wk6 + Phase 2/3/4 per the development
- * plan and will flip their `disabled` flag here when they exist.
+ * Fluent navigation rail (Docs §5.6). Wk 8 (AQ5) — Projects becomes the
+ * first nav item and the post-onboarding home; Dashboard moves to slot
+ * 2 and stays a metrics overview. Only Projects, Dashboard, and
+ * Settings are wired today; the rest render disabled.
  */
 
 interface NavDestination {
   page: ShellPage | null; // null → disabled / coming soon
+  /** Pages that should also light up this item (e.g. create-project for Projects). */
+  alsoActiveFor?: ShellPage[];
   icon: JSX.Element;
   label: string;
 }
 
 const MAIN_ITEMS: NavDestination[] = [
+  {
+    page:           'project-list',
+    alsoActiveFor:  ['create-project'],
+    icon:           <FolderRegular />,
+    label:          'Projects',
+  },
   { page: 'dashboard', icon: <DataBarVerticalRegular />,      label: 'Dashboard' },
   { page: null,        icon: <ImageMultipleRegular />,        label: 'Sessions' },
   { page: null,        icon: <DocumentBulletListRegular />,   label: 'Templates' },
@@ -46,7 +52,9 @@ export function Sidebar(): JSX.Element {
 
   function renderItem(item: NavDestination): JSX.Element {
     const disabled = item.page === null;
-    const active = item.page !== null && page === item.page;
+    const active =
+      item.page !== null &&
+      (page === item.page || (item.alsoActiveFor ?? []).includes(page));
     return (
       <NavItem
         key={item.label}

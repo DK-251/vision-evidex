@@ -10,8 +10,11 @@ import { useNavStore } from '../src/renderer/stores/nav-store';
  */
 
 beforeEach(() => {
+  // Wk 8 (AQ5) — post-onboarding home is now the project list. The
+  // tests below that exercise navigate / goBack against 'dashboard'
+  // are unchanged in shape; the reset target moves with the home.
   useNavStore.setState({
-    page: 'dashboard',
+    page: 'project-list',
     currentProjectId: null,
     currentSessionId: null,
     history: [],
@@ -49,7 +52,9 @@ describe('useNavStore', () => {
 
     it('pushes the previous page onto the history stack', () => {
       useNavStore.getState().navigate('settings');
-      expect(useNavStore.getState().history).toContain('dashboard');
+      // beforeEach seeds 'project-list' as the current page; navigate
+      // pushes that onto history before flipping to 'settings'.
+      expect(useNavStore.getState().history).toContain('project-list');
     });
 
     it('caps history at 10 entries — oldest dropped', () => {
@@ -76,7 +81,8 @@ describe('useNavStore', () => {
     it('restores the previous page from history', () => {
       useNavStore.getState().navigate('settings');
       useNavStore.getState().goBack();
-      expect(useNavStore.getState().page).toBe('dashboard');
+      // Wk 8 home (AQ5) is the seed page in beforeEach.
+      expect(useNavStore.getState().page).toBe('project-list');
     });
 
     it('reduces history length by 1 on each call', () => {
@@ -87,19 +93,19 @@ describe('useNavStore', () => {
       expect(useNavStore.getState().history.length).toBe(lenBefore - 1);
     });
 
-    it('navigates to dashboard when history is empty', () => {
+    it('navigates to project-list (Wk 8 home) when history is empty', () => {
       // history empty from beforeEach
       useNavStore.getState().goBack();
-      expect(useNavStore.getState().page).toBe('dashboard');
+      expect(useNavStore.getState().page).toBe('project-list');
       expect(useNavStore.getState().history).toEqual([]);
     });
 
     it('repeated goBack drains history without throwing', () => {
       useNavStore.getState().navigate('settings');
       useNavStore.getState().goBack();
-      useNavStore.getState().goBack(); // already at dashboard, history empty
+      useNavStore.getState().goBack(); // already at project-list, history empty
       useNavStore.getState().goBack();
-      expect(useNavStore.getState().page).toBe('dashboard');
+      expect(useNavStore.getState().page).toBe('project-list');
     });
   });
 
