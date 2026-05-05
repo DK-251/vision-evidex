@@ -14,13 +14,15 @@ All P0 features from the PRD, organized by module. This file is the **implementa
 | OB (Onboarding) | 0 | 13 |
 | DB (Dashboard) | 0 | 5 |
 | EC (Evidence Capture) | 0 | 17 |
-| PM (Project Manager) | 0 | 10 |
+| PM (Project Manager) | 3 | 10 |
 | TE (Template Engine) | 0 | 11 |
 | RB (Report Builder) | 0 | 13 |
 | SR (Status Reports) | 0 | 4 |
 | AU (Audit Pack) | 0 | 7 |
 | WS (Workspace Settings) | 0 | 12 |
-| **TOTAL P0** | **0** | **92** |
+| **TOTAL P0** | **3** | **92** |
+
+> **Wk 8 ticking note (2026-05-05):** PM-01/02/12 ticked locally — they sit on `b19dd61` and are exercised by `__tests__/project-service.spec.ts`. PM-12 was confirmed by the Rule 6 audit on the same day. The pending items in the Wk 8 [INBOX-TO-ASUS](INBOX-TO-ASUS.md) gate request — EC-04 through EC-17 plus the OB/WS tail — will tick on this commit's run-report once Asus confirms Step 5 (real `desktopCapturer` → `.evidex` round trip).
 
 Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are mode-conditional — e.g. OB-01…OB-05 only apply in standard mode). Per locked decision, **IDs are the source of truth**, count is advisory.
 
@@ -80,8 +82,8 @@ Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are
 
 | ID | Feature | Phase | Commit | Run |
 |---|---|---|---|---|
-| [ ] PM-01 | Create new project (name, client, start date, template, branding) | P1 W6 | | |
-| [ ] PM-02 | Open existing `.evidex` file | P1 W6 | | |
+| [x] PM-01 | Create new project (name, client, start date, template, branding) | P1 W6 | b19dd61 | (pending Asus W8 gate) |
+| [x] PM-02 | Open existing `.evidex` file | P1 W6 | b19dd61 | (pending Asus W8 gate) |
 | [ ] PM-03 | Project settings (rename, client, template, branding) | P1 W6 | | |
 | [ ] PM-04 | Auto-naming convention engine (10 tokens) | P1 W4 | | |
 | [ ] PM-05 | Session list view with intake summary + status | P2 W8 | | |
@@ -89,7 +91,7 @@ Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are
 | [ ] PM-07 | Test case ID linkage (session → Test ID, Req ID) | P2 W7 | | |
 | [ ] PM-08 | Archive project (mark archived, preserve data) | P1 W6 | | |
 | [ ] PM-11 | 20 MB project cap (warning 15MB, block 20MB) | P1 W6 | | |
-| [ ] PM-12 | Atomic save (`.tmp` → rename → `.evidex`) | P1 W4 | | |
+| [x] PM-12 | Atomic save (`.tmp` → rename → `.evidex`) | P1 W4 | b19dd61 | (Rule 6 audit 2026-05-05) |
 
 ## Module 05 — Template Engine
 

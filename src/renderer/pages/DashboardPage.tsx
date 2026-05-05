@@ -9,6 +9,8 @@ import {
   SparkleRegular,
 } from '@fluentui/react-icons';
 import { Button, Card, FluentSkeleton } from '../components/ui';
+import { useNavStore } from '../stores/nav-store';
+import { useProjectStore } from '../stores/project.store';
 
 /**
  * S-03 — Dashboard. Port of the D25 page to doc §15 S-03.
@@ -19,33 +21,47 @@ import { Button, Card, FluentSkeleton } from '../components/ui';
 
 export function DashboardPage(): JSX.Element {
   const [summary, setSummary] = useState<MetricsSummary | null>(null);
-  const [recent, setRecent] = useState<RecentProject[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Wk 8 — recent projects come from useProjectStore so a project
+  // created elsewhere reflects without remounting the dashboard.
+  const recent = useProjectStore((s) => s.recentProjects);
+  const loadRecent = useProjectStore((s) => s.loadRecent);
+  const openProject = useProjectStore((s) => s.openProject);
+  const navigate = useNavStore((s) => s.navigate);
+  const [recentLoaded, setRecentLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function load(): Promise<void> {
-      const [summaryResult, recentResult] = await Promise.all([
-        window.evidexAPI.dashboard.summary(),
-        window.evidexAPI.dashboard.recentProjects(),
-      ]);
+      const summaryResult = await window.evidexAPI.dashboard.summary();
       if (cancelled) return;
       if (!summaryResult.ok) {
         setError(`metrics: ${summaryResult.error.message}`);
         return;
       }
-      if (!recentResult.ok) {
-        setError(`recent projects: ${recentResult.error.message}`);
-        return;
-      }
       setSummary(summaryResult.data);
-      setRecent(recentResult.data);
+      // Project recent-list lives in the store — load once on first
+      // dashboard mount; subsequent visits use the cached array.
+      await loadRecent();
+      if (cancelled) return;
+      setRecentLoaded(true);
     }
     void load();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadRecent]);
+
+  async function handleOpen(p: RecentProject): Promise<void> {
+    try {
+      await openProject(p.filePath);
+      navigate('project-list', { projectId: p.projectId });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Dashboard openProject failed', err);
+    }
+  }
 
   return (
     <div
@@ -138,7 +154,10 @@ export function DashboardPage(): JSX.Element {
         <Button variant="standard" startIcon={<DocumentTextRegular />} style={{ justifyContent: 'flex-start' }}>Recent reports</Button>
       </section>
 
-      <RecentProjectsSection recent={recent} />
+      <RecentProjectsSection
+        recent={recentLoaded ? recent : null}
+        onOpen={(p) => void handleOpen(p)}
+      />
     </div>
   );
 }
@@ -163,7 +182,13 @@ function MetricCardSkeleton(): JSX.Element {
   );
 }
 
-function RecentProjectsSection({ recent }: { recent: RecentProject[] | null }): JSX.Element {
+function RecentProjectsSection({
+  recent,
+  onOpen,
+}: {
+  recent: RecentProject[] | null;
+  onOpen: (p: RecentProject) => void;
+}): JSX.Element {
   return (
     <Card variant="default">
       <div
@@ -207,42 +232,56 @@ function RecentProjectsSection({ recent }: { recent: RecentProject[] | null }): 
         <EmptyProjectsState />
       ) : (
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-          {recent.map((p) => (
-            <li key={p.projectId} className="recent-project-row">
-              <span style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }} aria-hidden>
-                <FolderRegular fontSize={16} />
-              </span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize:     'var(--type-body-size)',
-                    color:        'var(--color-text-primary)',
-                    overflow:     'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace:   'nowrap',
-                  }}
-                >
-                  {p.name}
-                </div>
-                <div
-                  className="mono"
-                  style={{
-                    fontSize:     'var(--type-caption-size)',
-                    color:        'var(--color-text-secondary)',
-                    overflow:     'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace:   'nowrap',
-                  }}
-                >
-                  {p.filePath}
-                </div>
-              </div>
-              <time
-                dateTime={p.lastOpenedAt}
-                style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-tertiary)' }}
+          {recent.slice(0, 5).map((p) => (
+            <li key={p.projectId}>
+              <button
+                type="button"
+                className="recent-project-row interactive-hover"
+                onClick={() => onOpen(p)}
+                style={{
+                  width:      '100%',
+                  background: 'none',
+                  border:     'none',
+                  padding:    'var(--space-2) var(--space-3)',
+                  cursor:     'pointer',
+                  textAlign:  'left',
+                }}
               >
-                {p.lastOpenedAt.slice(0, 10)}
-              </time>
+                <span style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }} aria-hidden>
+                  <FolderRegular fontSize={16} />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize:     'var(--type-body-size)',
+                      color:        'var(--color-text-primary)',
+                      overflow:     'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace:   'nowrap',
+                    }}
+                  >
+                    {p.name}
+                  </div>
+                  <div
+                    className="mono"
+                    style={{
+                      fontSize:     'var(--type-caption-size)',
+                      color:        'var(--color-text-secondary)',
+                      overflow:     'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace:   'nowrap',
+                    }}
+                  >
+                    {p.filePath}
+                  </div>
+                </div>
+                <time
+                  dateTime={p.lastOpenedAt}
+                  style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-tertiary)' }}
+                >
+                  {p.lastOpenedAt.slice(0, 10)}
+                </time>
+              </button>
             </li>
           ))}
         </ul>
