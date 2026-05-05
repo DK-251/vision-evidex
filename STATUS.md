@@ -8,12 +8,12 @@
 
 | Field | Value |
 |---|---|
-| Last Asus run | 2026-05-05T07:38:02.682Z |
-| Last run commit | `88185b00` |
+| Last Asus run | 2026-05-05T10:00:10.082Z |
+| Last run commit | `4920e565` |
 | Last run branch | `main` |
 | Node | v22.22.2 |
 | Electron | ^30.4.0 |
-| Run duration | 1 ms |
+| Run duration | 0 ms |
 
 ## Module results
 
@@ -27,14 +27,14 @@
 
 ## Feature progress
 
-**0 / 92** P0 features merged + PASS
+**3 / 92** P0 features merged + PASS
 
 | Module | Done / Total |
 |---|---|
 | OB Onboarding & Licence | 0 / 13 |
 | DB Dashboard | 0 / 5 |
 | EC Evidence Capture | 0 / 17 |
-| PM Project Manager | 0 / 10 |
+| PM Project Manager | 3 / 10 |
 | TE Template Engine | 0 / 11 |
 | RB Report Builder | 0 / 13 |
 | SR Status Reports | 0 / 4 |

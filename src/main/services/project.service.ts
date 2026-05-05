@@ -4,9 +4,9 @@ import { ulid } from 'ulid';
 import type {
   ContainerHandle,
   Project,
-  ProjectCreateInput,
   RecentProject,
 } from '@shared/types/entities';
+import type { ProjectCreateInput } from '@shared/schemas';
 import { EvidexError } from '@shared/types/errors';
 import { EvidexErrorCode } from '@shared/types/ipc';
 import type { DatabaseService } from './database.service';

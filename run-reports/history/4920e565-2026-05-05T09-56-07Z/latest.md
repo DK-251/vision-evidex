@@ -1,9 +1,9 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-05-05T10:00:10.082Z  
+**Date:** 2026-05-05T09:56:07.949Z  
 **Branch:** `main` · **Commit:** `4920e565`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
-**Duration:** 0 ms
+**Duration:** 1 ms
 
 ## Summary
 
@@ -23,8 +23,12 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 8173 ms | — |
-| tests | PASS | 9993 ms | 347/347 passed |
+| typecheck | FAIL | 17048 ms | src/main/services/project.service.ts(7,3): error TS2305: Module '"@shared/types/entities"' has no exported member 'ProjectCreateInput'. |
+| tests | FAIL | 26648 ms | 1/347 failed |
+
+**Failing tests:**
+
+- `__tests__\integration.project-roundtrip.spec.ts` › Phase 2 Wk 8 — full project round-trip create project → start session → capture (mocked) → end session — every Wk 8 contract holds
 
 ## Module results
 
@@ -53,7 +57,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 91.22 ms | 91.67 ms | 92.25 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 171.84 ms | 229.1 ms | 262.21 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +75,7 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [tests] FAIL — 1/347 failed
+- PRECHECK [typecheck] FAIL — src/main/services/project.service.ts(7,3): error TS2305: Module '"@shared/types/entities"' has no exported member 'ProjectCreateInput'.
+-   · __tests__\integration.project-roundtrip.spec.ts › Phase 2 Wk 8 — full project round-trip create project → start session → capture (mocked) → end session — every Wk 8 contract holds
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

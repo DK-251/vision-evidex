@@ -347,6 +347,7 @@ export interface IntegrityCheckResult {
 // ─── Access log (append-only) ───────────────────────────────────────────
 
 export type AccessEventType =
+  | 'project_create'
   | 'project_open'
   | 'project_close'
   | 'session_start'

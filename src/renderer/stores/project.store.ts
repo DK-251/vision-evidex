@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import type { Project, ProjectCreateInput, RecentProject } from '@shared/types/entities';
+import type { Project, RecentProject } from '@shared/types/entities';
+import type { ProjectCreateInput } from '@shared/schemas';
 
 /**
  * In-memory project state for the renderer (Phase 2 Wk 8). Mirrors only

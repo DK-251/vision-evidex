@@ -10,6 +10,23 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-05-05 15:33 — Wk8 gate regression hotfix on Asus — automated checks PASS
+
+**From:** Asus TUF run machine  
+Pulled `4920e56`, hit Wk8 gate failures (`typecheck` + 1 integration test), applied minimal fixes directly, and re-ran gate:
+
+- `npm run typecheck`: PASS
+- `npm test -- __tests__/integration.project-roundtrip.spec.ts --reporter=verbose`: PASS
+- `npm run report`: PASS (`typecheck PASS`, `tests PASS`, `pbkdf2 max 92.25 ms`, `SKIP 18` modules)
+
+Fixes applied:
+- `src/main/services/project.service.ts` and `src/renderer/stores/project.store.ts`: import `ProjectCreateInput` from `@shared/schemas` (not `@shared/types/entities`)
+- `src/shared/types/entities.ts`: add `project_create` to `AccessEventType`
+- `src/renderer/pages/CreateProjectPage.tsx`: exact-optional-safe preview payload (conditional spread for `projectName`/`clientName`)
+- `__tests__/integration.project-roundtrip.spec.ts`: replace brittle hardcoded PNG bytes with `sharp(...).png().toBuffer()` fixture
+
+I have not marked the Wk8 INBOX-TO-ASUS entry resolved yet because manual UI checks (steps 4/5/9) still need interactive verification.
+
 ## 2026-05-05 13:06 — PH2-W7 hotfix verification rerun — PASS
 
 **From:** Asus TUF run machine  

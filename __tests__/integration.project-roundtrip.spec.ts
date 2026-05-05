@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import sharp from 'sharp';
 
 vi.mock('electron', () => ({
   app:           { getPath: vi.fn(() => '/tmp/evidex-test'), isPackaged: false },
@@ -103,22 +104,19 @@ beforeEach(() => {
     getSizeBytes: vi.fn(async () => 1024),
   };
 
-  // Deterministic 4-byte raw "framebuffer" — sharp wraps PNG in the
-  // real pipeline, but the test source returns a real PNG so sharp's
-  // .jpeg() compression succeeds.
-  const PNG_1X1 = Buffer.from([
-    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-    0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
-    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-    0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4,
-    0x89, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x44, 0x41,
-    0x54, 0x78, 0x9c, 0x63, 0xfa, 0xcf, 0x00, 0x00,
-    0x00, 0x02, 0x00, 0x01, 0xe2, 0x21, 0xbc, 0x33,
-    0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44,
-    0xae, 0x42, 0x60, 0x82,
-  ]);
   captureSource = {
-    getRawScreen: vi.fn(async () => PNG_1X1),
+    getRawScreen: vi.fn(async () =>
+      sharp({
+        create: {
+          width: 1,
+          height: 1,
+          channels: 4,
+          background: { r: 255, g: 255, b: 255, alpha: 1 },
+        },
+      })
+        .png()
+        .toBuffer()
+    ),
   };
 });
 

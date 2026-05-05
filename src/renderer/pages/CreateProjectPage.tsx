@@ -100,11 +100,13 @@ export function CreateProjectPage(): JSX.Element {
   // Live filename preview — debounced 200 ms.
   useEffect(() => {
     const t = window.setTimeout(() => {
-      void window.evidexAPI.project.previewNamingPattern({
+      const payload: { pattern: string; projectName?: string; clientName?: string } = {
         pattern: form.namingPattern,
-        projectName: form.name || undefined,
-        clientName: form.clientName || undefined,
-      }).then((r) => {
+        ...(form.name ? { projectName: form.name } : {}),
+        ...(form.clientName ? { clientName: form.clientName } : {}),
+      };
+
+      void window.evidexAPI.project.previewNamingPattern(payload).then((r) => {
         if (r.ok) setPreview(r.data);
       });
     }, 200);
