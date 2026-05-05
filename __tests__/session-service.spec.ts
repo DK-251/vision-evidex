@@ -136,7 +136,7 @@ describe('SessionService — lifecycle (Phase 2 Wk7 / D33)', () => {
     shortcuts = new ShortcutService({ onCapture, shortcuts: shortcutsApi });
 
     service = new SessionService({
-      db: db as never,
+      getDb: () => db as never,
       container: container as never,
       shortcuts,
       settings: settings as never,

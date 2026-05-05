@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { ulid } from 'ulid';
 import JSZip from 'jszip';
@@ -10,6 +11,7 @@ import type {
   IntegrityCheckResult,
 } from '@shared/types/entities';
 import { encryptContainer, decryptContainer } from './container-crypto';
+import { DatabaseService } from './database.service';
 
 /**
  * EvidexContainerService — .evidex file I/O (AES-256-GCM-encrypted ZIP).
@@ -29,6 +31,18 @@ import { encryptContainer, decryptContainer } from './container-crypto';
 
 const MANIFEST_FILENAME = 'manifest.json';
 const MANIFEST_SCHEMA_VERSION = '1';
+/**
+ * The per-container project DB lives extracted under
+ * `os.tmpdir()/evidex-work/<containerId>/project.db` for the duration
+ * the container is open. On every `save()` it is WAL-checkpointed and
+ * slurped back into the ZIP at the internal path below; `close()`
+ * removes the temp directory.
+ *
+ * Architectural Rule 11 (single-slot) is preserved — only one
+ * project DB exists at any time, owned by `OpenState`.
+ */
+const PROJECT_DB_INTERNAL_PATH = 'project.db';
+const TMP_WORK_ROOT = path.join(os.tmpdir(), 'evidex-work');
 
 export interface EvidexContainerServiceConfig {
   /** Password source; deterministic per machine so a container opens
@@ -40,6 +54,9 @@ export interface EvidexContainerServiceConfig {
 interface OpenState {
   handle: ContainerHandle;
   entries: Map<string, Buffer>;
+  projectDb: DatabaseService;
+  projectDbTmpDir: string;
+  projectDbTmpPath: string;
 }
 
 export class EvidexContainerService {
@@ -51,12 +68,23 @@ export class EvidexContainerService {
     return this.state ? { ...this.state.handle } : null;
   }
 
+  /**
+   * The project DB tied to the currently-open container, or null when
+   * nothing is open. Returned reference is the live instance — do not
+   * cache across open/close calls. Wired into ServiceRegistry.getProjectDb
+   * so SessionService / CaptureService can resolve it on every invocation.
+   */
+  getProjectDb(): DatabaseService | null {
+    return this.state?.projectDb ?? null;
+  }
+
   async create(config: CreateContainerConfig): Promise<ContainerHandle> {
     if (this.state) await this.close(this.state.handle.containerId);
 
     const now = new Date().toISOString();
+    const containerId = ulid();
     const handle: ContainerHandle = {
-      containerId: ulid(),
+      containerId,
       projectId: config.projectId,
       filePath: config.filePath,
       openedAt: now,
@@ -69,9 +97,12 @@ export class EvidexContainerService {
     };
     entries.set(MANIFEST_FILENAME, Buffer.from(JSON.stringify(manifest, null, 2), 'utf8'));
 
-    this.state = { handle, entries };
+    const { projectDb, projectDbTmpDir, projectDbTmpPath } =
+      this.spawnProjectDb(containerId, /* existingBuffer */ null);
+
+    this.state = { handle, entries, projectDb, projectDbTmpDir, projectDbTmpPath };
     // Persist immediately so the file exists on disk even before any
-    // images are added. save() will overwrite later.
+    // images are added. save() will WAL-checkpoint + slurp project.db too.
     await this.save(handle.containerId);
     return { ...handle };
   }
@@ -99,18 +130,40 @@ export class EvidexContainerService {
     }
     const manifest = JSON.parse(manifestBuffer.toString('utf8')) as ManifestFile;
 
+    const containerId = ulid();
     const handle: ContainerHandle = {
-      containerId: ulid(),
+      containerId,
       projectId: manifest.projectId,
       filePath,
       openedAt: new Date().toISOString(),
     };
-    this.state = { handle, entries };
+
+    // Restore the per-container project DB. If the entry exists (any
+    // container created at or after Wk 8) we hydrate it back to a
+    // tmpfile; legacy/empty containers get a fresh in-memory schema.
+    const dbBuf = entries.get(PROJECT_DB_INTERNAL_PATH) ?? null;
+    const { projectDb, projectDbTmpDir, projectDbTmpPath } =
+      this.spawnProjectDb(containerId, dbBuf);
+
+    this.state = { handle, entries, projectDb, projectDbTmpDir, projectDbTmpPath };
     return { ...handle };
   }
 
   async close(_containerId: string): Promise<void> {
+    if (!this.state) return;
+    try {
+      this.state.projectDb.close();
+    } catch {
+      // Closing twice or on a faulted DB shouldn't block container teardown.
+    }
+    const tmpDir = this.state.projectDbTmpDir;
     this.state = null;
+    try {
+      await fs.promises.rm(tmpDir, { recursive: true, force: true });
+    } catch {
+      // Best-effort cleanup — leaking a tmp dir is preferable to throwing
+      // on close (callers expect close to succeed).
+    }
   }
 
   async save(containerId: string): Promise<void> {
@@ -118,6 +171,21 @@ export class EvidexContainerService {
     const filePath = state.handle.filePath;
     const tmpPath = `${filePath}.tmp`;
     const bakPath = `${filePath}.bak`;
+
+    // 1. Flush WAL → main DB file so the bytes we slurp are complete
+    //    (Tech Spec §7.2 step 1). Any in-flight transactions will have
+    //    finished before the IPC handler called save().
+    try {
+      state.projectDb.walCheckpoint();
+    } catch {
+      // walCheckpoint can fail on a closed/empty DB; the slurp below
+      // still succeeds because the file always exists on disk.
+    }
+    // 2. Slurp the project DB file into the entries map. Read every save
+    //    — we never assume entries.get('project.db') is up to date with
+    //    in-process writes.
+    const dbBuf = await fs.promises.readFile(state.projectDbTmpPath);
+    state.entries.set(PROJECT_DB_INTERNAL_PATH, dbBuf);
 
     const zip = new JSZip();
     for (const [name, buf] of state.entries) {
@@ -212,6 +280,30 @@ export class EvidexContainerService {
       );
     }
     return this.state;
+  }
+
+  /**
+   * Materialise (or hydrate) the per-container project DB at
+   * `<tmpdir>/evidex-work/<containerId>/project.db` and return the
+   * live DatabaseService bound to it. `existingBuffer` is the bytes
+   * extracted from a freshly-opened ZIP entry; pass null when creating.
+   */
+  private spawnProjectDb(
+    containerId: string,
+    existingBuffer: Buffer | null
+  ): { projectDb: DatabaseService; projectDbTmpDir: string; projectDbTmpPath: string } {
+    const tmpDir = path.join(TMP_WORK_ROOT, containerId);
+    fs.mkdirSync(tmpDir, { recursive: true });
+    const tmpPath = path.join(tmpDir, 'project.db');
+    if (existingBuffer) {
+      fs.writeFileSync(tmpPath, existingBuffer);
+    }
+    const projectDb = new DatabaseService(tmpPath);
+    // initProjectSchema is idempotent — already-applied migrations are
+    // recorded in schema_migrations and skipped on re-run, so this is
+    // safe both for newly-created and hydrated DBs.
+    projectDb.initProjectSchema();
+    return { projectDb, projectDbTmpDir: tmpDir, projectDbTmpPath: tmpPath };
   }
 }
 

@@ -108,7 +108,7 @@ beforeEach(() => {
   shortcuts = new ShortcutService({ onCapture: vi.fn() });
 
   sessions = new SessionService({
-    db,
+    getDb: () => db,
     shortcuts,
     container: container as never,
     settings:  stubSettings() as never,

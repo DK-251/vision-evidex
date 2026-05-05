@@ -13,6 +13,8 @@ import type {
 import type { DatabaseService } from './database.service';
 import type { EvidexContainerService } from './evidex-container.service';
 import { NamingService, type NamingContext } from './naming.service';
+import { EvidexError } from '@shared/types/errors';
+import { EvidexErrorCode } from '@shared/types/ipc';
 
 /**
  * CaptureService — Phase 2 Week 7 / D32.
@@ -65,7 +67,13 @@ export interface CaptureServiceDeps {
   source:   CaptureSource;
   sessions: SessionLookup;
   container: EvidexContainerService;
-  db:       DatabaseService;
+  /**
+   * Resolver for the per-container project DB. Wk 8 swap from
+   * `db: DatabaseService` so a closed project surfaces as a clean
+   * PROJECT_NOT_FOUND IpcResult rather than a SQLite "no such table"
+   * mid-pipeline. Returns null when nothing is open.
+   */
+  getDb:    () => DatabaseService | null;
   naming:   NamingService;
   runtime:  RuntimeInfo;
   /** Broadcast the `capture:flash` event to the toolbar renderer. */
@@ -82,10 +90,26 @@ export class CaptureService {
    * the .evidex container is saved on the next session end (Rule 8).
    */
   updateTag(captureId: string, tag: StatusTag): void {
-    this.deps.db.updateCaptureTag(captureId, tag);
+    const db = this.deps.getDb();
+    if (!db) {
+      throw new EvidexError(
+        EvidexErrorCode.PROJECT_NOT_FOUND,
+        'No project is currently open.',
+        { captureId }
+      );
+    }
+    db.updateCaptureTag(captureId, tag);
   }
 
   async screenshot(input: CaptureRequestInput): Promise<CaptureResult> {
+    const db = this.deps.getDb();
+    if (!db) {
+      throw new EvidexError(
+        EvidexErrorCode.PROJECT_NOT_FOUND,
+        'Open a project before capturing.',
+        { sessionId: input.sessionId }
+      );
+    }
     const capturedAt = (this.deps.now ? this.deps.now() : new Date()).toISOString();
 
     // Step 1–2: acquire the raw framebuffer.
@@ -141,7 +165,7 @@ export class CaptureService {
       appVersion:      this.deps.runtime.appVersion,
       testerName:      ctx.testerName,
     };
-    this.deps.db.insertCapture(captureRow);
+    db.insertCapture(captureRow);
 
     const manifestEntry: ManifestEntry = {
       captureId,

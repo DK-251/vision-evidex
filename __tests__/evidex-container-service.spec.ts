@@ -15,7 +15,13 @@ describe('EvidexContainerService', () => {
     svc = new EvidexContainerService({ password: PASSWORD });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Wk 8 — close any container left open so the per-container project-DB
+    // tmpfile under os.tmpdir()/evidex-work/<id>/ gets cleaned up too.
+    const handle = svc.getCurrentHandle();
+    if (handle) {
+      try { await svc.close(handle.containerId); } catch { /* best-effort */ }
+    }
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 

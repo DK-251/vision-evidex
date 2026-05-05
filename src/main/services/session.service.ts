@@ -46,7 +46,14 @@ export interface SessionWindowControls {
 }
 
 export interface SessionServiceDeps {
-  db:         DatabaseService;
+  /**
+   * Resolver for the per-container project DB. Returns null when no
+   * container is open — every method that touches DB tables guards on
+   * this and throws PROJECT_NOT_FOUND with a UI-friendly message.
+   * (Phase 2 Wk 8: the active project's DB is per-container, swapped
+   * in/out on PROJECT_OPEN / PROJECT_CLOSE.)
+   */
+  getDb:      () => DatabaseService | null;
   container:  EvidexContainerService;
   shortcuts:  ShortcutService;
   settings:   SettingsService;
@@ -61,8 +68,20 @@ export class SessionService {
   // ─── Lifecycle ──────────────────────────────────────────────────────
 
   async create(intake: SessionIntakeInput): Promise<Session> {
+    // Replaces the pre-Wk8 NO_CONTAINER sentinel: if no project is open,
+    // surface PROJECT_NOT_FOUND through IpcResult so the UI shows a clean
+    // "open a project first" message rather than a SQLite parse error.
+    const db = this.deps.getDb();
+    if (!db) {
+      throw new EvidexError(
+        EvidexErrorCode.PROJECT_NOT_FOUND,
+        'Open a project before starting a session.',
+        { projectId: intake.projectId }
+      );
+    }
+
     // Rule 12 — single active session per project.
-    const existing = this.deps.db.getActiveSession(intake.projectId);
+    const existing = db.getActiveSession(intake.projectId);
     if (existing) {
       throw new EvidexError(
         EvidexErrorCode.SESSION_ALREADY_ACTIVE,
@@ -96,9 +115,9 @@ export class SessionService {
     // DB takes Session minus the four counts (DB defaults handle them).
     const { captureCount, passCount, failCount, blockedCount, ...sessionForInsert } = session;
     void captureCount; void passCount; void failCount; void blockedCount;
-    this.deps.db.insertSession(sessionForInsert);
+    db.insertSession(sessionForInsert);
 
-    this.deps.db.insertAccessLog({
+    db.insertAccessLog({
       id: `alog_${ulid()}`,
       projectId: session.projectId,
       eventType: 'session_start',
@@ -114,7 +133,7 @@ export class SessionService {
     } catch (err) {
       // Roll back: DB insert + access log already happened. Close the session
       // cleanly so we never leave a half-active row behind.
-      this.deps.db.closeSession(session.id, this.now());
+      db.closeSession(session.id, this.now());
       throw err;
     }
 
@@ -140,7 +159,15 @@ export class SessionService {
   }
 
   async end(sessionId: string): Promise<SessionSummary> {
-    const existing = this.deps.db.getSession(sessionId);
+    const db = this.deps.getDb();
+    if (!db) {
+      throw new EvidexError(
+        EvidexErrorCode.PROJECT_NOT_FOUND,
+        'No project is currently open.',
+        { sessionId }
+      );
+    }
+    const existing = db.getSession(sessionId);
     if (!existing) {
       throw new EvidexError(
         EvidexErrorCode.SESSION_NOT_FOUND,
@@ -157,9 +184,9 @@ export class SessionService {
     }
 
     const endedAt = this.now();
-    this.deps.db.closeSession(sessionId, endedAt);
+    db.closeSession(sessionId, endedAt);
 
-    this.deps.db.insertAccessLog({
+    db.insertAccessLog({
       id: `alog_${ulid()}`,
       projectId: existing.projectId,
       eventType: 'session_end',
@@ -226,17 +253,20 @@ export class SessionService {
   }
 
   // ─── Lookup ─────────────────────────────────────────────────────────
+  // Read paths return null/[]/false when no project is open instead of
+  // throwing — callers (capture handler, gallery hooks) treat "no DB"
+  // and "row not found" identically.
 
   get(sessionId: string): Session | null {
-    return this.deps.db.getSession(sessionId);
+    return this.deps.getDb()?.getSession(sessionId) ?? null;
   }
 
   getActive(projectId: string): Session | null {
-    return this.deps.db.getActiveSession(projectId);
+    return this.deps.getDb()?.getActiveSession(projectId) ?? null;
   }
 
   getAll(projectId: string): Session[] {
-    return this.deps.db.getSessionsForProject(projectId);
+    return this.deps.getDb()?.getSessionsForProject(projectId) ?? [];
   }
 
   /**
@@ -247,7 +277,7 @@ export class SessionService {
   hasActiveSession(): boolean {
     const handle = this.deps.container.getCurrentHandle();
     if (!handle) return false;
-    return this.deps.db.getActiveSession(handle.projectId) !== null;
+    return this.deps.getDb()?.getActiveSession(handle.projectId) !== null;
   }
 
   // ─── Internal ───────────────────────────────────────────────────────

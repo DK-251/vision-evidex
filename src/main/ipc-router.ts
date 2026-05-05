@@ -41,6 +41,8 @@ import type { MetricsService } from './services/metrics.service';
 import type { SessionService } from './services/session.service';
 import type { CaptureService } from './services/capture.service';
 import type { EvidexContainerService } from './services/evidex-container.service';
+import type { ProjectService } from './services/project.service';
+import type { NamingService } from './services/naming.service';
 
 export interface ServiceRegistry {
   licence: LicenceService;
@@ -50,6 +52,10 @@ export interface ServiceRegistry {
   session: SessionService;
   capture: CaptureService;
   container: EvidexContainerService;
+  /** Wk 8 — project create/open/close/list. */
+  project: ProjectService;
+  /** Wk 8 — naming pattern preview (CreateProjectPage live preview). */
+  naming: NamingService;
   /** Owner of the currently-focused BrowserWindow for modal dialogs. */
   getMainWindow: () => BrowserWindow | undefined;
 }

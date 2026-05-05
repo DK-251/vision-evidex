@@ -100,7 +100,7 @@ describe('CaptureService — 9-step pipeline (Phase 2 Wk7 / D32)', () => {
       source,
       sessions,
       container: containerMock as unknown as CaptureServiceDeps['container'],
-      db:        dbMock as unknown as CaptureServiceDeps['db'],
+      getDb:     () => dbMock as unknown as ReturnType<CaptureServiceDeps['getDb']>,
       naming:    new NamingService({ now: () => FIXED_NOW }),
       runtime:   { machineName: 'TEST-PC', osVersion: 'Windows 11', appVersion: '1.0.0-test' },
       onFlash,

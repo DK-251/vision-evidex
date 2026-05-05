@@ -16,6 +16,7 @@ import type {
   AccessEventType,
   BlurRegion,
   CaptureMode,
+  Template,
 } from '@shared/types/entities';
 import { PROJECT_MIGRATIONS } from '../migrations';
 
@@ -670,6 +671,53 @@ export class DatabaseService {
       )
       .run(entry);
   }
+
+  // ─── Templates (app.db) ─────────────────────────────────────────────
+
+  getTemplates(): Template[] {
+    const rows = this.db
+      .prepare(
+        `SELECT id, name, description, schema_json, is_builtin, created_at, updated_at
+         FROM templates ORDER BY name`
+      )
+      .all() as TemplateRow[];
+    return rows.map(mapTemplate);
+  }
+
+  getTemplate(id: string): Template | null {
+    const row = this.db
+      .prepare(
+        `SELECT id, name, description, schema_json, is_builtin, created_at, updated_at
+         FROM templates WHERE id = ?`
+      )
+      .get(id) as TemplateRow | undefined;
+    return row ? mapTemplate(row) : null;
+  }
+
+  /**
+   * Insert-or-ignore. The seed flow (`seedBuiltinDefaults` in app.ts)
+   * relies on this being a no-op when the row already exists, so a
+   * subsequent boot does not overwrite a user's custom edit to a
+   * builtin row that they later renamed.
+   */
+  insertTemplate(template: Omit<Template, 'createdAt' | 'updatedAt'>): void {
+    const now = new Date().toISOString();
+    this.db
+      .prepare(
+        `INSERT OR IGNORE INTO templates
+           (id, name, description, schema_json, is_builtin, created_at, updated_at)
+         VALUES (@id, @name, @description, @schemaJson, @isBuiltin, @createdAt, @updatedAt)`
+      )
+      .run({
+        id: template.id,
+        name: template.name,
+        description: template.description ?? null,
+        schemaJson: JSON.stringify(template.schema),
+        isBuiltin: template.isBuiltin ? 1 : 0,
+        createdAt: now,
+        updatedAt: now,
+      });
+  }
 }
 
 // ─── Row shape types + mappers (keep SQL column naming quarantined) ──
@@ -861,6 +909,29 @@ interface RecentProjectRow {
   name: string;
   file_path: string;
   last_opened_at: string;
+}
+
+interface TemplateRow {
+  id: string;
+  name: string;
+  description: string | null;
+  schema_json: string;
+  is_builtin: number;
+  created_at: string;
+  updated_at: string;
+}
+
+function mapTemplate(r: TemplateRow): Template {
+  const base: Template = {
+    id: r.id,
+    name: r.name,
+    schema: JSON.parse(r.schema_json) as Template['schema'],
+    isBuiltin: r.is_builtin === 1,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+  };
+  if (r.description !== null) base.description = r.description;
+  return base;
 }
 
 interface BrandingProfileRow {

@@ -91,7 +91,20 @@ const mockServices: ServiceRegistry = {
   container: {
     getCurrentHandle: () => null,
     getSizeBytes: async () => 0,
+    getProjectDb: () => null,
   } as unknown as ServiceRegistry['container'],
+  project: {
+    create: async () => null,
+    open: async () => null,
+    close: async () => undefined,
+    get: () => null,
+    list: () => [],
+    getRecent: () => [],
+  } as unknown as ServiceRegistry['project'],
+  naming: {
+    preview: () => 'sample.jpg',
+    generate: () => 'sample.jpg',
+  } as unknown as ServiceRegistry['naming'],
   getMainWindow: () => undefined,
 };
 

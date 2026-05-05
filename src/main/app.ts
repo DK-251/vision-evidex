@@ -26,6 +26,8 @@ import {
   type SessionLookup,
 } from './services/capture.service';
 import { electronCaptureSource } from './services/electron-capture-source';
+import { ProjectService } from './services/project.service';
+import { seedBuiltinDefaults } from './services/seed-defaults';
 import { getMachineFingerprint } from './services/machine-fingerprint';
 import { bindThemeBroadcasts, pushAccentToAllWindows, pushSystemThemeToAllWindows } from './services/theme.service';
 import { IPC_EVENTS } from '@shared/ipc-channels';
@@ -45,6 +47,7 @@ let appDb: DatabaseService | undefined;
 let shortcutService: ShortcutService | undefined;
 let sessionService: SessionService | undefined;
 let captureService: CaptureService | undefined;
+let projectService: ProjectService | undefined;
 
 function applyCSP(): void {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -108,6 +111,10 @@ function bootstrap(): void {
 
     appDb = new DatabaseService(path.join(appDataRoot, 'app.db'));
     appDb.initAppSchema();
+    // First-run seed: one builtin template + one default branding profile
+    // (rows skipped if already present). The full 5-template builtin pack
+    // lands in Phase 3 alongside the Template Builder.
+    seedBuiltinDefaults(appDb);
 
     const metricsService = new MetricsService(appDb);
 
@@ -162,7 +169,10 @@ function bootstrap(): void {
       source:    electronCaptureSource,
       sessions:  sessionLookup,
       container: containerService,
-      db:        appDb,
+      // Wk 8 — per-container project DB resolved on every call.
+      // When no project is open: getDb() returns null and CaptureService
+      // throws PROJECT_NOT_FOUND through the IpcResult error path.
+      getDb:     () => containerService.getProjectDb(),
       naming:    namingService,
       runtime: {
         machineName: os.hostname(),
@@ -205,7 +215,10 @@ function bootstrap(): void {
     });
 
     sessionService = new SessionService({
-      db: appDb,
+      // Wk 8 — same swap as CaptureService. SessionService.create now
+      // throws PROJECT_NOT_FOUND when no project is open instead of
+      // hitting a "no such table: sessions" SQLite error against app.db.
+      getDb: () => containerService.getProjectDb(),
       container: containerService,
       shortcuts: shortcutService,
       settings: settingsService,
@@ -216,6 +229,13 @@ function bootstrap(): void {
       ),
     });
 
+    projectService = new ProjectService({
+      appDb,
+      container: containerService,
+      sessions: sessionService,
+      appVersion: app.getVersion(),
+    });
+
     registerAllHandlers({
       licence: licenceService,
       settings: settingsService,
@@ -224,6 +244,8 @@ function bootstrap(): void {
       session: sessionService,
       capture: captureService,
       container: containerService,
+      project: projectService,
+      naming: namingService,
       getMainWindow,
     });
 
