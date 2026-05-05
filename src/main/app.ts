@@ -204,7 +204,7 @@ function bootstrap(): void {
         const sess = sessionService.get(sessionId);
         if (!sess || sess.endedAt !== undefined) return;
         try {
-          await captureService.screenshot({ sessionId, mode });
+          const result = await captureService.screenshot({ sessionId, mode });
           const updated = sessionService.get(sessionId);
           for (const win of BrowserWindow.getAllWindows()) {
             if (win.isDestroyed()) continue;
@@ -218,6 +218,9 @@ function bootstrap(): void {
               });
             }
             win.webContents.send(IPC_EVENTS.CAPTURE_FLASH);
+            // Wk 8 — push the new capture so the gallery's GallerySkeleton
+            // transitions to a real CaptureThumbnail without a refetch.
+            win.webContents.send(IPC_EVENTS.CAPTURE_ARRIVED, result);
           }
         } catch (err) {
           // Never throw from a globalShortcut callback. In D35 plumbing

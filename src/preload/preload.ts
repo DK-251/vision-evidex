@@ -158,6 +158,11 @@ const evidexAPI = {
       ipcRenderer.on(IPC_EVENTS.CAPTURE_FLASH, listener);
       return () => ipcRenderer.removeListener(IPC_EVENTS.CAPTURE_FLASH, listener);
     },
+    onCaptureArrived: (handler: (capture: CaptureResult) => void): (() => void) => {
+      const listener = (_e: unknown, capture: CaptureResult): void => handler(capture);
+      ipcRenderer.on(IPC_EVENTS.CAPTURE_ARRIVED, listener);
+      return () => ipcRenderer.removeListener(IPC_EVENTS.CAPTURE_ARRIVED, listener);
+    },
     onSessionStatusUpdate: (handler: (status: SessionStatus) => void): (() => void) => {
       const listener = (_e: unknown, status: SessionStatus): void => handler(status);
       ipcRenderer.on(IPC_EVENTS.SESSION_STATUS_UPDATE, listener);

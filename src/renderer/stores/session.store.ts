@@ -85,3 +85,19 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     set({ activeSession: null, captures: [], isCapturing: false });
   },
 }));
+
+/**
+ * Wk 8 — subscribe to CAPTURE_ARRIVED at module load so any window that
+ * imports the store picks up new captures in real time. The subscription
+ * is set up exactly once (module-eval); clearSession() doesn't need to
+ * unbind because addCapture only mutates the array.
+ *
+ * Guarded against test environments that don't shim window.evidexAPI
+ * (and against hot-reload re-imports — re-running the IPC subscribe is
+ * safe, ipcRenderer dedupes nothing but the cost is a no-op listener).
+ */
+if (typeof window !== 'undefined' && window.evidexAPI?.events?.onCaptureArrived) {
+  window.evidexAPI.events.onCaptureArrived((capture) => {
+    useSessionStore.getState().addCapture(capture);
+  });
+}

@@ -185,7 +185,9 @@ export function registerAllHandlers(services: ServiceRegistry): void {
       ...(region !== undefined ? { region } : {}),
     });
 
-    // 3. Push the live counter update + flash to all windows.
+    // 3. Push the live counter update + flash to all windows. Plus
+    //    CAPTURE_ARRIVED with the full CaptureResult so the gallery
+    //    appends a real thumbnail without a refetch round trip.
     const updated = services.session.get(input.sessionId);
     if (updated) {
       broadcast(IPC_EVENTS.SESSION_STATUS_UPDATE, {
@@ -197,6 +199,7 @@ export function registerAllHandlers(services: ServiceRegistry): void {
       });
     }
     broadcast(IPC_EVENTS.CAPTURE_FLASH);
+    broadcast(IPC_EVENTS.CAPTURE_ARRIVED, result);
 
     // 4. Storage warning — getSizeBytes needs an open handle which is
     //    guaranteed by the time we reach this point (capture.screenshot

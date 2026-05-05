@@ -68,6 +68,13 @@ export const IPC = {
 export const IPC_EVENTS = {
   // main → renderer push events (no reply)
   CAPTURE_FLASH: 'capture:flash',
+  /**
+   * Wk 8 — fired after a successful capture pipeline. Carries the full
+   * `CaptureResult` so the gallery can append the new thumbnail in
+   * real time (the GallerySkeleton transitions to a real
+   * CaptureThumbnail without a refetch round trip).
+   */
+  CAPTURE_ARRIVED: 'capture:arrived',
   SESSION_STATUS_UPDATE: 'session:statusUpdate',
   STORAGE_WARNING: 'storage:warning',
   APP_UPDATE_AVAILABLE: 'app:updateAvailable',

@@ -20,6 +20,7 @@ const captureApi = {
 const eventsApi = {
   onCaptureFlash:        vi.fn(() => () => {}),
   onSessionStatusUpdate: vi.fn(() => () => {}),
+  onCaptureArrived:      vi.fn(() => () => {}),
 };
 
 if (typeof (globalThis as { window?: unknown }).window === 'undefined') {
