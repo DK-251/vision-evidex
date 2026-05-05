@@ -10,6 +10,140 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-05-05 12:58 — PH2-W7 + PH2-TEST consolidated gate run — FAIL (prechecks blocked)
+
+**From:** Asus TUF run machine  
+**Branch/Tip tested:** `main` at `42e0291`
+
+Pulled latest per top unresolved `INBOX-TO-ASUS` entry (2026-05-05 19:00 consolidated gate), then ran `npm run report`.
+
+### Results
+
+- `git pull --ff-only`: **PASS** (`85a61bd..42e0291` fast-forward)
+- `npm run report`: **FAIL (exit 1)**
+	- typecheck: **FAIL**
+	- tests: **FAIL** (`2/327` failed)
+	- pbkdf2: **PASS** (`mean 145.5 ms`, `max 150.45 ms`, budget 800 ms)
+	- modules: **SKIP 18**
+	- dependencyAudit: **0 critical / 5 high / 3 low**
+
+### Exact typecheck errors (tsc --noEmit)
+
+```text
+src/main/ipc-router.ts:128:29 - error TS2379: Argument of type '{ projectId: string; testId: string; testName: string; environment: string; testerName: string; applicationUnderTest: string; testDataMatrix?: string | undefined; scenario?: string | undefined; requirementId?: string | undefined; requirementDesc?: string | undefined; testerEmail?: string | undefined; }' is not assignable to parameter of type 'SessionIntakeInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+	Types of property 'testDataMatrix' are incompatible.
+		Type 'string | undefined' is not assignable to type 'string'.
+			Type 'undefined' is not assignable to type 'string'.
+
+128     services.session.create(intake)
+																~~~~~~
+
+src/main/ipc-router.ts:173:54 - error TS2379: Argument of type '{ sessionId: string; mode: "fullscreen" | "active-window" | "region"; statusTag: "pass" | "fail" | "blocked" | "skip" | "untagged"; region?: { width: number; height: number; x: number; y: number; } | undefined; }' is not assignable to parameter of type 'CaptureRequestInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+	Types of property 'region' are incompatible.
+		Type '{ width: number; height: number; x: number; y: number; } | undefined' is not assignable to type 'ScreenRegion'.
+			Type 'undefined' is not assignable to type 'ScreenRegion'.
+
+173     const result = await services.capture.screenshot(input);
+																												 ~~~~~
+
+src/main/services/session.service.ts:224:32 - error TS2345: Argument of type 'SessionSummary' is not assignable to parameter of type 'Record<string, unknown>'.
+	Index signature for type 'string' is missing in type 'SessionSummary'.
+
+224     logger.info('session.end', summary);
+																	 ~~~~~~~
+
+src/renderer/components/modals/SessionIntakeModal.tsx:192:14 - error TS2375: Type '{ children: Element; label: string; required: true; error: string | undefined; }' is not assignable to type 'FieldProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+	Types of property 'error' are incompatible.
+		Type 'string | undefined' is not assignable to type 'string'.
+			Type 'undefined' is not assignable to type 'string'.
+
+192             <Field label="Test ID" required error={errors.testId}>
+								 ~~~~~
+
+src/renderer/components/modals/SessionIntakeModal.tsx:202:14 - error TS2375: Type '{ children: Element; label: string; required: true; error: string | undefined; }' is not assignable to type 'FieldProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+
+202             <Field label="Test name" required error={errors.testName}>
+								 ~~~~~
+
+src/renderer/components/modals/SessionIntakeModal.tsx:214:12 - error TS2375: Type '{ children: Element; label: string; required: true; error: string | undefined; }' is not assignable to type 'FieldProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+
+214           <Field label="Scenario" required error={errors.scenario}>
+							 ~~~~~
+
+src/renderer/components/modals/SessionIntakeModal.tsx:284:14 - error TS2375: Type '{ children: Element; label: string; required: true; error: string | undefined; }' is not assignable to type 'FieldProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+
+284             <Field label="Environment" required error={errors.environment}>
+								 ~~~~~
+
+src/renderer/components/modals/SessionIntakeModal.tsx:303:14 - error TS2375: Type '{ children: Element; label: string; required: true; error: string | undefined; }' is not assignable to type 'FieldProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+
+303             <Field label="App under test" required error={errors.applicationUnderTest}>
+								 ~~~~~
+
+src/renderer/components/ui/CaptureThumbnail.tsx:47:30 - error TS2322: Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'BlobPart'.
+	Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+		Types of property 'buffer' are incompatible.
+			Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+				Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+
+47       const blob = new Blob([raw], { type: 'image/jpeg' });
+																~~~
+```
+
+### Exact failing tests (vitest --reporter=verbose)
+
+```text
+FAIL  __tests__/integration.session-lifecycle.spec.ts > Session lifecycle integration > end() skips container.save when no container is open (no throw — pre-Wk8 mode)
+AssertionError: expected "spy" to not be called at all, but actually been called 1 times
+
+Received:
+
+	1st spy call:
+
+		Array [
+			"cont_01TEST",
+		]
+
+Number of calls: 1
+
+❯ __tests__/integration.session-lifecycle.spec.ts:254:32
+	252|     container.getCurrentHandle.mockReturnValueOnce(null);
+	253|     const summary = await sessions.end(session.id);
+	254|     expect(container.save).not.toHaveBeenCalled();
+		 |                                ^
+
+FAIL  __tests__/ipc-router.spec.ts > ipc-router (Phase 1 Wk3 security gate) > accepts a valid session:create payload and returns stub null
+AssertionError: expected { ok: false, error: { …(2) } } to deeply equal { ok: true, data: null }
+
+- Expected
++ Received
+
+	Object {
+-   "data": null,
+-   "ok": true,
++   "error": Object {
++     "code": "UNKNOWN_ERROR",
++     "message": "Cannot read properties of undefined (reading 'create')",
++   },
++   "ok": false,
+	}
+
+❯ __tests__/ipc-router.spec.ts:117:20
+	115|       }
+	116|     )) as { ok: true; data: unknown };
+	117|     expect(result).toEqual({ ok: true, data: null });
+		 |                    ^
+
+Test Files  2 failed | 21 passed (23)
+Tests       2 failed | 325 passed (327)
+```
+
+### Asus verdict
+
+Consolidated gate is **not redeemable yet** on this run machine due to source-level compile/test regressions. I did **not** mark the 2026-05-05 `INBOX-TO-ASUS` entries resolved.
+
+Please patch and re-push; Asus will re-run `npm run report` immediately after pull.
+
 ## 2026-04-23 07:15 — PH2-1 verification run (CaptureService + pipeline tests) — PASS after test fix
 
 **From:** Asus TUF run machine

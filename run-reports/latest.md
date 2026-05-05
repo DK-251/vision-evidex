@@ -1,7 +1,7 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-04-23T07:07:35.597Z  
-**Branch:** `main` · **Commit:** `32ac2719`  
+**Date:** 2026-05-05T07:22:31.496Z  
+**Branch:** `main` · **Commit:** `42e02915`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
 **Duration:** 0 ms
 
@@ -23,8 +23,13 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 8335 ms | — |
-| tests | PASS | 8399 ms | 203/203 passed |
+| typecheck | FAIL | 12101 ms | src/main/ipc-router.ts(128,29): error TS2379: Argument of type '{ projectId: string; testId: string; testName: string; environment: string; testerName: string; applicationUnderTest: string; testDataMa |
+| tests | FAIL | 24723 ms | 2/327 failed |
+
+**Failing tests:**
+
+- `__tests__\integration.session-lifecycle.spec.ts` › Session lifecycle integration end() skips container.save when no container is open (no throw — pre-Wk8 mode)
+- `__tests__\ipc-router.spec.ts` › ipc-router (Phase 1 Wk3 security gate) accepts a valid session:create payload and returns stub null
 
 ## Module results
 
@@ -53,7 +58,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 90.5 ms | 94.47 ms | 100.27 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 140.73 ms | 145.5 ms | 150.45 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +76,8 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [tests] FAIL — 2/327 failed
+- PRECHECK [typecheck] FAIL — src/main/ipc-router.ts(128,29): error TS2379: Argument of type '{ projectId: string; testId: string; testName: string; environment: string; testerName: string; applicationUnderTest: string; testDataMatrix?: string | undefined; scenario?: string | undefined; requirementId?: string | undefined; requirementDesc?: string | undefined; testerEmail?: string | undefined; }' is not assignable to parameter of type 'SessionIntakeInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+-   · __tests__\integration.session-lifecycle.spec.ts › Session lifecycle integration end() skips container.save when no container is open (no throw — pre-Wk8 mode)
+-   · __tests__\ipc-router.spec.ts › ipc-router (Phase 1 Wk3 security gate) accepts a valid session:create payload and returns stub null
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

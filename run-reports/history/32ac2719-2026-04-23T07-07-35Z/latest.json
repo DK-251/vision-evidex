@@ -1,0 +1,259 @@
+{
+  "timestamp": "2026-04-23T07:07:35.597Z",
+  "branch": "main",
+  "commitSha": "32ac27198f07ecbeb930b6222566d54c343a9149",
+  "shortSha": "32ac2719",
+  "nodeVersion": "22.22.2",
+  "electronVersion": "^30.4.0",
+  "totalDurationMs": 0,
+  "modules": [
+    {
+      "name": "licence",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 4"
+    },
+    {
+      "name": "onboarding",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 5)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 5"
+    },
+    {
+      "name": "dashboard",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 5)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 5"
+    },
+    {
+      "name": "session",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 2 Week 7)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 2 Week 7"
+    },
+    {
+      "name": "capture",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 2 Week 7)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 2 Week 7"
+    },
+    {
+      "name": "annotation",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 2 Week 9)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 2 Week 9"
+    },
+    {
+      "name": "project",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 6)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 6"
+    },
+    {
+      "name": "naming",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 4"
+    },
+    {
+      "name": "template",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "metrics_import",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "report_builder",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "export_word",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "export_pdf",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "export_html",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "status_reports",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "audit_pack",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 4"
+    },
+    {
+      "name": "sign_off",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 4"
+    },
+    {
+      "name": "settings",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 3"
+    }
+  ],
+  "summary": {
+    "total_modules": 18,
+    "pass": 0,
+    "fail": 0,
+    "warn": 0,
+    "suspect": 0,
+    "skip": 18
+  },
+  "features": {
+    "done": 0,
+    "total": 92,
+    "byModule": {
+      "OB": {
+        "done": 0,
+        "total": 13
+      },
+      "DB": {
+        "done": 0,
+        "total": 5
+      },
+      "EC": {
+        "done": 0,
+        "total": 17
+      },
+      "PM": {
+        "done": 0,
+        "total": 10
+      },
+      "TE": {
+        "done": 0,
+        "total": 11
+      },
+      "RB": {
+        "done": 0,
+        "total": 13
+      },
+      "SR": {
+        "done": 0,
+        "total": 4
+      },
+      "AU": {
+        "done": 0,
+        "total": 7
+      },
+      "WS": {
+        "done": 0,
+        "total": 12
+      }
+    }
+  },
+  "prechecks": {
+    "typecheck": {
+      "ok": true,
+      "duration_ms": 8335
+    },
+    "tests": {
+      "ok": true,
+      "duration_ms": 8399,
+      "total": 203,
+      "passed": 203,
+      "failed": 0,
+      "failures": []
+    }
+  },
+  "pbkdf2": {
+    "ok": true,
+    "duration_ms": 580,
+    "record": {
+      "ts": "2026-04-23T07:07:53.086Z",
+      "node": "22.22.2",
+      "platform": "win32-x64",
+      "iterations": 310000,
+      "key_len_bytes": 32,
+      "salt_len_bytes": 16,
+      "runs": 5,
+      "samples_ms": [
+        100.27,
+        99.29,
+        91.28,
+        91.04,
+        90.5
+      ],
+      "min_ms": 90.5,
+      "max_ms": 100.27,
+      "mean_ms": 94.47,
+      "budget_ms": 800,
+      "passed": true
+    }
+  },
+  "dependencyAudit": {
+    "ok": true,
+    "counts": {
+      "info": 0,
+      "low": 3,
+      "moderate": 0,
+      "high": 5,
+      "critical": 0,
+      "total": 8
+    },
+    "duration_ms": 5229
+  },
+  "next_actions": [
+    "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
+  ]
+}

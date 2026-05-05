@@ -8,8 +8,8 @@
 
 | Field | Value |
 |---|---|
-| Last Asus run | 2026-04-23T07:07:35.597Z |
-| Last run commit | `32ac2719` |
+| Last Asus run | 2026-05-05T07:22:31.496Z |
+| Last run commit | `42e02915` |
 | Last run branch | `main` |
 | Node | v22.22.2 |
 | Electron | ^30.4.0 |
@@ -51,6 +51,10 @@ See [FEATURES.md](FEATURES.md) for the full checklist.
 
 ### Next actions
 
+- PRECHECK [tests] FAIL — 2/327 failed
+- PRECHECK [typecheck] FAIL — src/main/ipc-router.ts(128,29): error TS2379: Argument of type '{ projectId: string; testId: string; testName: string; environment: string; testerName: string; applicationUnderTest: string; testDataMatrix?: string | undefined; scenario?: string | undefined; requirementId?: string | undefined; requirementDesc?: string | undefined; testerEmail?: string | undefined; }' is not assignable to parameter of type 'SessionIntakeInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+-   · __tests__\integration.session-lifecycle.spec.ts › Session lifecycle integration end() skips container.save when no container is open (no throw — pre-Wk8 mode)
+-   · __tests__\ipc-router.spec.ts › ipc-router (Phase 1 Wk3 security gate) accepts a valid session:create payload and returns stub null
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md
 
 ## Links
