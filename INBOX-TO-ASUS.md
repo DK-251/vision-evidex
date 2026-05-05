@@ -14,6 +14,135 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-05-06 00:30 — RUN REQUEST — Phase 2 Week 8 (PROJECT LIFECYCLE + per-container DB)
+
+**From:** CTS (Claude Code)
+**Branch/Tip:** `main` at HEAD (latest commit on push)
+
+This is the Wk 8 gate. Eight commits sit on top of the green PH2-W7 hotfix (`88185b0`) — together they wire the .evidex project lifecycle, eliminate the `NO_CONTAINER` sentinel, and unblock the first non-zero P0 feature ticks. **Asus is the first machine to exercise real `desktopCapturer` → encrypted `.evidex` round trip.**
+
+### Commits in this gate (in order)
+
+| SHA | Title |
+|---|---|
+| `672eda0` | `[PH2-W8-AUDIT]` Rule 4 + Rule 6 audits — both PASS |
+| `b19dd61` | `[PH2-W8-1]` ProjectService + per-container project DB lifecycle |
+| `2a5ffc6` | `[PH2-W8-2]` project.store.ts + project IPC channels + preload |
+| `4c48bf2` | `[PH2-W8-4]` eliminate NO_CONTAINER sentinel — real handles |
+| `1a50df0` | `[PH2-W8-3]` ProjectListPage + CreateProjectPage + nav routing |
+| `0a701b9` | `[PH2-W8-5]` CAPTURE_ARRIVED push event — gallery live population |
+| `5910fd5` | `[PH2-W8-6]` Dashboard via project store + first 3 PM ticks |
+| `52b54d1` | `[PH2-W8-10]` full project round-trip integration spec |
+| (this) | `[PH2-W8-7]` CLAUDE.md + CHANGELOG + INBOX gate request |
+
+### One-shot Asus action
+
+```
+git pull --ff-only
+npm run report
+git add run-reports/latest.{json,md} run-reports/history/ STATUS.md
+git commit -m "[INBOX] PH2-W8 Asus verification — automated gate"
+git push
+```
+
+### Pass criteria — automated
+
+- typecheck **PASS**
+- tests **~346 / 346 PASS** (was 327/23 at the prior gate; Wk 8 added ~19 tests across 2 new files + edited specs to match the getDb getter pattern)
+- pbkdf2 **PASS** under 800 ms ceiling. **Watch the trend:** `EvidexContainerService` now opens a real per-container DB on `create()` and on every Wk 8 IPC test. If mean climbs past 400 ms, flag it — the budget still holds, but PBKDF2 is on the open hot path now and the headroom matters before Phase 4 release-hardening.
+- modules: `project` should still SKIP (no module gate runner for it yet); `capture` *may* flip away from SKIP if the manual UI test in Step 4 succeeds — but the automated module table is unchanged in this commit.
+- dep-audit: 0 critical / 5 high baseline unchanged.
+
+### Manual UI test sequence (run after the automated gate is green)
+
+These are the steps the brief listed under W8-11 INBOX. Run them in order; pause if any **[ ]** check fails and paste the exact error block back into INBOX-TO-CTS.
+
+**STEP 1 — App launches to Projects, not Dashboard (AQ5):**
+- [ ] First nav item is "Projects" (FolderRegular icon) in the sidebar
+- [ ] App opens on `ProjectListPage` with the empty state ("No projects yet") on a fresh install
+- [ ] Create project btn-accent visible top-right
+
+**STEP 2 — Create a real project:**
+1. Click "Create project" → CreateProjectPage opens
+2. Fill in:
+   - Project name: `Week 8 Gate Project`
+   - Client name: `Asus TUF Verify`
+   - Start date: today
+   - Template: leave at default (`tpl-default-tsr`)
+   - Branding: leave at default (`brand-default`)
+   - Naming pattern: leave default — verify the live preview underneath shows a sample like `WEEK8GAT_T-001_2026-05-06_…_0001.jpg`
+   - Storage folder: click Browse → pick `Documents\VisionEviDex` (create it if needed)
+3. Click "Create project"
+- [ ] Form submits without error
+- [ ] App navigates to `session-intake` (the modal opens)
+- [ ] A `*.evidex` file appears in the chosen storage path. Verify in Explorer: `dir Documents\VisionEviDex` should list one file.
+
+**STEP 3 — Create a session on the real project:**
+1. Complete the session intake form:
+   - Test ID: `TC-GATE-001`
+   - Test name: `Week 8 Gate Test`
+   - Scenario: `Verify real capture writes to .evidex on disk`
+   - Environment: `QA`
+   - App under test: `Vision-EviDex v0.8`
+2. Submit
+- [ ] Modal closes
+- [ ] `SessionGalleryPage` renders (GallerySkeleton 8 shimmer tiles)
+- [ ] Floating capture toolbar appears
+- [ ] Toolbar counter shows 0
+
+**STEP 4 — Take real screenshots (the actual gate):**
+1. Press `Ctrl+Shift+1` (default fullscreen capture hotkey)
+- [ ] Capture flash (~80ms white overlay)
+- [ ] Toolbar counter increments to 1
+- [ ] GallerySkeleton transitions to a real `CaptureThumbnail` (160×90 thumbnail of the captured screen)
+- [ ] Thumbnail badge shows "untagged"
+- [ ] No console errors in DevTools
+
+Press the hotkey twice more — counter should reach 3, all thumbnails visible.
+
+**STEP 5 — Verify .evidex integrity:**
+DevTools console:
+```js
+window.evidexAPI.session.get('<sessionId from toolbar pill>')
+  .then(r => console.log(JSON.stringify(r.data, null, 2)));
+```
+- [ ] `captureCount: 3`
+- [ ] `passCount: 0, failCount: 0, blockedCount: 0`
+
+Check the `.evidex` file size has grown (Explorer):
+- [ ] File size > 200 KB (3 JPEG-85 images + the project DB)
+
+**STEP 6 — Tag a capture:**
+Click a thumbnail → detail panel opens → click Pass.
+- [ ] Thumbnail badge updates to green "pass"
+- [ ] Detail panel reflects "pass"
+
+**STEP 7 — End the session:**
+Click End session in the gallery header → confirm.
+- [ ] Toolbar hides
+- [ ] Navigation returns to `ProjectListPage` (or Dashboard)
+- [ ] `Ctrl+Shift+1` no longer fires (verify by pressing — nothing should happen)
+
+**STEP 8 — Recent projects:**
+- [ ] `ProjectListPage` shows "Week 8 Gate Project" in the recent list
+- [ ] Dashboard shows the same row
+
+**STEP 9 — Reopen on the same machine (the round-trip!):**
+Click the project in the recent list.
+- [ ] Project opens with no error
+- [ ] DevTools: `window.evidexAPI.session.get('<sessionId from earlier>')` returns the session **with `captureCount: 3` still present** — proves the per-container project DB survived close + reopen
+
+### Resolution
+
+If **all** automated checks pass AND Steps 4 + 5 + 9 in the manual sequence pass:
+- Tick `EC-04`, `EC-05`, `EC-07`, `EC-08`, `EC-09`, `EC-10`, `EC-15`, `EC-16`, `EC-17` in [FEATURES.md](FEATURES.md) at the run-report commit
+- Mark this entry as `[RESOLVED 2026-05-06]`
+- Push the run artifacts + the FEATURES tick patch as one commit
+
+If anything fails: paste the exact error block (typecheck output, vitest assertion, DevTools console) into `INBOX-TO-CTS.md` and I'll patch on next pull.
+
+---
+
 ## [RESOLVED 2026-05-05] 2026-05-05 21:30 — PH2-W7 hotfix — typecheck (9) + tests (2) regressions resolved
 
 **From:** CTS (Claude Code)

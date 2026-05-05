@@ -4,6 +4,23 @@ All notable changes are documented here. Versions follow [SemVer](https://semver
 
 ## [Unreleased]
 
+### Phase 2 Week 8 — Project lifecycle + per-container DB (2026-05-05)
+
+- **Per-container project DB** — `EvidexContainerService` now spawns a real `DatabaseService` against `os.tmpdir()/evidex-work/<containerId>/project.db` on `create()` / `open()`, runs `initProjectSchema()` (idempotent), WAL-checkpoints + slurps the bytes back into the encrypted ZIP on `save()`, and `rm -r`'s the temp dir on `close()`. Replaces the AQ1 plan: a `.evidex` now carries enough state to round-trip close → re-open on the same machine.
+- **`SessionService` + `CaptureService` deps** swap from `db: DatabaseService` to **`getDb: () => DatabaseService | null`**. Both throw `PROJECT_NOT_FOUND` with a UI-friendly message when no project is open (closes the pre-Wk8 NO_CONTAINER sentinel).
+- **`ProjectService`** (new) — `create` / `open` / `close` / `get` / `list` / `getRecent`. Sanitises project name → `.evidex` filename; inserts the project row into the per-container DB; upserts `recent_projects` in `app.db`; ends the active session before tearing down on close; `STORAGE_PATH_NOT_WRITABLE` for unwritable directories.
+- **`seedBuiltinDefaults`** — first-run seed for `tpl-default-tsr` + `brand-default` in app.db (idempotent). Phase 3 will seed the remaining 4 builtin templates alongside the Template Builder.
+- **`project.store.ts`** — Zustand renderer store with `activeProject` / `recentProjects` / `createProject` / `openProject` / `closeProject` / `loadRecent`. No persistence; `recent_projects` in `app.db` is the durable layer.
+- **`ProjectListPage`** (S-13) — post-onboarding home (AQ5). Recent-projects list + empty state hero + Create CTA. Sidebar: Projects becomes slot 1, Dashboard slot 2.
+- **`CreateProjectPage`** (S-11) — full-page form (PRD §6.2 US-PM-01 AC1). Two sections: project info + configuration. Live filename preview round-trips main via the new `naming:preview` IPC (AQ4), debounced 200 ms.
+- **`SessionLookup` adapter** — real project lookup via `container.getProjectDb()`; resolves `projectName` / `clientName` / `namingPattern` from project rows. `nextSequenceNum` now queries the project DB (was a latent bug querying `app.db`'s nonexistent captures table).
+- **`IPC_EVENTS.CAPTURE_ARRIVED`** — main broadcasts the full `CaptureResult` after every successful capture (both IPC-invoked and hotkey-triggered paths). `session.store` subscribes at module-eval and forwards to `addCapture`, so `SessionGalleryPage` populates in real time.
+- **Dashboard recent-projects** sourced from the project store — a project created elsewhere reflects without remounting.
+- **IPC channels**: 35 invoke channels (Wk 8 added 7) + 8 events (added `capture:arrived`). Live/stub: **26 live / 9 stub** (was 16/12 at PH2-W7 close).
+- **Rule 4 + Rule 6 audits — both PASS** (2026-05-05). All `db.prepare(...)` use bound params; the three `db.exec` calls are DDL/static migrations only. Every reachable file writer (container.save, licence, settings) uses the `.tmp` + rename pattern; ManifestService delegates to container; logger appendFileSync is intentional. Full audit log in [SETUP-NOTES.md](SETUP-NOTES.md#audits).
+- **FEATURES.md**: PM-01, PM-02, PM-12 ticked at `b19dd61` — first non-zero P0 feature count. Remaining items (EC-04..17, OB tail, WS tail) tick after Asus's manual gate verification.
+- **Tests**: +9 ProjectService unit tests, +9 project.store renderer tests, +1 full round-trip integration test (`integration.project-roundtrip.spec.ts`). Existing session/capture/integration specs updated to the `getDb` getter pattern. Expected total: ~346 tests across 25 files.
+
 ### Phase 2 Week 7 — D32–D35: capture pipeline plumbing (2026-05-05)
 
 - `ShortcutService` (`src/main/services/shortcut.service.ts`) — global hotkey register/unregister, `SHORTCUT_CONFLICT` guard with rollback on partial registration, dual-unregister on `app.will-quit`. 9 tests.

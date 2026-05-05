@@ -5,44 +5,51 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Phase 2 Week 8 — Project-open flow + `EvidexContainerService.open()` wiring + `ProjectListPage` + `CreateProjectPage`.
+- **SPRINT:** Phase 2 Week 9 — `SessionListPage` + `SessionDetailPage` + `ProjectOverviewPage` + `[PH2-ROUTING]` migration to `HashRouter`.
 - **BRANCH:** `main`
-- **GOAL:** Replace the `'NO_CONTAINER'` sentinel with real container handles. Unblock full `capture:screenshot` end-to-end on Asus TUF. First P0 feature ticks expected after the Asus gate.
-- **GATE:** `npm run report` after Wk 8 — the `capture` module must show PASS with real `desktopCapturer` → encrypted `.evidex` on disk.
-- **STUBS TO CLOSE THIS SPRINT:**
-  - `SessionIntakePage` `projectName` (awaits `project.store.ts`)
-  - `SessionLookup` adapter `projectName` / `clientName` (Pre-Wk8 placeholders)
-  - Capture-arrival push to renderer `captures` array
-  - `derivedCounts` `passCount`/`failCount`/`blockedCount` from `CaptureResult`
+- **GOAL:** Wire the session-history surface so a user can jump back into a previous session, see its captures, and tag/annotate them. Close `[PH2-ROUTING]` before Phase 3 (Report Builder needs deep-link to specific sessions).
+- **GATE:** `npm run report` after Wk 9 — `session` and `project` modules show PASS; capture round-trip from Wk 8 still green.
+- **STUBS CLOSED IN WK 8:**
+  - ✓ `SessionIntakePage` `projectName` reads `useProjectStore.activeProject?.name`
+  - ✓ `SessionLookup` adapter — real project lookup via `container.getProjectDb()`; `'NO_CONTAINER'` sentinel removed
+  - ✓ Capture-arrival push (`IPC_EVENTS.CAPTURE_ARRIVED`) → `session.store` `addCapture`
+  - ✓ `derivedCounts` reach the renderer via `IPC_EVENTS.SESSION_STATUS_UPDATE` after every capture
 
 ## 2. IPC channels (`src/shared/ipc-channels.ts`)
 
-Invoke (renderer → main, 17 channels):
-- `session:create`, `session:end`
-- `capture:screenshot`, `capture:annotate:save`, `capture:tag:update`
-- `project:create`, `project:open`, `project:close`
-- `export:word`, `export:pdf`, `export:html`, `export:auditBundle`
-- `metrics:import`, `template:save`, `signoff:submit`
-- `licence:activate`, `licence:validate`
+Invoke (renderer → main, 35 channels — Wk 8 added 7):
+- session: `session:create`, `session:end`, `session:get`
+- capture: `capture:screenshot`, `capture:annotate:save`, `capture:tag:update`
+- project: `project:create`, `project:open`, `project:close`, `project:get`, `project:list`, `project:recent`
+- export: `export:word`, `export:pdf`, `export:html`, `export:auditBundle`
+- metrics + template + signoff: `metrics:import`, `metrics:summary`, `template:save`, `template:list`, `signoff:submit`
+- licence: `licence:activate`, `licence:validate`
+- settings + branding: `settings:get`, `settings:update`, `branding:save`, `branding:list`
+- naming preview: `naming:preview`
+- recent + dashboard: `recentProjects:list`
+- dialogs: `dialog:selectDirectory`, `dialog:openFolder`
+- title bar: `window:minimize`, `window:maximizeToggle`, `window:close`, `window:isMaximized`
 
-Events (main → renderer, 4):
-- `capture:flash`, `session:statusUpdate`, `storage:warning`, `app:updateAvailable`
+Events (main → renderer, 7):
+- `capture:flash`, `capture:arrived`, `session:statusUpdate`, `storage:warning`, `app:updateAvailable`, `theme:accentColourUpdate`, `theme:systemThemeChange`, `window:maximizedChange`
 
 ## 3. Service map (`src/main/services/`)
 
-- `CaptureService` → DatabaseService, EvidexContainerService, ManifestService, NamingService, WindowManager
-- `SessionService` → DatabaseService, EvidexContainerService, ShortcutService, SettingsService (hotkey lookup), WindowManager
-- `EvidexContainerService` → node:crypto (AES-256-GCM), archiver, DatabaseService, ManifestService
-- `DatabaseService` → better-sqlite3 (sync, main-process only; two instances: evidex.db + app.db)
+- `ProjectService` (Wk 8) → DatabaseService (app.db for recent_projects), EvidexContainerService (single-slot), SessionService (close-time end-active-session)
+- `CaptureService` → CaptureSource, SessionLookup, EvidexContainerService, NamingService, **`getDb: () => DatabaseService | null`** (per-container project DB)
+- `SessionService` → **`getDb: () => DatabaseService | null`** (per-container project DB), EvidexContainerService, ShortcutService, SettingsService (hotkey lookup), WindowManager
+- `EvidexContainerService` → node:crypto (AES-256-GCM), JSZip, **owns the per-container project DB lifecycle** (spawns at `<tmp>/evidex-work/<containerId>/project.db`, WAL-checkpoints + slurps on save, removes on close)
+- `DatabaseService` → better-sqlite3 (sync, main-process only). **Two file-backed instances at runtime:** `app.db` (templates / branding_profiles / recent_projects / metrics_data) + the per-container `project.db` (projects / sessions / captures / annotation_layers / sign_offs / import_history / access_log / version_history) extracted from the open `.evidex`.
 - `ExportService` → DatabaseService, EvidexContainerService, docx, printToPDF, archiver, TemplateRenderer
 - `MetricsImportService` → xlsx (SheetJS), DatabaseService, Zod (z.coerce for LibreOffice compat)
 - `LicenceService` → node:crypto, node-machine-id. `LICENCE_MODE==='none'` → no-op; `keygen` real path wired Phase 1 Week 4.
-- `NamingService` → DatabaseService (sequence counter), SettingsService
+- `NamingService` → stateless. `preview()` is exposed via `naming:preview` IPC for live filename preview on `CreateProjectPage`.
 - `ManifestService` → node:crypto (SHA-256), EvidexContainerService
 - `SignOffService` → DatabaseService, EvidexContainerService, SettingsService
-- `SettingsService` → fs (%APPDATA%/VisionEviDex/settings.json)
+- `SettingsService` → fs (%APPDATA%/VisionEviDex/settings.json), atomic .tmp+rename writes
 - `ShortcutService` → electron.globalShortcut
 - `TrayService` → electron.Tray
+- `seedBuiltinDefaults` (Wk 8) → idempotent first-run seed for `tpl-default-tsr` + `brand-default` in app.db. **TODO Phase 3:** seed remaining 4 builtin templates (DSR, UAT, BUG, AUDIT).
 
 No service calls another service directly. All communication is via IPC or constructor injection.
 
@@ -68,7 +75,7 @@ No service calls another service directly. All communication is via IPC or const
 - Results: `SessionSummary`, `SessionStatus`, `CaptureResult`, `AnnotationResult`, `IpcResult<T>`
 - Annotation: `FabricCanvasJSON`, `FabricObject`, `BlurRegion`, `AnnotationSaveInput`
 - Enums: `StatusTag`, `CaptureMode`, `ExportFormat`, `SignOffDecision`, `UserRole`, `LicenceMode`, `ModuleStatus`
-- Error codes: `EvidexErrorCode` (32 values, see `src/shared/types/ipc.ts`)
+- Error codes: `EvidexErrorCode` (33 values, see `src/shared/types/ipc.ts`) — Wk 8 added `STORAGE_PATH_NOT_WRITABLE`
 
 ## 6. File naming conventions
 
@@ -90,7 +97,7 @@ No service calls another service directly. All communication is via IPC or const
 
 - **Known Phase 0 issue:** CTS laptop hits a corporate SSL cert error in `node-gyp` when building native modules (`unable to get local issuer certificate` downloading Node headers). Mitigation: Asus TUF performs the real install + `electron-rebuild`. CTS is code-authoring only.
 - **Native-ABI rebuild rhythm (better-sqlite3):** `npm run dev` and `npm test` need different NODE_MODULE_VERSION for the same `.node` binary. Automated via `predev` → `rebuild:electron` and `pretest` → `rebuild:node` npm scripts. No manual rebuild needed; each command is self-healing.
-- **Run report gates code health:** `npm run report` runs `npm run typecheck` + `npm test` as prechecks and exits 1 on either failure. Failing tests / TS errors surface in `latest.md` "Pre-checks" section and block STATUS.md PASS. Test count: **CTS reports 323 across 23 files** as of the PH2-TEST commit (was 223/19 at the last Asus gate `32ac2719` / 2026-04-23). Asus must confirm the new total in the next run.
+- **Run report gates code health:** `npm run report` runs `npm run typecheck` + `npm test` as prechecks and exits 1 on either failure. Failing tests / TS errors surface in `latest.md` "Pre-checks" section and block STATUS.md PASS. Test count: **CTS expects ~346 across 25 files** as of the PH2-W8 commit (was 327/23 at the last Asus gate `88185b0` / 2026-05-05). Asus must confirm the new total in the next run.
 - **Run report measures Risk R-07:** every `npm run report` also runs the PBKDF2 benchmark (5 samples after one warm-up), records to `run-reports/sprint0-benchmark.json`, and surfaces WARN in next_actions if max > 800 ms. Asus TUF reference: mean ≈ 91 ms (88% headroom — most recent: 143.72 ms mean post-PH2-W7). Standalone: `npm run bench:pbkdf2`.
 - **Rule 4 PASS (2026-05-05):** all `db.prepare(...)` call sites in `database.service.ts` use `?`/`@key` bound parameters; the three `db.exec()` calls are DDL only (schema CREATE + static migration up-strings from `PROJECT_MIGRATIONS`). Zero string-interpolated SQL. Full audit log in [SETUP-NOTES.md](SETUP-NOTES.md#audits).
 - **Rule 6 PASS (2026-05-05):** all reachable file writers atomic — `EvidexContainerService.save()`, `LicenceService.writeLicenceFile()`, `SettingsService.saveSettings()` all use `.tmp` + rename. `ManifestService` does no direct disk I/O (delegates to container's atomic save). `logger.ts` uses `appendFileSync` for append-only logs (rule N/A). Branding logos live as `logoBase64` in DB per Rule 9 (no disk write). New writers must keep this pattern. Full audit log in [SETUP-NOTES.md](SETUP-NOTES.md#audits).
