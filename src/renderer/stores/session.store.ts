@@ -39,6 +39,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         fields: result.error.fields,
       });
     }
+    if (!result.data) throw new Error('Session created but server returned no data');
     set({ activeSession: result.data, captures: [], isCapturing: false });
     return result.data;
   },
@@ -55,6 +56,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         fields: result.error.fields,
       });
     }
+    if (!result.data) throw new Error('Session end returned no summary data');
     get().clearSession();
     return result.data;
   },

@@ -257,6 +257,7 @@ function Nav({
 }
 
 function CompletedCard(): JSX.Element {
+  const reset = useOnboardingStore((s) => s.reset);
   return (
     <div
       className="material-mica"
@@ -296,8 +297,9 @@ function CompletedCard(): JSX.Element {
         <h1
           style={{
             fontFamily: 'var(--font-family-display)',
-            fontSize:   'var(--type-subtitle-size)',
-            fontWeight: 'var(--type-subtitle-weight)',
+            fontSize:   'var(--type-title-size)',
+            fontWeight: 'var(--type-title-weight)',
+            lineHeight: 'var(--type-title-height)',
             margin:     0,
             color:      'var(--color-text-primary)',
           }}
@@ -305,7 +307,7 @@ function CompletedCard(): JSX.Element {
           Onboarding complete
         </h1>
         <div style={{ marginTop: 'var(--space-4)' }}>
-          <Button variant="standard" onClick={() => useOnboardingStore.getState().reset()}>
+          <Button variant="standard" onClick={reset}>
             Reset
           </Button>
         </div>

@@ -13,10 +13,13 @@ export interface ProgressRingProps {
 }
 
 export function ProgressRing({ size = 20, label, caption }: ProgressRingProps): JSX.Element {
-  const radius = 8;
+  const dim = size === 32 ? 32 : 20;
+  const cx = dim / 2;
+  const cy = dim / 2;
+  const radius = size === 32 ? 12 : 8;
   const strokeWidth = size === 32 ? 1.5 : 2;
-  const arcLength = size === 32 ? 30 : size === 20 ? 25 : 20;
-  const circumference = 2 * Math.PI * radius; // ≈ 50.27
+  const arcLength = size === 32 ? 45 : size === 20 ? 25 : 20;
+  const circumference = 2 * Math.PI * radius;
 
   return (
     <div
@@ -32,7 +35,7 @@ export function ProgressRing({ size = 20, label, caption }: ProgressRingProps): 
       <svg
         width={size}
         height={size}
-        viewBox="0 0 20 20"
+        viewBox={`0 0 ${dim} ${dim}`}
         style={{
           animation: 'fluent-ring-rotate 1.5s linear infinite',
           transformOrigin: 'center',
@@ -40,16 +43,16 @@ export function ProgressRing({ size = 20, label, caption }: ProgressRingProps): 
         }}
       >
         <circle
-          cx="10"
-          cy="10"
+          cx={cx}
+          cy={cy}
           r={radius}
           fill="none"
           stroke="var(--color-stroke-default)"
           strokeWidth={strokeWidth}
         />
         <circle
-          cx="10"
-          cy="10"
+          cx={cx}
+          cy={cy}
           r={radius}
           fill="none"
           stroke="var(--color-accent-default)"

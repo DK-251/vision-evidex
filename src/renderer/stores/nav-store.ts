@@ -55,14 +55,21 @@ export const useNavStore = create<NavState>()((set) => ({
         s.history.length >= HISTORY_MAX
           ? [...s.history.slice(-(HISTORY_MAX - 1)), s.page]
           : [...s.history, s.page];
+
+      // Clear session context when navigating away from session pages.
+      // Clear project context when navigating to top-level pages.
+      const isSessionPage = page === 'session-intake' || page === 'session-gallery';
+      const isProjectPage = isSessionPage || page === 'create-project' || page === 'project-list';
+
       return {
         page,
         history: nextHistory,
-        // Sticky params: caller must pass null explicitly to clear. Most
-        // navigations only set one of the two, so leaving the other in
-        // place lets the gallery page survive a "settings" detour.
-        ...(params?.projectId !== undefined ? { currentProjectId: params.projectId } : {}),
-        ...(params?.sessionId !== undefined ? { currentSessionId: params.sessionId } : {}),
+        currentProjectId: isProjectPage
+          ? (params?.projectId !== undefined ? params.projectId : s.currentProjectId)
+          : null,
+        currentSessionId: isSessionPage
+          ? (params?.sessionId !== undefined ? params.sessionId : s.currentSessionId)
+          : null,
       };
     }),
 

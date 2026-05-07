@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
+import { pageForward } from '../components/animations';
 import type {
   Settings,
   ThemePreference,
@@ -80,7 +82,13 @@ export function AppSettingsPage(): JSX.Element {
   }
 
   return (
-    <div className="shell-content-column" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <motion.div
+      variants={pageForward}
+      initial="initial"
+      animate="animate"
+      className="shell-content-column"
+      style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}
+    >
       <h1
         style={{
           fontFamily: 'var(--font-family-display)',
@@ -135,7 +143,7 @@ export function AppSettingsPage(): JSX.Element {
         {activeTab === 'defaults'   && <DefaultsTab   settings={settings} patch={patch} />}
         {activeTab === 'licence'    && <LicenceTab    mode={mode} />}
       </Card>
-    </div>
+    </motion.div>
   );
 }
 
@@ -193,14 +201,29 @@ function ProfileTab({ settings, patch }: TabProps): JSX.Element {
 function HotkeysTab({ settings, patch }: TabProps): JSX.Element {
   const hotkeys = settings.hotkeys ?? { ...DEFAULT_HOTKEYS };
   const conflicts = detectHotkeyConflicts(hotkeys);
+  const activeRemapRef = useRef<((e: KeyboardEvent) => void) | null>(null);
+
+  // Clean up any pending remap listener when navigating away.
+  useEffect(() => {
+    return () => {
+      if (activeRemapRef.current) {
+        window.removeEventListener('keydown', activeRemapRef.current, true);
+      }
+    };
+  }, []);
 
   function remap(actionId: string): void {
+    if (activeRemapRef.current) {
+      window.removeEventListener('keydown', activeRemapRef.current, true);
+    }
     const handler = (e: KeyboardEvent): void => {
       e.preventDefault();
       if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) return;
       window.removeEventListener('keydown', handler, true);
+      activeRemapRef.current = null;
       void patch({ hotkeys: { ...hotkeys, [actionId]: formatKeyEvent(e) } });
     };
+    activeRemapRef.current = handler;
     window.addEventListener('keydown', handler, true);
   }
 
@@ -257,10 +280,6 @@ function AppearanceTab({ settings, patch }: TabProps): JSX.Element {
           ))}
         </div>
       </SettingRow>
-      <CardDivider />
-      <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)' }}>
-        Theme changes take effect on next app launch until a settings-updated broadcast lands (FUI-5+). Restart the app after switching.
-      </div>
     </div>
   );
 }

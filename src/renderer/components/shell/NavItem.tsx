@@ -13,19 +13,24 @@ export interface NavItemProps extends Omit<ButtonHTMLAttributes<HTMLButtonElemen
   label: string;
   active?: boolean;
   collapsed?: boolean;
+  /** Tooltip — shown on disabled items. Overrides the collapsed label tooltip. */
+  title?: string;
 }
 
 export const NavItem = forwardRef<HTMLButtonElement, NavItemProps>(function NavItem(
-  { icon, label, active, collapsed, className, ...rest },
+  { icon, label, active, collapsed, title, className, ...rest },
   ref
 ) {
+  // When collapsed: show the label as tooltip (standard rail behaviour).
+  // When a title is explicitly provided (disabled items): show that instead.
+  const resolvedTitle = title ?? (collapsed ? label : undefined);
   return (
     <button
       ref={ref}
       type="button"
       role="menuitem"
       aria-current={active ? 'page' : undefined}
-      title={collapsed ? label : undefined}
+      title={resolvedTitle}
       className={`nav-item ${active ? 'active' : ''} ${className ?? ''}`.trim()}
       {...rest}
     >

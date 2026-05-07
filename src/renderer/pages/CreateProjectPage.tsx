@@ -1,4 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { motion } from 'framer-motion';
+import { pageForward } from '../components/animations';
 import {
   ChevronLeftRegular,
   FolderOpenRegular,
@@ -167,7 +169,10 @@ export function CreateProjectPage(): JSX.Element {
   const brandOptions: DropdownOption[] = brandings.map((b) => ({ label: b.name, value: b.id }));
 
   return (
-    <div
+    <motion.div
+      variants={pageForward}
+      initial="initial"
+      animate="animate"
       className="shell-content-column"
       style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}
     >
@@ -238,7 +243,7 @@ export function CreateProjectPage(): JSX.Element {
               maxLength={500}
             />
           </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+          <div style={{ maxWidth: '50%' }}>
             <Field label="Start date" required error={errors.startDate}>
               <Input
                 type="date"
@@ -342,7 +347,7 @@ export function CreateProjectPage(): JSX.Element {
           </Button>
         </footer>
       </form>
-    </div>
+    </motion.div>
   );
 }
 

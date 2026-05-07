@@ -59,7 +59,21 @@ function AppShell(): JSX.Element {
   const bootBanner = bootError ? (
     <div
       role="alert"
-      className="fixed top-2 left-1/2 -translate-x-1/2 z-50 max-w-xl text-xs text-accent-error bg-surface-primary border border-accent-error px-3 py-1.5 rounded-md"
+      style={{
+        position: 'fixed',
+        top: 8,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 50,
+        maxWidth: 560,
+        background: 'var(--color-layer-1)',
+        border: '1px solid var(--color-text-danger)',
+        borderRadius: 'var(--radius-card)',
+        padding: '6px 12px',
+        fontSize: 'var(--type-caption-size)',
+        color: 'var(--color-text-danger)',
+        boxShadow: 'var(--shadow-layer-2)',
+      }}
     >
       Boot warning: {bootError}
     </div>
@@ -122,13 +136,22 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, BoundaryState>
   override render(): ReactNode {
     if (!this.state.error) return this.props.children;
     return (
-      <div className="min-h-screen bg-surface-primary p-6">
-        <div className="max-w-2xl mx-auto rounded-md border border-accent-error p-4">
-          <h1 className="text-lg font-semibold text-accent-error">Vision-EviDex failed to render</h1>
-          <p className="mt-2 text-sm text-text-primary">
+      <div style={{ minHeight: '100vh', background: 'var(--color-layer-0)', padding: 'var(--space-6)' }}>
+        <div style={{
+          maxWidth: 640,
+          margin: '0 auto',
+          borderRadius: 'var(--radius-card)',
+          border: '1px solid var(--color-text-danger)',
+          padding: 'var(--space-4)',
+          background: 'var(--color-layer-1)',
+        }}>
+          <h1 style={{ fontSize: 'var(--type-body-large-size)', fontWeight: 600, color: 'var(--color-text-danger)', margin: 0 }}>
+            Vision-EviDex failed to render
+          </h1>
+          <p style={{ marginTop: 8, fontSize: 'var(--type-body-size)', color: 'var(--color-text-primary)' }}>
             {this.state.error.message}
           </p>
-          <pre className="mt-3 text-xs text-text-secondary overflow-auto whitespace-pre-wrap">
+          <pre style={{ marginTop: 12, fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)', overflow: 'auto', whiteSpace: 'pre-wrap' }}>
             {this.state.error.stack}
           </pre>
         </div>

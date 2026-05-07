@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { pageForward } from '../components/animations';
 import {
   AddRegular,
   FolderRegular,
@@ -27,21 +29,16 @@ export function ProjectListPage(): JSX.Element {
   // Lazy-load on first render. Subsequent navigations re-use the
   // already-populated array (zustand keeps it in memory).
   useEffect(() => {
-    if (recent.length === 0) {
-      void loadRecent();
-    }
-    // intentionally only on mount; loadRecent is stable
+    void loadRecent();
+    // Always load fresh on mount to catch projects created in other sessions.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleOpen(project: RecentProject): Promise<void> {
     try {
       await openProject(project.filePath);
-      // Land on the project list with the project active — the user can
-      // then start a session via the empty-state CTA on a follow-up
-      // page. Direct navigation to session-intake here would skip the
-      // session-intake's own projectId param requirement.
-      navigate('project-list', { projectId: project.projectId });
+      // Navigate to session-intake so the user can start capturing immediately.
+      navigate('session-intake', { projectId: project.projectId });
     } catch (err) {
       // Surface inline. Future: toast.
       // eslint-disable-next-line no-console
@@ -50,7 +47,10 @@ export function ProjectListPage(): JSX.Element {
   }
 
   return (
-    <div
+    <motion.div
+      variants={pageForward}
+      initial="initial"
+      animate="animate"
       className="shell-content-column"
       style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}
     >
@@ -148,7 +148,9 @@ export function ProjectListPage(): JSX.Element {
                         whiteSpace:   'nowrap',
                       }}
                     >
-                      {p.filePath}
+                      {(p as RecentProject & { clientName?: string }).clientName
+                        || p.filePath.split('\\').pop()?.replace('.evidex', '')
+                        || p.filePath}
                     </div>
                   </div>
                   <time
@@ -163,7 +165,7 @@ export function ProjectListPage(): JSX.Element {
           </ul>
         )}
       </Card>
-    </div>
+    </motion.div>
   );
 }
 

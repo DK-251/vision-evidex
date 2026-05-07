@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { TitleBar } from './TitleBar';
+import { useWindowTier } from '../../hooks/useWindowTier';
 
 /**
  * Application shell — composes the 32px title bar strip with the
@@ -16,6 +17,7 @@ export interface ShellProps {
 }
 
 export function Shell({ children, title }: ShellProps): JSX.Element {
+  useWindowTier();
   return (
     <div className="shell-root material-mica">
       <TitleBar {...(title ? { title } : {})} />

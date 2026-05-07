@@ -238,6 +238,13 @@
   --space-6: 20px;
 }
 
+/* ── Responsive tier padding ────────────────────────────────────────── */
+:root                        { --content-pad: var(--space-6); } /* default 24px */
+[data-tier='compact']        { --content-pad: 16px; }
+[data-tier='standard']       { --content-pad: var(--space-6); }
+[data-tier='comfortable']    { --content-pad: var(--space-6); }
+[data-tier='wide']           { --content-pad: var(--space-8); }
+
 [data-font-size='large'] {
   --type-caption-size:      13px;
   --type-body-size:         15px;

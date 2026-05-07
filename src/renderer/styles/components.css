@@ -67,6 +67,22 @@
 /* Compact height — for in-card buttons (§5.14 template card footer) */
 .btn-compact { height: 28px; padding: 3px var(--space-3); min-width: 88px; }
 
+/* Inline text link button — used in forms for secondary actions */
+.btn-link {
+  background:   transparent;
+  border:       none;
+  padding:      0;
+  color:        var(--color-text-accent);
+  cursor:       pointer;
+  font-family:  var(--font-family);
+  font-size:    var(--type-body-size);
+  display:      inline-flex;
+  align-items:  center;
+  gap:          var(--space-1);
+  transition:   color var(--duration-ultra-fast) var(--easing-standard);
+}
+.btn-link:hover { color: var(--color-accent-dark-1); }
+
 /* ── Text input / multiline (§5.2) ────────────────────────────────── */
 
 .input {
@@ -420,6 +436,42 @@
 
 @media (prefers-reduced-motion: reduce) {
   .icon-orb-animated { animation: none; }
+}
+
+/* ── Capture thumbnail (§5.7) ────────────────────────────────────── */
+
+.capture-thumbnail {
+  width:          160px;
+  flex-shrink:    0;
+  border-radius:  var(--radius-card);
+  border:         1px solid var(--color-stroke-default);
+  overflow:       hidden;
+  cursor:         pointer;
+  background:     var(--color-layer-1);
+  display:        flex;
+  flex-direction: column;
+  padding:        0;
+  transition:     border-color var(--duration-ultra-fast) var(--easing-standard);
+  position:       relative;
+  text-align:     left;
+  font-family:    var(--font-family);
+}
+.capture-thumbnail:hover   { border-color: var(--color-accent-default); }
+.capture-thumbnail.selected {
+  border:     2px solid var(--color-accent-default);
+  box-shadow: 0 0 0 2px var(--color-fill-accent-subtle);
+}
+.capture-thumbnail-img {
+  width:        100%;
+  aspect-ratio: 16 / 9;
+  object-fit:   cover;
+  display:      block;
+  background:   var(--color-fill-subtle);
+}
+.capture-thumbnail-footer {
+  padding:     var(--space-1) var(--space-2);
+  display:     flex;
+  align-items: center;
 }
 
 /* ── Dashboard metric card ───────────────────────────────────────── */
@@ -897,7 +949,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  min-width: 240px;
+  max-width: 240px;
   justify-content: flex-end;
 }
 .setting-group-label {
@@ -1094,11 +1146,11 @@ body:fullscreen .caption-buttons {
 }
 
 .shell-content {
-  /* Content area per doc §4.5: 24px padding on all sides, scrollable. */
+  /* Content area per doc §4.5: padding from tier token, scrollable. */
   flex: 1;
   overflow-y: auto;
   min-width: 0;
-  padding: var(--space-6);
+  padding: var(--content-pad, var(--space-6));
 }
 
 /* Optional centred content column — screens that want doc §4.5's
@@ -1237,4 +1289,47 @@ body:fullscreen .caption-buttons {
   clip: rect(0,0,0,0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ── Typography utility classes ─────────────────────────────────────────── */
+/* Use on headings instead of repeating 4-property inline style blocks.      */
+
+.type-display {
+  font-family: var(--font-family-display);
+  font-size:   var(--type-display-size);
+  font-weight: var(--type-display-weight);
+  line-height: var(--type-display-height);
+  color:       var(--color-text-primary);
+}
+.type-title {
+  font-family: var(--font-family-display);
+  font-size:   var(--type-title-size);
+  font-weight: var(--type-title-weight);
+  line-height: var(--type-title-height);
+  color:       var(--color-text-primary);
+}
+.type-subtitle {
+  font-family: var(--font-family-display);
+  font-size:   var(--type-subtitle-size);
+  font-weight: var(--type-subtitle-weight);
+  line-height: var(--type-subtitle-height);
+  color:       var(--color-text-primary);
+}
+.type-body-strong {
+  font-size:   var(--type-body-strong-size);
+  font-weight: var(--type-body-strong-weight);
+  line-height: var(--type-body-strong-height);
+  color:       var(--color-text-primary);
+}
+.type-body {
+  font-size:   var(--type-body-size);
+  font-weight: var(--type-body-weight);
+  line-height: var(--type-body-height);
+  color:       var(--color-text-primary);
+}
+.type-caption {
+  font-size:   var(--type-caption-size);
+  font-weight: var(--type-caption-weight);
+  line-height: var(--type-caption-height);
+  color:       var(--color-text-secondary);
 }

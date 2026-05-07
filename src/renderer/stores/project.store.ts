@@ -80,14 +80,19 @@ export const useProjectStore = create<ProjectStore>()((set, get) => ({
   },
 
   async loadRecent() {
-    const result = await window.evidexAPI.project.getRecent();
-    if (!result.ok) {
-      // Recent-list failures are non-fatal — keep whatever is already loaded.
-      // eslint-disable-next-line no-console
-      console.warn('[project-store] loadRecent failed', result.error);
-      return;
+    set({ isLoading: true });
+    try {
+      const result = await window.evidexAPI.project.getRecent();
+      if (!result.ok) {
+        // Recent-list failures are non-fatal — keep whatever is already loaded.
+        // eslint-disable-next-line no-console
+        console.warn('[project-store] loadRecent failed', result.error);
+        return;
+      }
+      set({ recentProjects: result.data });
+    } finally {
+      set({ isLoading: false });
     }
-    set({ recentProjects: result.data });
   },
 
   clear() {

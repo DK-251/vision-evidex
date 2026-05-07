@@ -1,11 +1,14 @@
 import {
   DataBarVerticalRegular,
+  DataBarVerticalFilled,
   FolderRegular,
+  FolderFilled,
   ImageMultipleRegular,
   DocumentBulletListRegular,
   DocumentTextRegular,
   ShieldCheckmarkRegular,
   SettingsRegular,
+  SettingsFilled,
   NavigationRegular,
 } from '@fluentui/react-icons';
 import { useNavStore, type ShellPage } from '../../stores/nav-store';
@@ -23,7 +26,11 @@ interface NavDestination {
   /** Pages that should also light up this item (e.g. create-project for Projects). */
   alsoActiveFor?: ShellPage[];
   icon: JSX.Element;
+  /** Filled variant shown when item is active. */
+  filledIcon?: JSX.Element;
   label: string;
+  /** Tooltip shown on disabled items explaining when feature arrives. */
+  title?: string;
 }
 
 const MAIN_ITEMS: NavDestination[] = [
@@ -31,17 +38,48 @@ const MAIN_ITEMS: NavDestination[] = [
     page:           'project-list',
     alsoActiveFor:  ['create-project'],
     icon:           <FolderRegular />,
+    filledIcon:     <FolderFilled />,
     label:          'Projects',
   },
-  { page: 'dashboard', icon: <DataBarVerticalRegular />,      label: 'Dashboard' },
-  { page: null,        icon: <ImageMultipleRegular />,        label: 'Sessions' },
-  { page: null,        icon: <DocumentBulletListRegular />,   label: 'Templates' },
-  { page: null,        icon: <DocumentTextRegular />,         label: 'Reports' },
-  { page: null,        icon: <ShieldCheckmarkRegular />,      label: 'Audit Pack' },
+  {
+    page:       'dashboard',
+    icon:       <DataBarVerticalRegular />,
+    filledIcon: <DataBarVerticalFilled />,
+    label:      'Dashboard',
+  },
+  {
+    page:  null,
+    icon:  <ImageMultipleRegular />,
+    label: 'Sessions',
+    title: 'Available after opening a project',
+  },
+  {
+    page:  null,
+    icon:  <DocumentBulletListRegular />,
+    label: 'Templates',
+    title: 'Coming in Phase 3',
+  },
+  {
+    page:  null,
+    icon:  <DocumentTextRegular />,
+    label: 'Reports',
+    title: 'Coming in Phase 3',
+  },
+  {
+    page:  null,
+    icon:  <ShieldCheckmarkRegular />,
+    label: 'Audit Pack',
+    title: 'Coming in Phase 4',
+  },
 ];
 
 const FOOTER_ITEMS: NavDestination[] = [
-  { page: 'settings', icon: <SettingsRegular />, label: 'Settings' },
+  {
+    page:       'settings',
+    icon:       <SettingsRegular />,
+    filledIcon: <SettingsFilled />,
+    label:      'Settings',
+  },
 ];
 
 export function Sidebar(): JSX.Element {
@@ -55,14 +93,17 @@ export function Sidebar(): JSX.Element {
     const active =
       item.page !== null &&
       (page === item.page || (item.alsoActiveFor ?? []).includes(page));
+    // Use Filled icon variant when active (Regular = inactive, Filled = active).
+    const icon = active && item.filledIcon ? item.filledIcon : item.icon;
     return (
       <NavItem
         key={item.label}
-        icon={item.icon}
+        icon={icon}
         label={item.label}
         active={active}
         collapsed={collapsed}
         disabled={disabled}
+        title={item.title}
         onClick={disabled ? undefined : () => navigate(item.page!)}
       />
     );

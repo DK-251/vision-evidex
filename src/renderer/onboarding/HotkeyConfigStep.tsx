@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { KeyboardRegular } from '@fluentui/react-icons';
 import { useOnboardingStore } from '../stores/onboarding-store';
 import { detectHotkeyConflicts, formatKeyEvent, DEFAULT_HOTKEYS, HOTKEY_ACTIONS } from './hotkey-utils';
@@ -14,14 +15,30 @@ export function HotkeyConfigStep(): JSX.Element {
     { ...DEFAULT_HOTKEYS };
   const setStepData = useOnboardingStore((s) => s.setStepData);
   const conflicts = detectHotkeyConflicts(hotkeys);
+  const activeRemapRef = useRef<((e: KeyboardEvent) => void) | null>(null);
+
+  // Clean up any pending remap listener on unmount.
+  useEffect(() => {
+    return () => {
+      if (activeRemapRef.current) {
+        window.removeEventListener('keydown', activeRemapRef.current, true);
+      }
+    };
+  }, []);
 
   function startRemap(actionId: string): void {
+    // Cancel any previous pending remap first.
+    if (activeRemapRef.current) {
+      window.removeEventListener('keydown', activeRemapRef.current, true);
+    }
     const handler = (e: KeyboardEvent): void => {
       e.preventDefault();
       if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) return;
       window.removeEventListener('keydown', handler, true);
+      activeRemapRef.current = null;
       setStepData('hotkeys', { ...hotkeys, [actionId]: formatKeyEvent(e) });
     };
+    activeRemapRef.current = handler;
     window.addEventListener('keydown', handler, true);
   }
 

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { pageForward } from '../components/animations';
 import type { MetricsSummary, RecentProject } from '@shared/types/entities';
 import {
   CameraRegular,
@@ -28,6 +30,7 @@ export function DashboardPage(): JSX.Element {
   const recent = useProjectStore((s) => s.recentProjects);
   const loadRecent = useProjectStore((s) => s.loadRecent);
   const openProject = useProjectStore((s) => s.openProject);
+  const activeProjectId = useProjectStore((s) => s.activeProject?.id);
   const navigate = useNavStore((s) => s.navigate);
   const [recentLoaded, setRecentLoaded] = useState(false);
 
@@ -56,7 +59,7 @@ export function DashboardPage(): JSX.Element {
   async function handleOpen(p: RecentProject): Promise<void> {
     try {
       await openProject(p.filePath);
-      navigate('project-list', { projectId: p.projectId });
+      navigate('session-intake', { projectId: p.projectId });
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('Dashboard openProject failed', err);
@@ -64,9 +67,12 @@ export function DashboardPage(): JSX.Element {
   }
 
   return (
-    <div
+    <motion.div
+      variants={pageForward}
+      initial="initial"
+      animate="animate"
       className="shell-content-column"
-      style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}
+      style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}
     >
       <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
         <div>
@@ -148,17 +154,35 @@ export function DashboardPage(): JSX.Element {
           gap:                 'var(--space-2)',
         }}
       >
-        <Button variant="standard" startIcon={<CameraRegular />}       style={{ justifyContent: 'flex-start' }}>New session</Button>
-        <Button variant="standard" startIcon={<AddRegular />}          style={{ justifyContent: 'flex-start' }}>New project</Button>
-        <Button variant="standard" startIcon={<ArrowUploadRegular />}  style={{ justifyContent: 'flex-start' }}>Import metrics</Button>
-        <Button variant="standard" startIcon={<DocumentTextRegular />} style={{ justifyContent: 'flex-start' }}>Recent reports</Button>
+        <Button variant="standard" startIcon={<CameraRegular />}
+          style={{ justifyContent: 'flex-start' }}
+          onClick={() => {
+            const id = activeProjectId ?? recent[0]?.projectId;
+            if (id) navigate('session-intake', { projectId: id });
+            else navigate('create-project');
+          }}
+        >New session</Button>
+        <Button variant="standard" startIcon={<AddRegular />}
+          style={{ justifyContent: 'flex-start' }}
+          onClick={() => navigate('create-project')}
+        >New project</Button>
+        <Button variant="standard" startIcon={<ArrowUploadRegular />}
+          style={{ justifyContent: 'flex-start' }}
+          disabled
+          title="Available in Phase 3 — Metrics Import"
+        >Import metrics</Button>
+        <Button variant="standard" startIcon={<DocumentTextRegular />}
+          style={{ justifyContent: 'flex-start' }}
+          disabled
+          title="Available in Phase 3 — Report Builder"
+        >Recent reports</Button>
       </section>
 
       <RecentProjectsSection
         recent={recentLoaded ? recent : null}
         onOpen={(p) => void handleOpen(p)}
       />
-    </div>
+    </motion.div>
   );
 }
 
@@ -272,7 +296,9 @@ function RecentProjectsSection({
                       whiteSpace:   'nowrap',
                     }}
                   >
-                    {p.filePath}
+                    {(p as RecentProject & { clientName?: string }).clientName
+                      || p.filePath.split('\\').pop()?.replace('.evidex', '')
+                      || p.filePath}
                   </div>
                 </div>
                 <time
@@ -326,7 +352,7 @@ function EmptyProjectsState(): JSX.Element {
           Create your first project to start capturing evidence.
         </div>
       </div>
-      <Button variant="accent" startIcon={<AddRegular />}>
+      <Button variant="accent" startIcon={<AddRegular />} onClick={() => navigate('create-project')}>
         Create project
       </Button>
     </div>

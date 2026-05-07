@@ -126,9 +126,8 @@ export function SessionGalleryPage(): JSX.Element | null {
     setEndingSession(true);
     try {
       await endSession();
-      // STUB — Phase 2 Wk 8 lands ProjectOverviewPage; until then,
-      // bounce to the dashboard.
-      navigate('dashboard');
+      // Navigate to project-list after session ends (not dashboard).
+      navigate('project-list', { ...(projectId ? { projectId } : {}) });
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('endSession failed', err);
@@ -168,8 +167,8 @@ export function SessionGalleryPage(): JSX.Element | null {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--space-3)',
-            marginBottom: 'var(--space-3)',
+            gap: 'var(--space-2)',
+            marginBottom: 'var(--space-4)',
           }}
         >
           <button
@@ -193,6 +192,7 @@ export function SessionGalleryPage(): JSX.Element | null {
           </button>
           <h1
             style={{
+              fontFamily: 'var(--font-family-display)',
               fontSize: 'var(--type-subtitle-size)',
               fontWeight: 'var(--type-subtitle-weight)',
               color: 'var(--color-text-primary)',
@@ -228,13 +228,15 @@ export function SessionGalleryPage(): JSX.Element | null {
             color: 'var(--color-text-secondary)',
           }}
         >
-          <span>✓ {counts.passCount} pass</span>
+          <StatusBadge tag="pass">{counts.passCount} pass</StatusBadge>
           <Dot />
-          <span>✗ {counts.failCount} fail</span>
+          <StatusBadge tag="fail">{counts.failCount} fail</StatusBadge>
           <Dot />
-          <span>⊘ {counts.blockedCount} blocked</span>
+          <StatusBadge tag="blocked">{counts.blockedCount} blocked</StatusBadge>
           <Dot />
-          <span>{counts.captureCount} total</span>
+          <span style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)' }}>
+            {counts.captureCount} total
+          </span>
           {selectedIds.size > 0 && (
             <>
               <span style={{ marginLeft: 'auto', color: 'var(--color-text-primary)' }}>
@@ -369,6 +371,28 @@ function ThumbnailGrid({
   );
 }
 
+// ─── useThumbnailUrl ──────────────────────────────────────────────────
+
+function useThumbnailUrl(thumbnail: CaptureResult['thumbnail']): string {
+  const [src, setSrc] = useState('');
+  useEffect(() => {
+    if (typeof thumbnail === 'string') {
+      setSrc(thumbnail);
+      return;
+    }
+    if (thumbnail instanceof Uint8Array) {
+      const url = URL.createObjectURL(
+        new Blob([thumbnail as unknown as BlobPart], { type: 'image/jpeg' })
+      );
+      setSrc(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setSrc('');
+    return;
+  }, [thumbnail]);
+  return src;
+}
+
 function DetailPanel({
   capture,
   onClose,
@@ -379,7 +403,9 @@ function DetailPanel({
   const updateCaptureTag = useSessionStore((s) => s.updateCaptureTag);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const imgSrc = useThumbnailUrl(capture.thumbnail);
 
+  const currentTag: StatusTag = capture.statusTag ?? 'untagged';
   const tags: StatusTag[] = ['pass', 'fail', 'blocked', 'skip', 'untagged'];
 
   async function setTag(tag: StatusTag): Promise<void> {
@@ -401,9 +427,9 @@ function DetailPanel({
         <Button variant="subtle" size="compact" onClick={onClose}>Close</Button>
       </div>
 
-      {capture.thumbnail && (
+      {imgSrc && (
         <img
-          src={capture.thumbnail}
+          src={imgSrc}
           alt=""
           style={{
             width: '100%',
@@ -421,7 +447,7 @@ function DetailPanel({
         <dt style={{ color: 'var(--color-text-secondary)' }}>Captured</dt>
         <dd style={{ margin: 0 }}>{new Date(capture.capturedAt).toLocaleString()}</dd>
         <dt style={{ color: 'var(--color-text-secondary)' }}>Hash</dt>
-        <dd style={{ margin: 0, fontFamily: 'monospace' }}>…{capture.sha256Hash.slice(-8)}</dd>
+        <dd style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 'var(--type-caption-size)' }}>…{capture.sha256Hash.slice(-8)}</dd>
         <dt style={{ color: 'var(--color-text-secondary)' }}>Size</dt>
         <dd style={{ margin: 0 }}>{(capture.fileSizeBytes / 1024).toFixed(1)} KB</dd>
       </dl>
@@ -437,7 +463,15 @@ function DetailPanel({
               type="button"
               onClick={() => void setTag(tag)}
               disabled={saving}
-              style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: 2,
+                cursor: 'pointer',
+                borderRadius: 'var(--radius-pill)',
+                outline: tag === currentTag ? '2px solid var(--color-accent-default)' : 'none',
+                outlineOffset: 2,
+              }}
             >
               <StatusBadge tag={tag} />
             </button>
