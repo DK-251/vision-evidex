@@ -14,6 +14,44 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-05-07 — RUN REQUEST — Pre-Week-9 renderer fixes (41 items)
+
+**From:** CTS
+**Branch/Tip:** main at HEAD
+
+Pre-W9 cleanup is complete. 41 renderer fixes applied directly to 
+source. No main-process or test file changes — all edits are in 
+src/renderer/ and src/renderer/styles/ only. The gate should still 
+pass at 347/347 since no service, IPC, or test code was touched.
+
+### One-shot Asus action
+
+git pull --ff-only
+npm run report
+git add run-reports/latest.{json,md} run-reports/history/ STATUS.md INBOX-TO-ASUS.md
+git commit -m "[INBOX] PRE-W9 Asus verification"
+git push
+
+### Pass criteria
+
+- typecheck PASS
+- tests 347/347 PASS (no test files changed, count unchanged)
+- pbkdf2 PASS under 800ms
+- modules SKIP 18 (unchanged)
+- dep-audit 0 critical baseline unchanged
+
+### If anything fails
+
+Paste the exact tsc output or vitest failure block into 
+INBOX-TO-CTS.md with the commit SHA tested. CTS will fix on next pull.
+
+### After gate passes
+
+Mark this entry [RESOLVED] and proceed with manual UI test steps 
+4/5/9 from the 2026-05-06 00:30 Wk8 gate entry (still open).
+
+---
+
 ## 2026-05-06 00:30 — RUN REQUEST — Phase 2 Week 8 (PROJECT LIFECYCLE + per-container DB)
 
 **From:** CTS (Claude Code)
