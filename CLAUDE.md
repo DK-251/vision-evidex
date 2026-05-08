@@ -97,7 +97,7 @@ No service calls another service directly. All communication is via IPC or const
 
 - **Known Phase 0 issue:** CTS laptop hits a corporate SSL cert error in `node-gyp` when building native modules (`unable to get local issuer certificate` downloading Node headers). Mitigation: Asus TUF performs the real install + `electron-rebuild`. CTS is code-authoring only.
 - **Native-ABI rebuild rhythm (better-sqlite3):** `npm run dev` and `npm test` need different NODE_MODULE_VERSION for the same `.node` binary. Automated via `predev` → `rebuild:electron` and `pretest` → `rebuild:node` npm scripts. No manual rebuild needed; each command is self-healing.
-- **Run report gates code health:** `npm run report` runs `npm run typecheck` + `npm test` as prechecks and exits 1 on either failure. Failing tests / TS errors surface in `latest.md` "Pre-checks" section and block STATUS.md PASS. Test count: **CTS expects ~346 across 25 files** as of the PH2-W8 commit (was 327/23 at the last Asus gate `88185b0` / 2026-05-05). Asus must confirm the new total in the next run.
+- **Run report gates code health:** `npm run report` runs `npm run typecheck` + `npm test` as prechecks and exits 1 on either failure. Failing tests / TS errors surface in `latest.md` "Pre-checks" section and block STATUS.md PASS. Test count: **347 across 26 files** (confirmed at Asus gate `7975bb9` / 2026-05-08, typecheck PASS, PBKDF2 158.71ms mean).
 - **Run report measures Risk R-07:** every `npm run report` also runs the PBKDF2 benchmark (5 samples after one warm-up), records to `run-reports/sprint0-benchmark.json`, and surfaces WARN in next_actions if max > 800 ms. Asus TUF reference: mean ≈ 91 ms (88% headroom — most recent: 143.72 ms mean post-PH2-W7). Standalone: `npm run bench:pbkdf2`.
 - **Rule 4 PASS (2026-05-05):** all `db.prepare(...)` call sites in `database.service.ts` use `?`/`@key` bound parameters; the three `db.exec()` calls are DDL only (schema CREATE + static migration up-strings from `PROJECT_MIGRATIONS`). Zero string-interpolated SQL. Full audit log in [SETUP-NOTES.md](SETUP-NOTES.md#audits).
 - **Rule 6 PASS (2026-05-05):** all reachable file writers atomic — `EvidexContainerService.save()`, `LicenceService.writeLicenceFile()`, `SettingsService.saveSettings()` all use `.tmp` + rename. `ManifestService` does no direct disk I/O (delegates to container's atomic save). `logger.ts` uses `appendFileSync` for append-only logs (rule N/A). Branding logos live as `logoBase64` in DB per Rule 9 (no disk write). New writers must keep this pattern. Full audit log in [SETUP-NOTES.md](SETUP-NOTES.md#audits).
@@ -109,7 +109,7 @@ No service calls another service directly. All communication is via IPC or const
 3. [INBOX-TO-CTS.md](INBOX-TO-CTS.md) — messages from Asus awaiting CTS action
 4. [FEATURES.md](FEATURES.md) — tick boxes as features land
 
-Write to [INBOX-TO-ASUS.md](INBOX-TO-ASUS.md) when CTS needs the Asus to verify, run, or investigate something specific.
+CTS (Claude via filesystem connector) writes directly to [INBOX-TO-ASUS.md](INBOX-TO-ASUS.md) when a gate run or investigation is needed. You commit and push; Asus pulls and executes.
 
 ## 9. Locked decisions (do not re-litigate)
 

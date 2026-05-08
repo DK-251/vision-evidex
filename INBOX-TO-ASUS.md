@@ -7,6 +7,108 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 - Date format: `YYYY-MM-DD HH:MM` (local Asus time — consistent reference).
 - Mark entries resolved with `[RESOLVED YYYY-MM-DD]` prefix. Never delete.
 
+---
+
+## 2026-05-08 — RUN REQUEST — Final pre-W9 analysis fixes (7 additional items)
+
+**From:** CTS via filesystem connector
+
+Full final codebase analysis complete. 7 additional fixes applied on top of Batch A.
+All changes are renderer-only. No main-process, no test files, no new dependencies.
+
+### Files changed (on top of Batch A)
+
+- `src/renderer/pages/SessionGalleryPage.tsx` — `derivedCounts()` now uses `capture.statusTag` to compute pass/fail/blocked counts (was hardcoded 0/0/0); stale comment removed; fake-persistent notes textarea removed from DetailPanel (replaced with Phase 2 Wk 9 caption); `Textarea` import removed
+- `src/renderer/components/ui/CaptureThumbnail.tsx` — separate `statusTag` prop removed; `capture.statusTag` used directly for the badge and aria-label; unused `StatusTag` import removed
+- `src/renderer/pages/DashboardPage.tsx` — "View all" dead anchor replaced with `btn-link` button navigating to `project-list`; `showToast` wired for project open errors; `useToast` import added
+- `src/renderer/pages/ProjectListPage.tsx` — `showToast` wired for project open errors; `useToast` import added
+- `src/renderer/onboarding/ThemeStorageStep.tsx` — `useEffect` now restores original `data-theme` on unmount so abandoned wizard doesn't leave wrong theme
+
+### One-shot Asus action
+
+```
+git pull --ff-only
+npm run report
+git add run-reports/latest.{json,md} run-reports/history/ STATUS.md INBOX-TO-ASUS.md
+git commit -m "[INBOX] Final pre-W9 analysis Asus verification"
+git push
+```
+
+### Pass criteria
+
+- typecheck PASS
+- tests 347/347 PASS
+- pbkdf2 PASS under 800ms
+- modules SKIP 18 (unchanged)
+- dep-audit 0 critical
+
+### If typecheck fails
+
+Most likely: `CaptureThumbnail` — the `statusTag` prop removal may break a caller
+that explicitly passes it. Paste exact tsc output into INBOX-TO-CTS.md.
+
+### After gate passes
+
+Mark both this entry and the 2026-05-08 Batch A entry [RESOLVED].
+Then proceed with manual UI test steps 4/5/9 (Wk8 gate entry 2026-05-06 00:30).
+Week 9 begins after manual test confirmation.
+
+---
+
+## 2026-05-08 — RUN REQUEST — Gap Analysis Batch A fixes (7 items)
+
+**From:** CTS via filesystem connector
+
+PRE-W9 gate confirmed green (`7975bb9`, 347/347). Batch A gap fixes now applied.
+All changes are source-only — no new dependencies, no new test files.
+
+### Files changed
+
+- `src/shared/types/entities.ts` — `CaptureResult.statusTag` promoted from optional to required; `RecentProject.clientName` added
+- `src/main/services/capture.service.ts` — `statusTag` now included in `screenshot()` return
+- `src/main/services/database.service.ts` — `initAppSchema()` adds `client_name` column to `recent_projects` with try/catch `ALTER TABLE` for existing DBs; `getRecentProjects` and `upsertRecentProject` updated
+- `src/main/services/project.service.ts` — `clientName` passed in both `create()` and `open()` upserts; `get()` injects `storagePath` from container handle
+- `src/preload/preload.ts` — `project.create` typed as `ProjectCreateInput` (was `unknown`)
+- `src/renderer/stores/session.store.ts` — `onCaptureArrived` subscription moved into `startSession`/`clearSession` lifecycle; module-level subscription removed
+- `src/renderer/pages/SessionIntakePage.tsx` — modal withheld until settings resolve
+- `src/renderer/providers/ToastProvider.tsx` — new file
+- `src/renderer/App.tsx` — `ToastProvider` wired
+- `src/renderer/stores/nav-store.ts` — `goBack()` TODO comment added
+- `src/renderer/providers/ThemeProvider.tsx` — JSDoc updated
+- `src/renderer/pages/DashboardPage.tsx` + `ProjectListPage.tsx` — type casts removed
+- `src/main/ipc-router.ts` — hardcoded log string cleaned up
+
+### One-shot Asus action
+
+```
+git pull --ff-only
+npm run report
+git add run-reports/latest.{json,md} run-reports/history/ STATUS.md INBOX-TO-ASUS.md
+git commit -m "[INBOX] GAP-A Asus verification"
+git push
+```
+
+### Pass criteria
+
+- typecheck PASS
+- tests 347/347 PASS (no test files changed)
+- pbkdf2 PASS under 800ms
+- modules SKIP 18 (unchanged)
+- dep-audit 0 critical (baseline unchanged)
+
+### If typecheck fails
+
+The most likely failure point is `capture.service.ts` — the `statusTag` field on
+`CaptureResult` changed from optional to required. If any test file or spec
+constructs a `CaptureResult` without `statusTag`, tsc will error. Paste the exact
+`tsc --noEmit` output into INBOX-TO-CTS.md and CTS will fix immediately.
+
+### After gate passes
+
+Mark this entry [RESOLVED] and proceed with manual UI test steps 4/5/9 from the
+2026-05-06 00:30 Wk8 gate entry (still open). W9 implementation begins after
+manual tests confirm the .evidex round trip is green.
+
 **Standing rule (Asus):** on every `git pull` from CTS, read the topmost
 unresolved entry here and execute its checklist before any other work.
 On every `git push` from CTS, `git pull` first, then re-read this file.

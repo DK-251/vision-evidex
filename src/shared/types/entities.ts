@@ -140,7 +140,7 @@ export interface CaptureResult {
   fileSizeBytes: number;
   thumbnail: string; // base64 data URL, 160x90
   capturedAt: string;
-  statusTag?: StatusTag; // 'pass', 'fail', 'blocked', 'skip', or 'untagged'
+  statusTag: StatusTag; // always present — defaults to 'untagged'
 }
 
 export interface CaptureCountDelta {
@@ -434,6 +434,7 @@ export interface LicenceValidationResult {
 export interface RecentProject {
   projectId: string;
   name: string;
+  clientName: string;
   filePath: string;
   lastOpenedAt: string;
 }

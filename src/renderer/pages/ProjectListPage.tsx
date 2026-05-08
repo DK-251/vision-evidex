@@ -9,6 +9,7 @@ import {
 import { Button, Card, FluentSkeleton } from '../components/ui';
 import { useNavStore } from '../stores/nav-store';
 import { useProjectStore } from '../stores/project.store';
+import { useToast } from '../providers/ToastProvider';
 import type { RecentProject } from '@shared/types/entities';
 
 /**
@@ -21,6 +22,7 @@ import type { RecentProject } from '@shared/types/entities';
 
 export function ProjectListPage(): JSX.Element {
   const navigate = useNavStore((s) => s.navigate);
+  const { showToast } = useToast();
   const recent = useProjectStore((s) => s.recentProjects);
   const isLoading = useProjectStore((s) => s.isLoading);
   const loadRecent = useProjectStore((s) => s.loadRecent);
@@ -37,12 +39,9 @@ export function ProjectListPage(): JSX.Element {
   async function handleOpen(project: RecentProject): Promise<void> {
     try {
       await openProject(project.filePath);
-      // Navigate to session-intake so the user can start capturing immediately.
       navigate('session-intake', { projectId: project.projectId });
     } catch (err) {
-      // Surface inline. Future: toast.
-      // eslint-disable-next-line no-console
-      console.error('openProject failed', err);
+      showToast('error', 'Could not open project', err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -148,9 +147,7 @@ export function ProjectListPage(): JSX.Element {
                         whiteSpace:   'nowrap',
                       }}
                     >
-                      {(p as RecentProject & { clientName?: string }).clientName
-                        || p.filePath.split('\\').pop()?.replace('.evidex', '')
-                        || p.filePath}
+                      {p.clientName || p.filePath.split('\\').pop()?.replace('.evidex', '') || p.filePath}
                     </div>
                   </div>
                   <time

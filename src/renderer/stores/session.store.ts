@@ -18,6 +18,8 @@ interface SessionStore {
   activeSession: Session | null;
   captures: CaptureResult[];
   isCapturing: boolean;
+  /** Unsubscribe handle for the CAPTURE_ARRIVED IPC event. Null when no session is active. */
+  _captureListener: (() => void) | null;
   startSession: (intake: SessionIntakeInput) => Promise<Session>;
   endSession: () => Promise<SessionSummary>;
   addCapture: (result: CaptureResult) => void;
@@ -29,6 +31,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
   activeSession: null,
   captures: [],
   isCapturing: false,
+  _captureListener: null,
 
   async startSession(intake) {
     const result = await window.evidexAPI.session.create(intake);
@@ -40,7 +43,16 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
       });
     }
     if (!result.data) throw new Error('Session created but server returned no data');
-    set({ activeSession: result.data, captures: [], isCapturing: false });
+
+    // Subscribe to captures only while a session is active.
+    // Any previous listener is torn down by clearSession() before this runs.
+    const off = typeof window !== 'undefined' && window.evidexAPI?.events?.onCaptureArrived
+      ? window.evidexAPI.events.onCaptureArrived((capture) => {
+          useSessionStore.getState().addCapture(capture);
+        })
+      : null;
+
+    set({ activeSession: result.data, captures: [], isCapturing: false, _captureListener: off });
     return result.data;
   },
 
@@ -70,7 +82,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     const previous = get().captures;
     set({
       captures: previous.map((c) =>
-        c.captureId === captureId ? ({ ...c, statusTag: tag } as CaptureResult) : c
+        c.captureId === captureId ? { ...c, statusTag: tag } : c
       ),
     });
     const result = await window.evidexAPI.capture.updateTag(captureId, tag);
@@ -84,22 +96,8 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
   },
 
   clearSession() {
-    set({ activeSession: null, captures: [], isCapturing: false });
+    // Unsubscribe the capture listener before clearing state.
+    get()._captureListener?.();
+    set({ activeSession: null, captures: [], isCapturing: false, _captureListener: null });
   },
 }));
-
-/**
- * Wk 8 — subscribe to CAPTURE_ARRIVED at module load so any window that
- * imports the store picks up new captures in real time. The subscription
- * is set up exactly once (module-eval); clearSession() doesn't need to
- * unbind because addCapture only mutates the array.
- *
- * Guarded against test environments that don't shim window.evidexAPI
- * (and against hot-reload re-imports — re-running the IPC subscribe is
- * safe, ipcRenderer dedupes nothing but the cost is a no-op listener).
- */
-if (typeof window !== 'undefined' && window.evidexAPI?.events?.onCaptureArrived) {
-  window.evidexAPI.events.onCaptureArrived((capture) => {
-    useSessionStore.getState().addCapture(capture);
-  });
-}

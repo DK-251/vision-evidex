@@ -384,9 +384,7 @@ export function registerAllHandlers(services: ServiceRegistry): void {
   });
 
   // eslint-disable-next-line no-console
-  console.info(
-    `[ipc-router] ${Object.values(IPC).length} handlers registered (26 live, 9 stub)`
-  );
+  console.info(`[ipc-router] ${Object.values(IPC).length} handlers registered`);
 }
 
 /**

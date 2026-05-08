@@ -8,13 +8,12 @@ import { applyAccentScale } from '../lib/accent-scale';
  * the main-process `theme:accentColourUpdate` / `theme:systemThemeChange`
  * broadcasts so the renderer's Fluent tokens stay in sync with Windows.
  *
- * Settings persistence still lives in `settings.json` and is read via
- * `window.evidexAPI.settings.get()`. This provider does not own the
- * settings — it only reflects them into the DOM. When AppSettingsPage
- * lands under Fluent in FUI-4 it writes back via `settings.update()`
- * and this provider picks up the change via a settings-updated event
- * (not wired yet — for FUI-1 the page reloads to apply a theme change,
- * same behaviour as today).
+ * Theme preference is loaded once on mount from `settings.json` via
+ * `window.evidexAPI.settings.get()`. Changes made in AppSettingsPage
+ * are applied on the next app boot (settings:updated broadcast is on
+ * BACKLOG as [PH2-THEME-LIVE]).
+ *
+ * This provider does not own settings — it only reflects them into the DOM.
  */
 
 type Density = 'normal' | 'compact';

@@ -14,6 +14,7 @@ import {
 import { Button, Card, FluentSkeleton } from '../components/ui';
 import { useNavStore } from '../stores/nav-store';
 import { useProjectStore } from '../stores/project.store';
+import { useToast } from '../providers/ToastProvider';
 
 /**
  * S-03 — Dashboard. Port of the D25 page to doc §15 S-03.
@@ -33,6 +34,7 @@ export function DashboardPage(): JSX.Element {
   const openProject = useProjectStore((s) => s.openProject);
   const activeProjectId = useProjectStore((s) => s.activeProject?.id);
   const navigate = useNavStore((s) => s.navigate);
+  const { showToast } = useToast();
   const [recentLoaded, setRecentLoaded] = useState(false);
 
   useEffect(() => {
@@ -62,8 +64,7 @@ export function DashboardPage(): JSX.Element {
       await openProject(p.filePath);
       navigate('session-intake', { projectId: p.projectId });
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Dashboard openProject failed', err);
+      showToast('error', 'Could not open project', err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -237,17 +238,14 @@ function RecentProjectsSection({
         >
           Recent projects
         </h2>
-        <a
-          href="#view-all"
-          onClick={(e) => e.preventDefault()}
-          style={{
-            fontSize:       'var(--type-caption-size)',
-            color:          'var(--color-accent-default)',
-            textDecoration: 'none',
-          }}
+        <button
+          type="button"
+          className="btn-link"
+          onClick={() => navigate('project-list')}
+          style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-accent-default)' }}
         >
           View all
-        </a>
+        </button>
       </div>
 
       {recent === null ? (
@@ -300,9 +298,7 @@ function RecentProjectsSection({
                       whiteSpace:   'nowrap',
                     }}
                   >
-                    {(p as RecentProject & { clientName?: string }).clientName
-                      || p.filePath.split('\\').pop()?.replace('.evidex', '')
-                      || p.filePath}
+                    {p.clientName || p.filePath.split('\\').pop()?.replace('.evidex', '') || p.filePath}
                   </div>
                 </div>
                 <time

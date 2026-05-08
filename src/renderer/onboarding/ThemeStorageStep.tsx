@@ -50,11 +50,17 @@ export function ThemeStorageStep(): JSX.Element {
 
   // Apply theme live for the preview — ThemeProvider normally owns
   // data-theme but the wizard is the only place we preview an
-  // unpersisted choice.
+  // unpersisted choice. Restore the original value on unmount so
+  // an abandoned wizard doesn't leave the wrong theme active.
   useEffect(() => {
+    const original = document.documentElement.getAttribute('data-theme');
     if (theme !== 'system') {
       document.documentElement.setAttribute('data-theme', theme);
     }
+    return () => {
+      if (original) document.documentElement.setAttribute('data-theme', original);
+      else document.documentElement.removeAttribute('data-theme');
+    };
   }, [theme]);
 
   function patch(update: ThemeStorageData): void {

@@ -1,6 +1,6 @@
 import { useEffect, useState, type MouseEvent } from 'react';
 import { CheckmarkFilled } from '@fluentui/react-icons';
-import type { CaptureResult, StatusTag } from '@shared/types/entities';
+import type { CaptureResult } from '@shared/types/entities';
 import { StatusBadge, type StatusTagKind } from './StatusBadge';
 
 /**
@@ -15,8 +15,6 @@ import { StatusBadge, type StatusTagKind } from './StatusBadge';
 
 export interface CaptureThumbnailProps {
   capture:        CaptureResult;
-  /** Status tag carried alongside the result. Defaults to 'untagged'. */
-  statusTag?:     StatusTag;
   isSelected?:    boolean;
   /** Display sequence number — pulled from the DB `Capture` row, not on `CaptureResult`. */
   sequenceNum?:   number;
@@ -26,7 +24,6 @@ export interface CaptureThumbnailProps {
 
 export function CaptureThumbnail({
   capture,
-  statusTag = 'untagged',
   isSelected = false,
   sequenceNum,
   onClick,
@@ -69,7 +66,7 @@ export function CaptureThumbnail({
       onClick={handleClick}
       className={`capture-thumbnail ${isSelected ? 'selected' : ''}`.trim()}
       aria-pressed={isSelected}
-      aria-label={`Capture ${sequenceNum ?? capture.captureId} — ${statusTag}`}
+      aria-label={`Capture ${sequenceNum ?? capture.captureId} — ${capture.statusTag}`}
       style={{ position: 'relative', padding: 0 }}
     >
       <img className="capture-thumbnail-img" src={imgSrc} alt="" />
@@ -115,7 +112,7 @@ export function CaptureThumbnail({
       )}
 
       <span className="capture-thumbnail-footer">
-        <StatusBadge tag={statusTag as StatusTagKind} />
+        <StatusBadge tag={capture.statusTag as StatusTagKind} />
       </span>
     </button>
   );

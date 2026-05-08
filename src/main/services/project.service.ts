@@ -132,6 +132,7 @@ export class ProjectService {
     this.deps.appDb.upsertRecentProject({
       projectId,
       name: project.name,
+      clientName: project.clientName,
       filePath,
       lastOpenedAt: createdAt,
     });
@@ -184,6 +185,7 @@ export class ProjectService {
     this.deps.appDb.upsertRecentProject({
       projectId: project.id,
       name: project.name,
+      clientName: project.clientName,
       filePath,
       lastOpenedAt: openedAt,
     });
@@ -255,7 +257,10 @@ export class ProjectService {
   get(projectId: string): Project | null {
     const handle = this.deps.container.getCurrentHandle();
     if (!handle || handle.projectId !== projectId) return null;
-    return this.deps.container.getProjectDb()?.getProject(projectId) ?? null;
+    const project = this.deps.container.getProjectDb()?.getProject(projectId) ?? null;
+    if (!project) return null;
+    // Inject storagePath from the container handle — the DB row stores '' by design.
+    return { ...project, storagePath: handle.filePath };
   }
 
   /** Single-slot semantics: 1-element array if a project is open, else []. */

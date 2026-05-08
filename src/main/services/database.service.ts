@@ -68,6 +68,7 @@ export class DatabaseService {
       CREATE TABLE IF NOT EXISTS recent_projects (
         project_id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
+        client_name TEXT NOT NULL DEFAULT '',
         file_path TEXT NOT NULL,
         last_opened_at TEXT NOT NULL
       );
@@ -77,6 +78,13 @@ export class DatabaseService {
         imported_at TEXT NOT NULL
       );
     `);
+    // Migrate existing app.db instances that predate the client_name column.
+    // ALTER TABLE fails if the column already exists — that is safe to ignore.
+    try {
+      this.db.exec(`ALTER TABLE recent_projects ADD COLUMN client_name TEXT NOT NULL DEFAULT ''`);
+    } catch {
+      // Column already exists — no action needed.
+    }
   }
 
   /**
@@ -646,7 +654,7 @@ export class DatabaseService {
   getRecentProjects(): RecentProject[] {
     const rows = this.db
       .prepare(
-        `SELECT project_id, name, file_path, last_opened_at
+        `SELECT project_id, name, client_name, file_path, last_opened_at
          FROM recent_projects
          ORDER BY last_opened_at DESC`
       )
@@ -654,6 +662,7 @@ export class DatabaseService {
     return rows.map((r) => ({
       projectId: r.project_id,
       name: r.name,
+      clientName: r.client_name,
       filePath: r.file_path,
       lastOpenedAt: r.last_opened_at,
     }));
@@ -662,10 +671,11 @@ export class DatabaseService {
   upsertRecentProject(entry: RecentProject): void {
     this.db
       .prepare(
-        `INSERT INTO recent_projects (project_id, name, file_path, last_opened_at)
-         VALUES (@projectId, @name, @filePath, @lastOpenedAt)
+        `INSERT INTO recent_projects (project_id, name, client_name, file_path, last_opened_at)
+         VALUES (@projectId, @name, @clientName, @filePath, @lastOpenedAt)
          ON CONFLICT(project_id) DO UPDATE SET
            name = excluded.name,
+           client_name = excluded.client_name,
            file_path = excluded.file_path,
            last_opened_at = excluded.last_opened_at`
       )
@@ -752,8 +762,8 @@ function mapProject(r: ProjectRow): Project {
     clientName: r.client_name,
     startDate: r.start_date,
     templateId: r.template_id,
-    brandingProfileId: '', // populated from brandingProfile JSON on demand by caller
-    storagePath: '', // the .evidex path is owned by the container handle, not this table
+    brandingProfileId: '', // recovered from snapshot below if present
+    storagePath: '',       // injected by ProjectService.get() from the container handle
     namingPattern: r.naming_pattern,
     status: r.status as ProjectStatus,
     createdAt: r.created_at,
@@ -762,7 +772,10 @@ function mapProject(r: ProjectRow): Project {
   if (r.description !== null) base.description = r.description;
   try {
     const snapshot = JSON.parse(r.branding_profile) as BrandingProfile | null;
-    if (snapshot) base.brandingProfile = snapshot;
+    if (snapshot) {
+      base.brandingProfile = snapshot;
+      base.brandingProfileId = snapshot.id; // recover from snapshot JSON
+    }
   } catch {
     /* malformed snapshot — leave base.brandingProfile undefined */
   }
@@ -907,6 +920,7 @@ interface VersionHistoryRow {
 interface RecentProjectRow {
   project_id: string;
   name: string;
+  client_name: string;
   file_path: string;
   last_opened_at: string;
 }

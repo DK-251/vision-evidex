@@ -75,6 +75,9 @@ export const useNavStore = create<NavState>()((set) => ({
 
   goBack: () =>
     set((s) => {
+      // TODO PH2-ROUTING: history doesn't restore params (projectId/sessionId).
+      // Navigating back from a top-level page to a session page will lose context.
+      // Fix requires storing params in the history stack — deferred to HashRouter migration.
       if (s.history.length === 0) {
         return { page: 'project-list', history: [] };
       }

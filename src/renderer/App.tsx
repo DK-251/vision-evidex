@@ -10,13 +10,16 @@ import { useOnboardingStore } from './stores/onboarding-store';
 import { useNavStore } from './stores/nav-store';
 import { BootSkeleton } from './components/Skeleton';
 import { ThemeProvider } from './providers/ThemeProvider';
+import { ToastProvider } from './providers/ToastProvider';
 import { Shell } from './components/shell';
 
 export function App(): JSX.Element {
   return (
     <AppErrorBoundary>
       <ThemeProvider>
-        <AppShell />
+        <ToastProvider>
+          <AppShell />
+        </ToastProvider>
       </ThemeProvider>
     </AppErrorBoundary>
   );

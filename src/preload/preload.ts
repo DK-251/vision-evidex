@@ -28,7 +28,7 @@ import type {
   MetricsSummary,
   RecentProject,
 } from '@shared/types/entities';
-import type { SettingsUpdateInput, BrandingSaveInput } from '@shared/schemas';
+import type { SettingsUpdateInput, BrandingSaveInput, ProjectCreateInput } from '@shared/schemas';
 
 /**
  * Preload bridge — the ONLY surface the renderer uses to talk to main.
@@ -59,7 +59,7 @@ const evidexAPI = {
   },
 
   project: {
-    create: (input: unknown): Promise<IpcResult<Project>> =>
+    create: (input: ProjectCreateInput): Promise<IpcResult<Project>> =>
       ipcRenderer.invoke(IPC.PROJECT_CREATE, input),
     open: (filePath: string): Promise<IpcResult<{ project: Project; handle: { containerId: string; projectId: string; filePath: string; openedAt: string } }>> =>
       ipcRenderer.invoke(IPC.PROJECT_OPEN, { filePath }),

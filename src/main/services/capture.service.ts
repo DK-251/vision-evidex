@@ -187,6 +187,7 @@ export class CaptureService {
       fileSizeBytes: compressed.byteLength,
       thumbnail:     `data:image/jpeg;base64,${thumbnailBuf.toString('base64')}`,
       capturedAt,
+      statusTag,   // already computed above as const statusTag = input.statusTag ?? 'untagged'
     };
   }
 }

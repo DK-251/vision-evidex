@@ -13,7 +13,6 @@ import { Button } from '../components/ui/Button';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { CaptureThumbnail } from '../components/ui/CaptureThumbnail';
 import { GallerySkeleton } from '../components/ui/GallerySkeleton';
-import { Textarea } from '../components/ui/Input';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { pageForward, fadeIn } from '../components/animations';
 
@@ -301,13 +300,13 @@ export function SessionGalleryPage(): JSX.Element | null {
 function derivedCounts(captures: CaptureResult[]): {
   captureCount: number; passCount: number; failCount: number; blockedCount: number;
 } {
-  // CaptureResult itself doesn't carry statusTag — the DB Capture row does.
-  // Until project-DB read flows in Wk 8, derive what we can: total only.
+  // CaptureResult now carries statusTag (GAP-T1). Derive all counts from the
+  // in-memory array so the summary bar reflects live tagging immediately.
   return {
     captureCount: captures.length,
-    passCount: 0,
-    failCount: 0,
-    blockedCount: 0,
+    passCount:    captures.filter((c) => c.statusTag === 'pass').length,
+    failCount:    captures.filter((c) => c.statusTag === 'fail').length,
+    blockedCount: captures.filter((c) => c.statusTag === 'blocked').length,
   };
 }
 
@@ -394,7 +393,6 @@ function DetailPanel({
   onClose: () => void;
 }): JSX.Element {
   const updateCaptureTag = useSessionStore((s) => s.updateCaptureTag);
-  const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const imgSrc = useThumbnailUrl(capture.thumbnail);
 
@@ -472,19 +470,12 @@ function DetailPanel({
         </div>
       </div>
 
-      <Textarea
-        placeholder="Notes"
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        rows={3}
-      />
-
       <div style={{ marginTop: 'var(--space-3)' }}>
         <Button variant="standard" disabled>
           Open in annotation editor
         </Button>
         <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)', marginTop: 4 }}>
-          Annotation editor lands in Phase 2 Wk 9.
+          Notes and annotation editing land in Phase 2 Wk 9 — SessionDetailPage.
         </div>
       </div>
     </div>
