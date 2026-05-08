@@ -9,7 +9,7 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 ---
 
-## 2026-05-08 — RUN REQUEST — Test coverage expansion + Final pre-W9 analysis fixes
+## [RESOLVED 2026-05-08] 2026-05-08 — RUN REQUEST — Test coverage expansion + Final pre-W9 analysis fixes
 
 **From:** CTS via filesystem connector
 
@@ -70,7 +70,7 @@ Week 9 begins after manual test confirmation.
 
 ---
 
-## 2026-05-08 — RUN REQUEST — Gap Analysis Batch A fixes (7 items)
+## [RESOLVED 2026-05-08] 2026-05-08 — RUN REQUEST — Gap Analysis Batch A fixes (7 items)
 
 **From:** CTS via filesystem connector
 
@@ -131,7 +131,7 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
-## 2026-05-08 09:15 — RUN REQUEST — Phase 2 Week 8 HOTFIX (typecheck regression resolved)
+## [RESOLVED 2026-05-08] 2026-05-08 09:15 — RUN REQUEST — Phase 2 Week 8 HOTFIX (typecheck regression resolved)
 
 **From:** CTS (Claude Code)
 **Branch/Tip:** `main` at HEAD (after fixing typecheck regressions from git pull)
@@ -244,7 +244,7 @@ If gate or manual step fails: paste exact error block into INBOX-TO-CTS.md and C
 
 ---
 
-## 2026-05-07 — RUN REQUEST — Pre-Week-9 renderer fixes (41 items)
+## [RESOLVED 2026-05-08] 2026-05-07 — RUN REQUEST — Pre-Week-9 renderer fixes (41 items)
 
 **From:** CTS
 **Branch/Tip:** main at HEAD
