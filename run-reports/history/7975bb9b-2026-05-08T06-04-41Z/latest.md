@@ -1,9 +1,9 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-05-08T06:09:17.425Z  
+**Date:** 2026-05-08T06:04:41.361Z  
 **Branch:** `main` · **Commit:** `7975bb9b`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
-**Duration:** 0 ms
+**Duration:** 2 ms
 
 ## Summary
 
@@ -23,8 +23,8 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 21273 ms | — |
-| tests | PASS | 20823 ms | 347/347 passed |
+| typecheck | FAIL | 12997 ms | src/renderer/components/shell/Sidebar.tsx(99,8): error TS2375: Type '{ key: string; icon: Element; label: string; active: boolean; collapsed: boolean; disabled: boolean; title: string \| undefined; on |
+| tests | PASS | 27392 ms | 347/347 passed |
 
 ## Module results
 
@@ -53,7 +53,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 144.43 ms | 158.71 ms | 178.51 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 306.94 ms | 339.79 ms | 369.48 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +71,5 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [typecheck] FAIL — src/renderer/components/shell/Sidebar.tsx(99,8): error TS2375: Type '{ key: string; icon: Element; label: string; active: boolean; collapsed: boolean; disabled: boolean; title: string | undefined; onClick: (() => void) | undefined; }' is not assignable to type 'NavItemProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

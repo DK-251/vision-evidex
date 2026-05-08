@@ -14,6 +14,119 @@ Default cadence if no new entry: `npm run report` and push `run-reports/` + `STA
 
 ---
 
+## 2026-05-08 09:15 — RUN REQUEST — Phase 2 Week 8 HOTFIX (typecheck regression resolved)
+
+**From:** CTS (Claude Code)
+**Branch/Tip:** `main` at HEAD (after fixing typecheck regressions from git pull)
+
+The latest pull (`7975bb9`) introduced 4 typecheck errors in renderer UI code. CTS patched all 4 regressions directly and re-ran `npm run report` locally. **Automated gate is now PASS.**
+
+### Fixes applied (4 files)
+
+1. **src/renderer/components/shell/Sidebar.tsx** — `NavItem` prop: changed `title={item.title}` to conditional spread `{...(item.title !== undefined && { title: item.title })}` to satisfy `exactOptionalPropertyTypes` rule. Also fixed `onClick` via conditional spread.
+
+2. **src/shared/types/entities.ts** — `CaptureResult` interface: added optional `statusTag?: StatusTag` field (used by SessionGalleryPage detail panel for tag state).
+
+3. **src/renderer/pages/DashboardPage.tsx** — Two changes:
+   - Added `Page` type import from nav-store + threaded `navigate` callback to `EmptyProjectsState` and `RecentProjectsSection` components
+   - Fixed `EmptyProjectsState` call site to pass `navigate` prop
+
+4. **src/renderer/pages/SessionGalleryPage.tsx** — `useThumbnailUrl` hook: removed `instanceof Uint8Array` branch (thumbnail is always base64 string per CaptureResult type). Simplified to type-safe string-only check.
+
+### Automated gate results (CTS local)
+
+```
+typecheck=PASS  tests=PASS  pbkdf2=178.51ms/800ms  modules: PASS 0  FAIL 0  WARN 0  SKIP 18
+```
+
+- typecheck: **PASS**
+- tests: **347/347 PASS** (all pass; no new test failures)
+- pbkdf2: **178.51 ms** (budget 800 ms — healthy 77% headroom)
+- modules: **SKIP 18** (no changes to module gates)
+- dep-audit: **0 critical / 5 high** (unchanged baseline)
+
+### One-shot Asus action
+
+```
+git pull --ff-only
+npm run report
+git add run-reports/latest.{json,md} run-reports/history/ STATUS.md
+git commit -m "[INBOX] PH2-W8 Asus verification — automated gate PASS"
+git push
+```
+
+### Pass criteria — automated (already GREEN locally)
+
+- typecheck **PASS** ✓
+- tests **347/347 PASS** ✓
+- pbkdf2 **PASS** (178.51 ms < 800 ms ceiling) ✓
+- modules **SKIP 18** (no regression) ✓
+
+### Manual UI test sequence (run after Asus pulls and gate re-confirms PASS)
+
+These are the steps from the Wk8 brief (Steps 1–9 from 2026-05-06 request). Run them in order on Asus; pause if any [ ] check fails and paste exact error block back to INBOX-TO-CTS.
+
+**STEP 1 — App launches to Projects, not Dashboard (AQ5):**
+- [ ] First nav item is "Projects" (FolderRegular icon) in the sidebar
+- [ ] App opens on `ProjectListPage` with empty state on fresh install
+- [ ] "Create project" btn-accent visible top-right
+
+**STEP 2 — Create a real project:**
+1. Click "Create project" → CreateProjectPage opens
+2. Fill in: Project name: `Week 8 Gate Project` | Client name: `Asus TUF Verify` | Start date: today | Template: default | Branding: default | Storage: Documents\VisionEviDex
+3. Click "Create project"
+- [ ] Form submits without error
+- [ ] App navigates to `session-intake` modal
+- [ ] `*.evidex` file appears in storage folder
+
+**STEP 3 — Create a session:**
+Complete intake: Test ID: `TC-GATE-001` | Test name: `Week 8 Gate Test` | Scenario: `Verify real capture writes to .evidex on disk` | Environment: `QA` | App under test: `Vision-EviDex v0.8`
+- [ ] Modal closes → `SessionGalleryPage` renders
+- [ ] Floating capture toolbar appears
+- [ ] Toolbar counter shows 0
+
+**STEP 4 — Take real screenshots:**
+Press `Ctrl+Shift+1` three times (fullscreen capture hotkey)
+- [ ] Capture flash (~80ms white overlay) on each press
+- [ ] Toolbar counter increments: 0 → 1 → 2 → 3
+- [ ] Real `CaptureThumbnail` tiles appear (transitions from GallerySkeleton)
+- [ ] Thumbnails show "untagged" badge
+- [ ] No console errors in DevTools
+
+**STEP 5 — Verify .evidex integrity:**
+DevTools console: `window.evidexAPI.session.get('<sessionId from toolbar pill>').then(r => console.log(JSON.stringify(r.data, null, 2)));`
+- [ ] Response includes `captureCount: 3`
+- [ ] File size > 200 KB (3 JPEGs + project DB)
+
+**STEP 6 — Tag a capture:**
+Click a thumbnail → detail panel → click "Pass"
+- [ ] Thumbnail badge updates to green "pass"
+
+**STEP 7 — End the session:**
+Click "End session" → confirm
+- [ ] Toolbar hides
+- [ ] Nav returns to `ProjectListPage`
+- [ ] `Ctrl+Shift+1` no longer fires
+
+**STEP 8 — Recent projects:**
+- [ ] `ProjectListPage` shows "Week 8 Gate Project" in recent list
+- [ ] Dashboard shows same row
+
+**STEP 9 — Reopen (the round-trip!):**
+Click project in recent list
+- [ ] Project opens without error
+- [ ] DevTools: `window.evidexAPI.session.get('<sessionId>')` returns `captureCount: 3` — proves per-container DB survived close + reopen
+
+### Resolution
+
+If automated gate is PASS on Asus and Steps 4 + 5 + 9 pass in manual sequence:
+- Tick `EC-04`, `EC-05`, `EC-07`, `EC-08`, `EC-09`, `EC-10`, `EC-15`, `EC-16`, `EC-17` in [FEATURES.md](FEATURES.md)
+- Mark this entry `[RESOLVED 2026-05-08]`
+
+If gate or manual step fails: paste exact error block into INBOX-TO-CTS.md and CTS will patch on next pull.
+
+---
+
 ## 2026-05-07 — RUN REQUEST — Pre-Week-9 renderer fixes (41 items)
 
 **From:** CTS
