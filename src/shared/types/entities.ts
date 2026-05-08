@@ -140,6 +140,7 @@ export interface CaptureResult {
   fileSizeBytes: number;
   thumbnail: string; // base64 data URL, 160x90
   capturedAt: string;
+  statusTag?: StatusTag; // 'pass', 'fail', 'blocked', 'skip', or 'untagged'
 }
 
 export interface CaptureCountDelta {

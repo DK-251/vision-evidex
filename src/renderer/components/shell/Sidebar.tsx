@@ -103,8 +103,8 @@ export function Sidebar(): JSX.Element {
         active={active}
         collapsed={collapsed}
         disabled={disabled}
-        title={item.title}
-        onClick={disabled ? undefined : () => navigate(item.page!)}
+        {...(item.title !== undefined && { title: item.title })}
+        {...(!disabled && { onClick: () => navigate(item.page!) })}
       />
     );
   }

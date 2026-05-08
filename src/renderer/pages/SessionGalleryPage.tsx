@@ -376,16 +376,9 @@ function ThumbnailGrid({
 function useThumbnailUrl(thumbnail: CaptureResult['thumbnail']): string {
   const [src, setSrc] = useState('');
   useEffect(() => {
-    if (typeof thumbnail === 'string') {
+    if (typeof thumbnail === 'string' && thumbnail.length > 0) {
       setSrc(thumbnail);
       return;
-    }
-    if (thumbnail instanceof Uint8Array) {
-      const url = URL.createObjectURL(
-        new Blob([thumbnail as unknown as BlobPart], { type: 'image/jpeg' })
-      );
-      setSrc(url);
-      return () => URL.revokeObjectURL(url);
     }
     setSrc('');
     return;

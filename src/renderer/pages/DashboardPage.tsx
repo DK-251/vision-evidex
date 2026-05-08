@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { pageForward } from '../components/animations';
 import type { MetricsSummary, RecentProject } from '@shared/types/entities';
+import type { Page } from '../stores/nav-store';
 import {
   CameraRegular,
   AddRegular,
@@ -181,6 +182,7 @@ export function DashboardPage(): JSX.Element {
       <RecentProjectsSection
         recent={recentLoaded ? recent : null}
         onOpen={(p) => void handleOpen(p)}
+        navigate={navigate}
       />
     </motion.div>
   );
@@ -209,9 +211,11 @@ function MetricCardSkeleton(): JSX.Element {
 function RecentProjectsSection({
   recent,
   onOpen,
+  navigate,
 }: {
   recent: RecentProject[] | null;
   onOpen: (p: RecentProject) => void;
+  navigate: (page: Page, params?: { projectId?: string; sessionId?: string }) => void;
 }): JSX.Element {
   return (
     <Card variant="default">
@@ -253,7 +257,7 @@ function RecentProjectsSection({
           <FluentSkeleton height={48} />
         </div>
       ) : recent.length === 0 ? (
-        <EmptyProjectsState />
+        <EmptyProjectsState navigate={navigate} />
       ) : (
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
           {recent.slice(0, 5).map((p) => (
@@ -316,7 +320,7 @@ function RecentProjectsSection({
   );
 }
 
-function EmptyProjectsState(): JSX.Element {
+function EmptyProjectsState({ navigate }: { navigate: (page: Page) => void }): JSX.Element {
   return (
     <div
       style={{
