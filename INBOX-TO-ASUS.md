@@ -9,20 +9,35 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 ---
 
-## 2026-05-08 — RUN REQUEST — Final pre-W9 analysis fixes (7 additional items)
+## 2026-05-08 — RUN REQUEST — Test coverage expansion + Final pre-W9 analysis fixes
 
 **From:** CTS via filesystem connector
 
-Full final codebase analysis complete. 7 additional fixes applied on top of Batch A.
-All changes are renderer-only. No main-process, no test files, no new dependencies.
+Full final codebase analysis complete. New test spec added targeting all identified gaps.
+All changes are renderer + shared types only (+ new test file). No new dependencies.
 
-### Files changed (on top of Batch A)
+### New test file
 
-- `src/renderer/pages/SessionGalleryPage.tsx` — `derivedCounts()` now uses `capture.statusTag` to compute pass/fail/blocked counts (was hardcoded 0/0/0); stale comment removed; fake-persistent notes textarea removed from DetailPanel (replaced with Phase 2 Wk 9 caption); `Textarea` import removed
-- `src/renderer/components/ui/CaptureThumbnail.tsx` — separate `statusTag` prop removed; `capture.statusTag` used directly for the badge and aria-label; unused `StatusTag` import removed
-- `src/renderer/pages/DashboardPage.tsx` — "View all" dead anchor replaced with `btn-link` button navigating to `project-list`; `showToast` wired for project open errors; `useToast` import added
-- `src/renderer/pages/ProjectListPage.tsx` — `showToast` wired for project open errors; `useToast` import added
-- `src/renderer/onboarding/ThemeStorageStep.tsx` — `useEffect` now restores original `data-theme` on unmount so abandoned wizard doesn't leave wrong theme
+- `__tests__/pre-w9-gap-coverage.spec.ts` — new spec covering:
+  - Section 1: nav-store param clearing (10 tests)
+  - Section 2: database-service clientName + boundary cases (15 tests)
+  - Section 3: naming-service additional boundaries (12 tests)
+  - Section 4: settings-service hotkeys + profile fields (8 tests)
+  - Section 5: ipc-schemas additional boundaries (20 tests)
+  - Section 6: session.store capture subscription lifecycle (4 tests)
+  - Section 7: project.store isLoading + clear() (4 tests)
+  - Section 8: capture-service edge cases + statusTag in result (8 tests)
+  - Section 9: container-crypto additional edge cases (6 tests)
+  - Section 10: hotkey-utils conflicts + formatKeyEvent (7 tests)
+  - **Target: ~347 + ~94 new = ~440 total**
+
+### Other files changed (on top of Batch A)
+
+- `src/renderer/pages/SessionGalleryPage.tsx` — `derivedCounts()` uses `capture.statusTag`; notes textarea removed
+- `src/renderer/components/ui/CaptureThumbnail.tsx` — `statusTag` prop removed; uses `capture.statusTag`
+- `src/renderer/pages/DashboardPage.tsx` — View all navigates; showToast on error
+- `src/renderer/pages/ProjectListPage.tsx` — showToast on open error
+- `src/renderer/onboarding/ThemeStorageStep.tsx` — data-theme restore on unmount
 
 ### One-shot Asus action
 
@@ -30,27 +45,27 @@ All changes are renderer-only. No main-process, no test files, no new dependenci
 git pull --ff-only
 npm run report
 git add run-reports/latest.{json,md} run-reports/history/ STATUS.md INBOX-TO-ASUS.md
-git commit -m "[INBOX] Final pre-W9 analysis Asus verification"
+git commit -m "[INBOX] Test coverage expansion + final pre-W9 verification"
 git push
 ```
 
 ### Pass criteria
 
 - typecheck PASS
-- tests 347/347 PASS
+- tests ≥ 420 PASS (347 existing + new spec; some tests may be skipped if crypto/sharp not rebuilt)
 - pbkdf2 PASS under 800ms
 - modules SKIP 18 (unchanged)
 - dep-audit 0 critical
 
 ### If typecheck fails
 
-Most likely: `CaptureThumbnail` — the `statusTag` prop removal may break a caller
-that explicitly passes it. Paste exact tsc output into INBOX-TO-CTS.md.
+- `CaptureThumbnail.tsx` — check `statusTag` prop removal: grep any caller passing it
+- `pre-w9-gap-coverage.spec.ts` — check `_captureListener` type on session store
 
 ### After gate passes
 
-Mark both this entry and the 2026-05-08 Batch A entry [RESOLVED].
-Then proceed with manual UI test steps 4/5/9 (Wk8 gate entry 2026-05-06 00:30).
+Mark all 2026-05-08 entries [RESOLVED].
+Proceed with manual UI test steps 4/5/9 (Wk8 gate entry 2026-05-06 00:30).
 Week 9 begins after manual test confirmation.
 
 ---
