@@ -45,7 +45,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
   const showToast = useCallback(
     (severity: ToastSeverity, title: string, body?: string) => {
       const id = `toast_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-      setToasts((t) => [...t, { id, severity, title, body }]);
+      setToasts((t) => [...t, { id, severity, title, ...(body !== undefined && { body }) }]);
       window.setTimeout(() => dismiss(id), AUTO_DISMISS_MS);
     },
     [dismiss]

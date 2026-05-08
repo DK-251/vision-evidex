@@ -121,12 +121,14 @@ describe('DatabaseService — app.db', () => {
     db.upsertRecentProject({
       projectId: 'proj_01',
       name: 'Alpha',
+      clientName: 'Client A',
       filePath: 'C:/projects/alpha.evidex',
       lastOpenedAt: '2026-04-18T10:00:00Z',
     });
     db.upsertRecentProject({
       projectId: 'proj_01',
       name: 'Alpha (renamed)',
+      clientName: 'Client A',
       filePath: 'C:/projects/alpha.evidex',
       lastOpenedAt: '2026-04-18T11:00:00Z',
     });
@@ -139,12 +141,14 @@ describe('DatabaseService — app.db', () => {
     db.upsertRecentProject({
       projectId: 'proj_a',
       name: 'Older',
+      clientName: 'Client A',
       filePath: '/a.evidex',
       lastOpenedAt: '2026-04-10T09:00:00Z',
     });
     db.upsertRecentProject({
       projectId: 'proj_b',
       name: 'Newer',
+      clientName: 'Client B',
       filePath: '/b.evidex',
       lastOpenedAt: '2026-04-18T09:00:00Z',
     });

@@ -53,10 +53,10 @@ export const SessionGetSchema = z.object({
 // ─── Capture ────────────────────────────────────────────────────────────
 
 export const ScreenRegionSchema = z.object({
-  x: z.number().int().min(0),
-  y: z.number().int().min(0),
-  width: z.number().int().positive(),
-  height: z.number().int().positive(),
+  x: z.number().min(0),
+  y: z.number().min(0),
+  width: z.number().positive(),
+  height: z.number().positive(),
 });
 
 export const CaptureRequestSchema = z

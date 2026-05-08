@@ -334,9 +334,9 @@ describe('NamingService — additional boundary cases', () => {
   });
 
   it('project name with all special chars produces underscores only', () => {
-    const out = naming().generate(baseCtx({ pattern: '{ProjectCode}', projectName: '!!!###' }));
-    // After replace all illegal chars → underscore, truncate to 8
-    expect(out).toMatch(/^_{1,8}\.jpg$/);
+    const out = naming().generate(baseCtx({ pattern: '{ProjectCode}', projectName: 'A<B>C:D' }));
+    // After replace Windows-illegal chars → underscore, truncate to 8
+    expect(out).toBe('A_B_C_D.jpg');
   });
 
   it('sequence number 9999 is still 4 digits', () => {
@@ -672,8 +672,12 @@ describe('useSessionStore — capture subscription lifecycle (GAP-S1)', () => {
   beforeEach(async () => {
     captureOffFn = vi.fn();
     onCaptureArrived = vi.fn().mockReturnValue(captureOffFn);
+    // Ensure window exists in globalThis
+    if (!('window' in globalThis)) {
+      (globalThis as any).window = {};
+    }
     // Patch the window evidexAPI with our capture mock
-    (globalThis as { window: { evidexAPI: unknown } }).window.evidexAPI = {
+    (globalThis.window as any).evidexAPI = {
       session: sessionApi2,
       capture: captureApi2,
       events: {
@@ -688,7 +692,7 @@ describe('useSessionStore — capture subscription lifecycle (GAP-S1)', () => {
     vi.clearAllMocks();
     // Re-patch after clearing mocks
     onCaptureArrived = vi.fn().mockReturnValue(captureOffFn);
-    (globalThis as { window: { evidexAPI: unknown } }).window.evidexAPI = {
+    (globalThis.window as any).evidexAPI = {
       session: sessionApi2,
       capture: captureApi2,
       events: {
@@ -762,7 +766,11 @@ describe('useProjectStore — isLoading and edge cases (GAP-S2)', () => {
   };
 
   beforeEach(async () => {
-    (globalThis as { window: { evidexAPI: unknown } }).window.evidexAPI = {
+    // Ensure window exists in globalThis
+    if (!('window' in globalThis)) {
+      (globalThis as any).window = {};
+    }
+    (globalThis.window as any).evidexAPI = {
       project: projectApi2,
     };
     const { useProjectStore: store } = await import('../src/renderer/stores/project.store');
@@ -971,15 +979,15 @@ describe('container-crypto — additional edge cases', () => {
     const plain = Buffer.from('tag-flip-test');
     const enc = encryptContainer(plain, PWD);
     const tampered = Buffer.from(enc);
-    const tagEnd = HEADER_LENGTH + 16; // TAG_LENGTH_BYTES = 16
-    tampered[tagEnd - 1] = tampered[tagEnd - 1] ^ 0xFF;
+    const lastTagByte = HEADER_LENGTH - 1; // last byte of the tag
+    tampered[lastTagByte] = tampered[lastTagByte] ^ 0xFF;
     expect(() => decryptContainer(tampered, PWD)).toThrow(ContainerCryptoError);
   });
 
   it('zero-length ciphertext with valid header structure throws ContainerCryptoError', () => {
     // Construct a buffer with valid magic+version+salt+iv+tag but no actual ciphertext
     const enc = encryptContainer(Buffer.from('x'), PWD);
-    const trimmed = enc.subarray(0, HEADER_LENGTH + 16); // just header + tag, no ciphertext
+    const trimmed = enc.subarray(0, HEADER_LENGTH); // just header + tag, no ciphertext
     expect(() => decryptContainer(trimmed, PWD)).toThrow(ContainerCryptoError);
   });
 

@@ -27,12 +27,14 @@ describe('MetricsService', () => {
     db.upsertRecentProject({
       projectId: 'proj_a',
       name: 'A',
+      clientName: 'Client A',
       filePath: '/a.evidex',
       lastOpenedAt: '2026-04-18T00:00:00Z',
     });
     db.upsertRecentProject({
       projectId: 'proj_b',
       name: 'B',
+      clientName: 'Client B',
       filePath: '/b.evidex',
       lastOpenedAt: '2026-04-18T00:00:00Z',
     });
@@ -43,6 +45,7 @@ describe('MetricsService', () => {
     db.upsertRecentProject({
       projectId: 'proj_a',
       name: 'A',
+      clientName: 'Client A',
       filePath: '/a.evidex',
       lastOpenedAt: '2026-04-18T00:00:00Z',
     });

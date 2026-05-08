@@ -1,6 +1,6 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-05-08T16:43:49.366Z  
+**Date:** 2026-05-08T16:42:51.081Z  
 **Branch:** `main` · **Commit:** `d5ebe103`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
 **Duration:** 0 ms
@@ -23,8 +23,12 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 8597 ms | — |
-| tests | PASS | 10462 ms | 453/453 passed |
+| typecheck | PASS | 8639 ms | — |
+| tests | FAIL | 10482 ms | 1/453 failed |
+
+**Failing tests:**
+
+- `__tests__\pre-w9-gap-coverage.spec.ts` › NamingService — additional boundary cases project name with all special chars produces underscores only
 
 ## Module results
 
@@ -53,7 +57,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 90.72 ms | 90.98 ms | 91.43 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 90.85 ms | 91.4 ms | 92.85 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +75,6 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [tests] FAIL — 1/453 failed
+-   · __tests__\pre-w9-gap-coverage.spec.ts › NamingService — additional boundary cases project name with all special chars produces underscores only
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

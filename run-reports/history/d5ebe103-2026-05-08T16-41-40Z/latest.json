@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-05-08T16:43:49.366Z",
+  "timestamp": "2026-05-08T16:41:40.402Z",
   "branch": "main",
   "commitSha": "d5ebe1034990a913e6a9db1681c219b462d0d64d",
   "shortSha": "d5ebe103",
@@ -205,22 +205,28 @@
   "prechecks": {
     "typecheck": {
       "ok": true,
-      "duration_ms": 8597
+      "duration_ms": 8571
     },
     "tests": {
-      "ok": true,
-      "duration_ms": 10462,
+      "ok": false,
+      "duration_ms": 10658,
       "total": 453,
-      "passed": 453,
-      "failed": 0,
-      "failures": []
+      "passed": 452,
+      "failed": 1,
+      "failures": [
+        {
+          "file": "__tests__\\naming-service.spec.ts",
+          "name": "NamingService generate — pattern behaviour unknown tokens are left as-is (not an error)",
+          "message": "AssertionError: expected 'T-001__Nope__0001.jpg' to be 'T-001_{Nope}_0001.jpg' // Object.is equality\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\naming-service.spec.ts:98:19\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///D:/D"
+        }
+      ]
     }
   },
   "pbkdf2": {
     "ok": true,
     "duration_ms": 550,
     "record": {
-      "ts": "2026-05-08T16:44:09.175Z",
+      "ts": "2026-05-08T16:42:00.381Z",
       "node": "22.22.2",
       "platform": "win32-x64",
       "iterations": 310000,
@@ -228,15 +234,15 @@
       "salt_len_bytes": 16,
       "runs": 5,
       "samples_ms": [
-        90.82,
-        91.43,
-        90.73,
-        91.19,
-        90.72
+        92.48,
+        90.98,
+        90.47,
+        90.43,
+        91.11
       ],
-      "min_ms": 90.72,
-      "max_ms": 91.43,
-      "mean_ms": 90.98,
+      "min_ms": 90.43,
+      "max_ms": 92.48,
+      "mean_ms": 91.09,
       "budget_ms": 800,
       "passed": true
     }
@@ -251,9 +257,11 @@
       "critical": 0,
       "total": 8
     },
-    "duration_ms": 2374
+    "duration_ms": 3674
   },
   "next_actions": [
+    "PRECHECK [tests] FAIL — 1/453 failed",
+    "  · __tests__\\naming-service.spec.ts › NamingService generate — pattern behaviour unknown tokens are left as-is (not an error)",
     "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
   ]
 }

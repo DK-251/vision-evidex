@@ -1,0 +1,346 @@
+{
+  "timestamp": "2026-05-08T16:35:19.444Z",
+  "branch": "main",
+  "commitSha": "d5ebe1034990a913e6a9db1681c219b462d0d64d",
+  "shortSha": "d5ebe103",
+  "nodeVersion": "22.22.2",
+  "electronVersion": "^30.4.0",
+  "totalDurationMs": 1,
+  "modules": [
+    {
+      "name": "licence",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 4"
+    },
+    {
+      "name": "onboarding",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 5)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 5"
+    },
+    {
+      "name": "dashboard",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 5)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 5"
+    },
+    {
+      "name": "session",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 2 Week 7)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 2 Week 7"
+    },
+    {
+      "name": "capture",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 2 Week 7)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 2 Week 7"
+    },
+    {
+      "name": "annotation",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 2 Week 9)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 2 Week 9"
+    },
+    {
+      "name": "project",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 6)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 6"
+    },
+    {
+      "name": "naming",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 4"
+    },
+    {
+      "name": "template",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "metrics_import",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "report_builder",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "export_word",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "export_pdf",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "export_html",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "status_reports",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "audit_pack",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 4"
+    },
+    {
+      "name": "sign_off",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 4"
+    },
+    {
+      "name": "settings",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 3"
+    }
+  ],
+  "summary": {
+    "total_modules": 18,
+    "pass": 0,
+    "fail": 0,
+    "warn": 0,
+    "suspect": 0,
+    "skip": 18
+  },
+  "features": {
+    "done": 3,
+    "total": 92,
+    "byModule": {
+      "OB": {
+        "done": 0,
+        "total": 13
+      },
+      "DB": {
+        "done": 0,
+        "total": 5
+      },
+      "EC": {
+        "done": 0,
+        "total": 17
+      },
+      "PM": {
+        "done": 3,
+        "total": 10
+      },
+      "TE": {
+        "done": 0,
+        "total": 11
+      },
+      "RB": {
+        "done": 0,
+        "total": 13
+      },
+      "SR": {
+        "done": 0,
+        "total": 4
+      },
+      "AU": {
+        "done": 0,
+        "total": 7
+      },
+      "WS": {
+        "done": 0,
+        "total": 12
+      }
+    }
+  },
+  "prechecks": {
+    "typecheck": {
+      "ok": true,
+      "duration_ms": 8610
+    },
+    "tests": {
+      "ok": false,
+      "duration_ms": 12923,
+      "total": 453,
+      "passed": 437,
+      "failed": 16,
+      "failures": [
+        {
+          "file": "__tests__\\database-service.spec.ts",
+          "name": "DatabaseService — app.db upsertRecentProject inserts then updates the same projectId",
+          "message": "RangeError: Missing named parameter \"clientName\"\n    at DatabaseService.upsertRecentProject (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\database.service.ts:682:8)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\database-service.spec.ts:121:8\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@v"
+        },
+        {
+          "file": "__tests__\\database-service.spec.ts",
+          "name": "DatabaseService — app.db orders recent projects by lastOpenedAt DESC",
+          "message": "RangeError: Missing named parameter \"clientName\"\n    at DatabaseService.upsertRecentProject (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\database.service.ts:682:8)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\database-service.spec.ts:139:8\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@v"
+        },
+        {
+          "file": "__tests__\\metrics-service.spec.ts",
+          "name": "MetricsService reflects recent_projects count in activeProjects",
+          "message": "RangeError: Missing named parameter \"clientName\"\n    at DatabaseService.upsertRecentProject (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\database.service.ts:682:8)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\metrics-service.spec.ts:27:8\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vit"
+        },
+        {
+          "file": "__tests__\\metrics-service.spec.ts",
+          "name": "MetricsService session / capture / export counters are placeholder zeros until Phase 2+",
+          "message": "RangeError: Missing named parameter \"clientName\"\n    at DatabaseService.upsertRecentProject (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\database.service.ts:682:8)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\metrics-service.spec.ts:43:8\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vit"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "NamingService — additional boundary cases project name with all special chars produces underscores only",
+          "message": "AssertionError: expected '!!!###.jpg' to match /^_{1,8}\\.jpg$/\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:339:17\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_m"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "IPC Schemas — additional boundary cases CaptureRequestSchema — all mode combinations accepts region with fractional coordinates",
+          "message": "AssertionError: expected false to be true // Object.is equality\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:529:19\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "useSessionStore — capture subscription lifecycle (GAP-S1) startSession subscribes to onCaptureArrived",
+          "message": "TypeError: Cannot set properties of undefined (setting 'evidexAPI')\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:676:63\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:39:7)\n    at callSuiteHook (file:///D:/DEV/projects/v"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "useSessionStore — capture subscription lifecycle (GAP-S1) clearSession calls the unsubscribe function",
+          "message": "TypeError: Cannot set properties of undefined (setting 'evidexAPI')\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:676:63\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:39:7)\n    at callSuiteHook (file:///D:/DEV/projects/v"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "useSessionStore — capture subscription lifecycle (GAP-S1) clearSession sets _captureListener to null",
+          "message": "TypeError: Cannot set properties of undefined (setting 'evidexAPI')\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:676:63\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:39:7)\n    at callSuiteHook (file:///D:/DEV/projects/v"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "useSessionStore — capture subscription lifecycle (GAP-S1) no subscription when startSession fails (ok:false)",
+          "message": "TypeError: Cannot set properties of undefined (setting 'evidexAPI')\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:676:63\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:39:7)\n    at callSuiteHook (file:///D:/DEV/projects/v"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "useProjectStore — isLoading and edge cases (GAP-S2) loadRecent sets isLoading:true then false on success",
+          "message": "TypeError: Cannot set properties of undefined (setting 'evidexAPI')\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:765:63\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:39:7)\n    at callSuiteHook (file:///D:/DEV/projects/v"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "useProjectStore — isLoading and edge cases (GAP-S2) loadRecent sets isLoading:false even on failure",
+          "message": "TypeError: Cannot set properties of undefined (setting 'evidexAPI')\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:765:63\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:39:7)\n    at callSuiteHook (file:///D:/DEV/projects/v"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "useProjectStore — isLoading and edge cases (GAP-S2) createProject sets isLoading:false even when IPC fails",
+          "message": "TypeError: Cannot set properties of undefined (setting 'evidexAPI')\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:765:63\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:39:7)\n    at callSuiteHook (file:///D:/DEV/projects/v"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "useProjectStore — isLoading and edge cases (GAP-S2) clear() resets everything to initial state",
+          "message": "TypeError: Cannot set properties of undefined (setting 'evidexAPI')\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:765:63\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:39:7)\n    at callSuiteHook (file:///D:/DEV/projects/v"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "container-crypto — additional edge cases flipping auth tag byte at last position throws ContainerCryptoError",
+          "message": "AssertionError: expected function to throw an error, but it didn't\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:976:51\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/no"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "container-crypto — additional edge cases zero-length ciphertext with valid header structure throws ContainerCryptoError",
+          "message": "AssertionError: expected function to throw an error, but it didn't\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:983:50\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/no"
+        }
+      ]
+    }
+  },
+  "pbkdf2": {
+    "ok": true,
+    "duration_ms": 555,
+    "record": {
+      "ts": "2026-05-08T16:35:41.742Z",
+      "node": "22.22.2",
+      "platform": "win32-x64",
+      "iterations": 310000,
+      "key_len_bytes": 32,
+      "salt_len_bytes": 16,
+      "runs": 5,
+      "samples_ms": [
+        92.91,
+        92.02,
+        90.73,
+        91.18,
+        90.53
+      ],
+      "min_ms": 90.53,
+      "max_ms": 92.91,
+      "mean_ms": 91.47,
+      "budget_ms": 800,
+      "passed": true
+    }
+  },
+  "dependencyAudit": {
+    "ok": true,
+    "counts": {
+      "info": 0,
+      "low": 3,
+      "moderate": 0,
+      "high": 5,
+      "critical": 0,
+      "total": 8
+    },
+    "duration_ms": 9703
+  },
+  "next_actions": [
+    "PRECHECK [tests] FAIL — 16/453 failed",
+    "  · __tests__\\database-service.spec.ts › DatabaseService — app.db upsertRecentProject inserts then updates the same projectId",
+    "  · __tests__\\database-service.spec.ts › DatabaseService — app.db orders recent projects by lastOpenedAt DESC",
+    "  · __tests__\\metrics-service.spec.ts › MetricsService reflects recent_projects count in activeProjects",
+    "  · __tests__\\metrics-service.spec.ts › MetricsService session / capture / export counters are placeholder zeros until Phase 2+",
+    "  · __tests__\\pre-w9-gap-coverage.spec.ts › NamingService — additional boundary cases project name with all special chars produces underscores only",
+    "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
+  ]
+}

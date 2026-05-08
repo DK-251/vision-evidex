@@ -1,6 +1,6 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-05-08T16:43:49.366Z  
+**Date:** 2026-05-08T16:41:40.402Z  
 **Branch:** `main` · **Commit:** `d5ebe103`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
 **Duration:** 0 ms
@@ -23,8 +23,12 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 8597 ms | — |
-| tests | PASS | 10462 ms | 453/453 passed |
+| typecheck | PASS | 8571 ms | — |
+| tests | FAIL | 10658 ms | 1/453 failed |
+
+**Failing tests:**
+
+- `__tests__\naming-service.spec.ts` › NamingService generate — pattern behaviour unknown tokens are left as-is (not an error)
 
 ## Module results
 
@@ -53,7 +57,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 90.72 ms | 90.98 ms | 91.43 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 90.43 ms | 91.09 ms | 92.48 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +75,6 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [tests] FAIL — 1/453 failed
+-   · __tests__\naming-service.spec.ts › NamingService generate — pattern behaviour unknown tokens are left as-is (not an error)
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md
