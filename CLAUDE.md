@@ -5,26 +5,22 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Phase 2 Week 9 — `SessionListPage` + `SessionDetailPage` + `ProjectOverviewPage` + `[PH2-ROUTING]` migration to `HashRouter`.
+- **SPRINT:** Phase 2 Week 9 — COMPLETE. `ProjectOverviewPage` + `SessionListPage` + `SessionDetailPage` built and wired.
 - **BRANCH:** `main`
-- **STATUS:** ✅ W9 is now open (2026-05-11). Wk8 gate fully closed — automated + all manual steps 4/5/9 passed.
-- **GOAL:** Wire the session-history surface so a user can jump back into a previous session, see its captures, and tag/annotate them. Close `[PH2-ROUTING]` before Phase 3 (Report Builder needs deep-link to specific sessions).
-- **GATE:** `npm run report` after Wk 9 — `session` and `project` modules show PASS; capture round-trip from Wk 8 still green.
-- **STUBS CLOSED IN WK 8:**
-  - ✓ `SessionIntakePage` `projectName` reads `useProjectStore.activeProject?.name`
-  - ✓ `SessionLookup` adapter — real project lookup via `container.getProjectDb()`; `'NO_CONTAINER'` sentinel removed
-  - ✓ Capture-arrival push (`IPC_EVENTS.CAPTURE_ARRIVED`) → `session.store` `addCapture`
-  - ✓ `derivedCounts` reach the renderer via `IPC_EVENTS.SESSION_STATUS_UPDATE` after every capture
-- **FIXED IN PRE-W9 + WK8 GATE CLOSE (2026-05-11):**
-  - ✓ Theme respects system preference on launch; applies realtime in onboarding; persists to main app
-  - ✓ Sidebar indicator pill alignment on collapse
-  - ✓ Window resize triggers sidebar auto-collapse
-  - ✓ Session form no longer auto-pops after project creation
-  - ✓ Opening existing project navigates to project list (not session form)
-  - ✓ Summary bar counts update live after capture tagging
-  - ✓ Black toolbar overlay suppressed until W9
-  - ✓ Step 9 persistence verified via `npm run dev:keep`
-- **DEFERRED TO W9/PHASE 3:** Fluent tooltips, dynamic content scaling, session app-card grouping by application, role-based dashboards
+- **STATUS:** W9 pages built. Awaiting Asus gate + manual verification.
+- **GOAL:** Session-history surface complete. Users can see all sessions grouped by application, filter/search, and view individual captures with tag editing.
+- **W9 DELIVERED:**
+  - ✓ `session:list` IPC handler (schemas, router, preload, service)
+  - ✓ `capture:list` IPC handler (schemas, router, preload, CaptureService.getForSession)
+  - ✓ `capture:thumbnail` IPC handler (CaptureService.getThumbnail, EvidexContainerService.extractImage)
+  - ✓ `ProjectOverviewPage` — sessions grouped by applicationUnderTest in collapsible app cards, pass/fail/blocked totals, New Session CTA
+  - ✓ `SessionListPage` — full history with live search + all/active/completed filter
+  - ✓ `SessionDetailPage` — metadata card, capture grid with lazy thumbnails, tag picker, detail panel
+  - ✓ nav-store: project-overview, session-list, session-detail pages added
+  - ✓ Sidebar Sessions item enabled (navigates to project-overview)
+  - ✓ All project-open navigation updated to project-overview
+  - ✓ `__tests__/w9-coverage.spec.ts` — ~65 new tests
+- **DEFERRED TO W10/PHASE 3:** `[PH2-ROUTING]` HashRouter migration, Fluent tooltips, notes editing, role-based dashboards
 
 ## 2. IPC channels (`src/shared/ipc-channels.ts`)
 

@@ -272,6 +272,18 @@ export class EvidexContainerService {
     return stat.size;
   }
 
+  /**
+   * W9 — extract a single file from the open container by its internal path.
+   * Returns the raw Buffer or null if the entry doesn\'t exist.
+   * Used by CaptureService.getThumbnail() to load original JPEGs for
+   * historical sessions without exposing them to the renderer directly.
+   */
+  async extractImage(containerId: string, entryPath: string): Promise<Buffer | null> {
+    const state = this.requireState(containerId);
+    const entry = state.entries.get(entryPath);
+    return entry ?? null;
+  }
+
   private requireState(containerId: string): OpenState {
     if (!this.state) throw new Error('no container is currently open');
     if (this.state.handle.containerId !== containerId) {

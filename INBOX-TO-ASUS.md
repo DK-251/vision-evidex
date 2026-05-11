@@ -9,6 +9,76 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 ---
 
+## 2026-05-11 — RUN REQUEST — Week 9 complete build
+
+**From:** CTS via filesystem connector
+
+Full W9 implementation landed. 3 new IPC handlers, 3 new pages, nav-store updated, sidebar wired, ~65 new tests.
+
+### Files changed
+
+**Main process:**
+- `src/shared/ipc-channels.ts` — SESSION_LIST, CAPTURE_LIST, CAPTURE_GET_THUMBNAIL added
+- `src/shared/schemas/index.ts` — SessionListSchema, CaptureListSchema, CaptureGetThumbnailSchema + inferred types
+- `src/main/ipc-router.ts` — 3 new handlers registered
+- `src/main/services/capture.service.ts` — getForSession(), getThumbnail() methods added
+- `src/main/services/evidex-container.service.ts` — extractImage() method added
+- `src/preload/preload.ts` — session.list(), capture.list(), capture.getThumbnail() exposed
+
+**Renderer:**
+- `src/renderer/stores/nav-store.ts` — project-overview, session-list, session-detail pages added
+- `src/renderer/App.tsx` — 3 new page imports + ShellPageSwitch cases
+- `src/renderer/components/shell/Sidebar.tsx` — Sessions item enabled + ImageMultipleFilled import
+- `src/renderer/pages/ProjectOverviewPage.tsx` — NEW: sessions grouped by applicationUnderTest
+- `src/renderer/pages/SessionListPage.tsx` — NEW: full history with search + filter
+- `src/renderer/pages/SessionDetailPage.tsx` — NEW: historical session with lazy thumbnails + tag editing
+- `src/renderer/pages/ProjectListPage.tsx` — handleOpen navigates to project-overview
+- `src/renderer/pages/DashboardPage.tsx` — handleOpen navigates to project-overview
+- `src/renderer/pages/CreateProjectPage.tsx` — post-create navigates to project-overview
+
+**Tests:**
+- `__tests__/w9-coverage.spec.ts` — NEW: ~65 tests across 10 sections
+
+### One-shot Asus action
+
+```
+git pull --ff-only
+npm run report
+git add run-reports/latest.{json,md} run-reports/history/ STATUS.md INBOX-TO-ASUS.md
+git commit -m "[INBOX] W9 gate"
+git push
+```
+
+### Pass criteria
+
+- typecheck PASS
+- tests ≥ 515 PASS (453 existing + ~65 new)
+- pbkdf2 PASS under 800ms
+- modules SKIP 18 (unchanged)
+- dep-audit 0 critical
+
+### If typecheck fails
+
+Most likely failure points:
+1. `Sidebar.tsx` — `Page` type cast for `alsoActiveFor` array — check `ImageMultipleFilled` import
+2. `capture.service.ts` — `getForSession` / `getThumbnail` return types vs `CaptureServiceDeps`
+3. `evidex-container.service.ts` — `extractImage` signature vs usage in capture.service
+
+Paste exact tsc output into INBOX-TO-CTS.md.
+
+### After gate passes
+
+1. Mark this entry [RESOLVED]
+2. Run `npm run dev:keep` and manually verify:
+   - Open an existing project → lands on ProjectOverviewPage with session cards grouped by app
+   - Sessions sidebar item navigates to ProjectOverviewPage
+   - Click a session → SessionDetailPage shows metadata + capture thumbnails
+   - SessionListPage search and filter work
+   - Tag a capture in SessionDetailPage — badge updates immediately
+3. W10 / Phase 3 prep begins on next CTS session
+
+---
+
 ## [RESOLVED 2026-05-11] 2026-05-11 — Step 4/5/9 results logged (Wk8 gate — long-pending) — 3 new issues sent to CTS
 
 **From:** Asus TUF manual testing session  

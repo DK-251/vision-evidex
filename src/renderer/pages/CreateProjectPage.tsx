@@ -158,11 +158,7 @@ export function CreateProjectPage(): JSX.Element {
         storagePath: form.storagePath,
         namingPattern: form.namingPattern,
       });
-      // Navigate to project list — ProjectOverviewPage (W9) will replace
-      // this with navigate('project-overview', { projectId: project.id }).
-      // Sending the user straight to session-intake skips the project page
-      // entirely and was reported as unexpected by Asus manual testing.
-      navigate('project-list', { projectId: project.id });
+      navigate('project-overview', { projectId: project.id });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : String(err));
       setSubmitting(false);

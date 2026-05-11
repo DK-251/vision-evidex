@@ -4,6 +4,7 @@ import {
   FolderRegular,
   FolderFilled,
   ImageMultipleRegular,
+  ImageMultipleFilled,
   DocumentBulletListRegular,
   DocumentTextRegular,
   ShieldCheckmarkRegular,
@@ -11,7 +12,7 @@ import {
   SettingsFilled,
   NavigationRegular,
 } from '@fluentui/react-icons';
-import { useNavStore, type ShellPage } from '../../stores/nav-store';
+import { useNavStore, type ShellPage, type Page } from '../../stores/nav-store';
 import { NavItem } from './NavItem';
 
 /**
@@ -48,10 +49,12 @@ const MAIN_ITEMS: NavDestination[] = [
     label:      'Dashboard',
   },
   {
-    page:  null,
-    icon:  <ImageMultipleRegular />,
-    label: 'Sessions',
-    title: 'Available after opening a project',
+    page:           'project-overview' as Page,
+    alsoActiveFor:  ['session-list', 'session-detail', 'session-intake', 'session-gallery'] as Page[],
+    icon:           <ImageMultipleRegular />,
+    filledIcon:     <ImageMultipleFilled />,
+    label:          'Sessions',
+    title:          'Open a project first',
   },
   {
     page:  null,
@@ -93,7 +96,6 @@ export function Sidebar(): JSX.Element {
     const active =
       item.page !== null &&
       (page === item.page || (item.alsoActiveFor ?? []).includes(page));
-    // Use Filled icon variant when active (Regular = inactive, Filled = active).
     const icon = active && item.filledIcon ? item.filledIcon : item.icon;
     return (
       <NavItem

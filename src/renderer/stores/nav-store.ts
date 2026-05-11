@@ -14,7 +14,10 @@ export type Page =
   | 'session-intake'
   | 'session-gallery'
   | 'project-list'
-  | 'create-project';
+  | 'create-project'
+  | 'project-overview'   // W9 — project detail with session cards
+  | 'session-list'       // W9 — full session history for a project
+  | 'session-detail';    // W9 — historical session with all captures
 
 /** Back-compat alias — older imports may still reference this name. */
 export type ShellPage = Page;
@@ -58,8 +61,8 @@ export const useNavStore = create<NavState>()((set) => ({
 
       // Clear session context when navigating away from session pages.
       // Clear project context when navigating to top-level pages.
-      const isSessionPage = page === 'session-intake' || page === 'session-gallery';
-      const isProjectPage = isSessionPage || page === 'create-project' || page === 'project-list';
+      const isSessionPage = page === 'session-intake' || page === 'session-gallery' || page === 'session-detail';
+      const isProjectPage = isSessionPage || page === 'create-project' || page === 'project-list' || page === 'project-overview' || page === 'session-list';
 
       return {
         page,

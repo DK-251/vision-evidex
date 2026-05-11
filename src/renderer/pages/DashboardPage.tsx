@@ -62,8 +62,8 @@ export function DashboardPage(): JSX.Element {
   async function handleOpen(p: RecentProject): Promise<void> {
     try {
       await openProject(p.filePath);
-      // Navigate to project-list — ProjectOverviewPage (W9) replaces this.
-      navigate('project-list', { projectId: p.projectId });
+      // Navigate to ProjectOverviewPage (W9).
+      navigate('project-overview', { projectId: p.projectId });
     } catch (err) {
       showToast('error', 'Could not open project', err instanceof Error ? err.message : String(err));
     }

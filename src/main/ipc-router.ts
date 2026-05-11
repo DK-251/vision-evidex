@@ -14,6 +14,9 @@ import {
   SessionIntakeSchema,
   SessionEndSchema,
   SessionGetSchema,
+  SessionListSchema,
+  CaptureListSchema,
+  CaptureGetThumbnailSchema,
   CaptureRequestSchema,
   AnnotationSaveSchema,
   CaptureTagUpdateSchema,
@@ -155,6 +158,15 @@ export function registerAllHandlers(services: ServiceRegistry): void {
   );
   registerHandler(IPC.SESSION_GET, SessionGetSchema, async (input) =>
     services.session.get(input.sessionId)
+  );
+  registerHandler(IPC.SESSION_LIST, SessionListSchema, async (input) =>
+    services.session.getAll(input.projectId)
+  );
+  registerHandler(IPC.CAPTURE_LIST, CaptureListSchema, async (input) =>
+    services.capture.getForSession(input.sessionId)
+  );
+  registerHandler(IPC.CAPTURE_GET_THUMBNAIL, CaptureGetThumbnailSchema, async (input) =>
+    services.capture.getThumbnail(input.captureId)
   );
   registerHandler(IPC.CAPTURE_SCREENSHOT, CaptureRequestSchema, async (input) => {
     // 1. Session must exist and still be active.

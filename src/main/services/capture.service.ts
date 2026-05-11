@@ -190,4 +190,48 @@ export class CaptureService {
       statusTag,   // already computed above as const statusTag = input.statusTag ?? 'untagged'
     };
   }
+
+  updateTag(captureId: string, tag: StatusTag): void {
+    const db = this.deps.getDb();
+    if (!db) {
+      throw new EvidexError(
+        EvidexErrorCode.PROJECT_NOT_FOUND,
+        'No project is currently open.',
+        { captureId }
+      );
+    }
+    db.updateCaptureTag(captureId, tag);
+  }
+
+  /** W9 — list all Capture rows for a session (history view). */
+  getForSession(sessionId: string): Capture[] {
+    return this.deps.getDb()?.getCapturesForSession(sessionId) ?? [];
+  }
+
+  /**
+   * W9 — extract a 160×90 base64 thumbnail for a historical capture.
+   * Returns null if the container is not open or the image is missing.
+   */
+  async getThumbnail(captureId: string): Promise<string | null> {
+    const db = this.deps.getDb();
+    if (!db) return null;
+    const capture = db.getCapture(captureId);
+    if (!capture) return null;
+    const handle = this.deps.container.getCurrentHandle();
+    if (!handle) return null;
+    try {
+      const imageData = await this.deps.container.extractImage(
+        handle.containerId,
+        `images/original/${capture.originalFilename}`
+      );
+      if (!imageData) return null;
+      const thumb = await sharp(imageData)
+        .resize(160, 90, { fit: 'cover' })
+        .jpeg({ quality: 80 })
+        .toBuffer();
+      return `data:image/jpeg;base64,${thumb.toString('base64')}`;
+    } catch {
+      return null;
+    }
+  }
 }

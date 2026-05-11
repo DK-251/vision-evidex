@@ -9,9 +9,12 @@ export const IPC = {
   SESSION_CREATE: 'session:create',
   SESSION_END: 'session:end',
   SESSION_GET: 'session:get',
+  SESSION_LIST: 'session:list',          // W9 — list all sessions for a project
+  CAPTURE_LIST: 'capture:list',          // W9 — list all captures for a session
 
   // Capture
   CAPTURE_SCREENSHOT: 'capture:screenshot',
+  CAPTURE_GET_THUMBNAIL: 'capture:thumbnail', // W9 — load thumbnail for historical capture
   CAPTURE_ANNOTATE_SAVE: 'capture:annotate:save',
   CAPTURE_TAG_UPDATE: 'capture:tag:update',
 

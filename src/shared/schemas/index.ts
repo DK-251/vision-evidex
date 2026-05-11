@@ -50,6 +50,18 @@ export const SessionGetSchema = z.object({
   sessionId: z.string().min(1),
 });
 
+export const SessionListSchema = z.object({
+  projectId: z.string().min(1),
+});
+
+export const CaptureListSchema = z.object({
+  sessionId: z.string().min(1),
+});
+
+export const CaptureGetThumbnailSchema = z.object({
+  captureId: z.string().min(1),
+});
+
 // ─── Capture ────────────────────────────────────────────────────────────
 
 export const ScreenRegionSchema = z.object({
@@ -297,6 +309,8 @@ export type BrandingSaveInput = z.infer<typeof BrandingSaveSchema>;
 
 export type SessionIntakeInput = z.infer<typeof SessionIntakeSchema>;
 export type SessionEndInput = z.infer<typeof SessionEndSchema>;
+export type SessionListInput = z.infer<typeof SessionListSchema>;
+export type CaptureListInput = z.infer<typeof CaptureListSchema>;
 export type CaptureRequestInput = z.infer<typeof CaptureRequestSchema>;
 export type AnnotationSaveInput = z.infer<typeof AnnotationSaveSchema>;
 export type CaptureTagUpdateInput = z.infer<typeof CaptureTagUpdateSchema>;

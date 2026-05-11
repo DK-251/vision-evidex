@@ -8,6 +8,7 @@ import type {
   SessionStatus,
   CaptureRequestInput,
   CaptureResult,
+  Capture,
   AnnotationSaveInput,
   AnnotationResult,
   StatusTag,
@@ -47,6 +48,8 @@ const evidexAPI = {
       ipcRenderer.invoke(IPC.SESSION_END, { sessionId }),
     get: (sessionId: string): Promise<IpcResult<Session | null>> =>
       ipcRenderer.invoke(IPC.SESSION_GET, { sessionId }),
+    list: (projectId: string): Promise<IpcResult<Session[]>> =>
+      ipcRenderer.invoke(IPC.SESSION_LIST, { projectId }),
   },
 
   capture: {
@@ -56,6 +59,10 @@ const evidexAPI = {
       ipcRenderer.invoke(IPC.CAPTURE_ANNOTATE_SAVE, request),
     updateTag: (captureId: string, tag: StatusTag): Promise<IpcResult<void>> =>
       ipcRenderer.invoke(IPC.CAPTURE_TAG_UPDATE, { captureId, tag }),
+    list: (sessionId: string): Promise<IpcResult<Capture[]>> =>
+      ipcRenderer.invoke(IPC.CAPTURE_LIST, { sessionId }),
+    getThumbnail: (captureId: string): Promise<IpcResult<string | null>> =>
+      ipcRenderer.invoke(IPC.CAPTURE_GET_THUMBNAIL, { captureId }),
   },
 
   project: {
