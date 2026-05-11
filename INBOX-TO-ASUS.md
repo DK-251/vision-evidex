@@ -15,6 +15,15 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 Full W9 implementation landed. 3 new IPC handlers, 3 new pages, nav-store updated, sidebar wired, ~65 new tests.
 
+### Typecheck fixes applied (Asus)
+
+CTS W9 pull had 3 typecheck errors:
+1. **Duplicate `updateTag` method** in `capture.service.ts` — removed the malformed duplicate block (lines 194–207)
+2. **Duplicate `extractImage` method** in `evidex-container.service.ts` — removed the first version, kept the W9 version with `entryPath` parameter
+3. **Missing `EnvironmentRegular` icon** in `SessionDetailPage.tsx` — replaced with `GlobeRegular` (Fluent UI standard for environment contexts)
+
+Gate re-run: **typecheck PASS**, tests PASS (518 total), pbkdf2 PASS (92.61ms).
+
 ### Files changed
 
 **Main process:**

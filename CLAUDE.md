@@ -5,9 +5,9 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Phase 2 Week 9 — COMPLETE. `ProjectOverviewPage` + `SessionListPage` + `SessionDetailPage` built and wired.
+- **SPRINT:** Phase 2 Week 9 — ✅ COMPLETE. `ProjectOverviewPage` + `SessionListPage` + `SessionDetailPage` built, wired, and gate-verified.
 - **BRANCH:** `main`
-- **STATUS:** W9 pages built. Awaiting Asus gate + manual verification.
+- **STATUS:** W9 automated gate PASS (2026-05-11). Typecheck fixed (duplicate methods + icon). Manual UI testing pending.
 - **GOAL:** Session-history surface complete. Users can see all sessions grouped by application, filter/search, and view individual captures with tag editing.
 - **W9 DELIVERED:**
   - ✓ `session:list` IPC handler (schemas, router, preload, service)
