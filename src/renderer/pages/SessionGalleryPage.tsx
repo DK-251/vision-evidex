@@ -91,20 +91,19 @@ export function SessionGalleryPage(): JSX.Element | null {
   }, []);
 
   const counts = useMemo(() => {
-    // Prefer the live status push when available, else fall back to the
-    // session row, else derive from the in-memory captures array.
-    if (status) return status;
-    if (session) {
-      return {
-        sessionId: session.id,
-        captureCount: session.captureCount,
-        passCount:    session.passCount,
-        failCount:    session.failCount,
-        blockedCount: session.blockedCount,
-      };
-    }
+    // Always derive pass/fail/blocked from the live in-memory captures array
+    // so summary bar counts update immediately when a tag is changed.
+    // captureCount uses the status push when available (more authoritative
+    // for the total) but tag counts always come from the local array.
     const derived = derivedCounts(captures);
-    return { sessionId: sessionId ?? '', ...derived };
+    const captureCount = status?.captureCount ?? session?.captureCount ?? derived.captureCount;
+    return {
+      sessionId:    sessionId ?? '',
+      captureCount,
+      passCount:    derived.passCount,
+      failCount:    derived.failCount,
+      blockedCount: derived.blockedCount,
+    };
   }, [status, session, captures, sessionId]);
 
   function onThumbClick(id: string): void {

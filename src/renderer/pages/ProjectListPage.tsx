@@ -39,7 +39,12 @@ export function ProjectListPage(): JSX.Element {
   async function handleOpen(project: RecentProject): Promise<void> {
     try {
       await openProject(project.filePath);
-      navigate('session-intake', { projectId: project.projectId });
+      // Navigate to project-list — ProjectOverviewPage (W9 Day 1) will replace
+      // this with navigate('project-overview', { projectId: project.projectId }).
+      // Sending directly to session-intake was reported as unexpected by Asus
+      // (issues A in step 4/5/9 manual testing) — user should see the project
+      // page first and explicitly choose to start a session.
+      navigate('project-list', { projectId: project.projectId });
     } catch (err) {
       showToast('error', 'Could not open project', err instanceof Error ? err.message : String(err));
     }

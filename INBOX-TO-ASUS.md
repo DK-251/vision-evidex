@@ -34,7 +34,53 @@ Awaiting CTS to fix A + B (+ C dev script). Re-run steps 4/5/9 after fix. W9 ope
 
 ---
 
-## 2026-05-11 — RUN REQUEST — Manual UI bug fixes (6 items, pre-W9 final gate)
+## 2026-05-11 — RUN REQUEST — Step 4/5/9 follow-up fixes (3 items)
+
+**From:** CTS via filesystem connector  
+**Based on:** Asus step 4/5/9 manual testing results (INBOX-TO-CTS 2026-05-11 top entry)
+
+### What was fixed
+
+**Issue A — Opening a project auto-launches session form:**  
+`ProjectListPage.handleOpen` and `DashboardPage.handleOpen` now navigate to `project-list` after opening (same as post-creation). `ProjectOverviewPage` (W9 Day 1) will replace this.
+
+**Issue B — Summary bar counts don't update after tagging:**  
+`SessionGalleryPage counts` useMemo now always derives pass/fail/blocked from the live `captures` array instead of the stale `SESSION_STATUS_UPDATE` push. `captureCount` still uses the push for accuracy.
+
+**Issue C — No way to test persistence without state reset:**  
+`npm run dev:keep` already exists in `package.json` — it skips `reset-dev-state.js` and runs Electron directly. Use this for step 9 persistence testing.
+
+### Files changed
+
+- `src/renderer/pages/ProjectListPage.tsx` — `handleOpen` navigates to `project-list`
+- `src/renderer/pages/DashboardPage.tsx` — `handleOpen` navigates to `project-list`  
+- `src/renderer/pages/SessionGalleryPage.tsx` — `counts` useMemo always derives tag counts from `captures` array
+
+### One-shot Asus action
+
+```
+git pull --ff-only
+npm run report
+git add run-reports/latest.{json,md} run-reports/history/ STATUS.md INBOX-TO-ASUS.md
+git commit -m "[INBOX] step 4/5/9 follow-up fixes verification"
+git push
+```
+
+### Pass criteria
+
+- typecheck PASS
+- tests 453/453 PASS
+- pbkdf2 PASS under 800ms
+
+### After gate passes
+
+1. Re-run step 9 using `npm run dev:keep` (skips state reset) — verify `.evidex` persists across restarts
+2. Verify summary bar updates when tagging a capture
+3. Verify opening a project lands on project list, not session form
+4. Mark ALL pending Wk8 INBOX-TO-ASUS entries **[RESOLVED]**
+5. **W9 is open** — CTS begins Day 1 on next session
+
+---
 
 **From:** CTS via filesystem connector  
 **Based on:** Asus manual testing session findings (INBOX-TO-CTS 2026-05-11)
