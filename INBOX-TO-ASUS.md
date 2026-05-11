@@ -9,6 +9,38 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 ---
 
+## 2026-05-11 — INBOX RECEIVED — Manual UI testing findings documented (Pre-W9 testing phase)
+
+**From:** Manual testing session  
+**To:** Asus TUF (for gate verification after fixes)
+
+**Status:** All 10 UI/functional issues logged in `INBOX-TO-CTS.md` for CTS to fix. Testing phase before W9 begins. Awaiting fixes + re-run request to verify.
+
+### Summary
+
+Comprehensive manual UI & functional testing completed across onboarding, main app, sidebar, content scaling, and project/session flows during pre-W9 testing phase. **10 critical issues found:**
+
+1. Theme launch ignores system preference (dark mode not detected)
+2. Theme selection doesn't apply realtime during onboarding nav
+3. Selected theme not persisting to main app
+4. Sidebar indicator pill misaligned on collapse
+5. Tooltips need fluent design redesign + comprehensive wiring
+6. Window resize doesn't collapse sidebar responsively
+7. Content area padding increases but content doesn't scale
+8. New session form auto-pops after project creation (should go to project page)
+9. Sessions not organized by application card in project page
+10. Session form auto-pop + key bindings broken + black overlay box persists
+
+Plus overarching: **Main app needs remapping** (shortcuts, quick toolbar, role-based dashboards).
+
+### Next steps
+
+- CTS to fix issues #1-11 (tracked in INBOX-TO-CTS.md) before W9 begins
+- Request re-run on Asus gate after fixes: `npm run report` + manual pre-W9 verification checklist
+- Theme, responsive layout, and main-app features must be validated before W9 start
+
+---
+
 ## [RESOLVED 2026-05-08] 2026-05-08 — RUN REQUEST — Test coverage expansion + Final pre-W9 analysis fixes
 
 **From:** CTS via filesystem connector

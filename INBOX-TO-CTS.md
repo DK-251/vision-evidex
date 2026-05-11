@@ -10,6 +10,110 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-05-11 — Manual UI & Functional Testing — Critical Issues Found (Pre-W9)
+
+**From:** Manual testing session  
+**Testing scope:** Onboarding flow (theme selection), main app (sidebar, content scaling, tooltips), project/session creation flow  
+**Status:** 10 functional/UI issues documented + overarching architecture concerns. **Testing phase before W9 starts.**
+
+### Critical Issues Found
+
+#### 1. **Theme not respecting system preference at launch**
+- **Observed:** App launches in light theme even when system is set to dark theme
+- **Expected:** App should detect system `nativeTheme.shouldUseDarkColors` and apply matching theme on first launch
+- **Impact:** UX friction for dark-theme users; forces manual correction
+- **File likely:** `src/renderer/onboarding/` theme step or `ThemeProvider.tsx` initial theme detection
+
+#### 2. **Theme selection doesn't apply realtime during onboarding navigation**
+- **Observed:** User selects dark/light theme in onboarding step, then clicks Back/Next — theme doesn't update in real-time
+- **Expected:** Selected theme should apply immediately and persist when navigating backward/forward through onboarding steps
+- **Impact:** User confusion; theme state not synced with step state
+- **File likely:** `src/renderer/onboarding/ThemeStorageStep.tsx`, nav-store theme state management
+
+#### 3. **Selected theme not applied in main app after onboarding completes**
+- **Observed:** User completes onboarding with theme selection, enters main app, but theme doesn't match selection
+- **Expected:** Theme selected in onboarding should persist and apply throughout main app
+- **Impact:** Critical onboarding-to-main-app handoff failure
+- **Files likely:** Theme state persistence across page boundary, ThemeProvider mount/initialization
+
+#### 4. **Sidebar indicator pill misaligned when sidebar collapses**
+- **Observed:** When sidebar collapses, left-side indicator pill (status/badge) gets too close to icon — lacks padding/margin
+- **Expected:** Proper padding and margin maintained between indicator pill and icon during collapse state
+- **Impact:** Visual crowding; accessibility/touch-target concerns
+- **File likely:** `src/renderer/components/Sidebar.tsx` or indicator pill component
+
+#### 5. **Tooltips need fluent design system redesign**
+- **Observed:** Current tooltips are basic/minimal styling; not connected to many dashboard and other screen items
+- **Expected:** Custom fluent design system tooltips; all interactive elements (dashboard cards, toolbar buttons, icons) should have proper tooltips
+- **Scope:** Dashboard, session pages, project pages, main toolbar
+- **Impact:** Missing UX polish; discoverability of features impacted
+- **File likely:** New tooltip component needed + integration across all pages
+
+#### 6. **Window resize doesn't trigger sidebar collapse**
+- **Observed:** When window is resized to smaller dimensions, sidebar remains expanded and overlaps content
+- **Expected:** Sidebar should auto-collapse at responsive breakpoints during window resize
+- **Impact:** Content gets hidden/unusable on smaller windows; responsive layout broken
+- **File likely:** `src/renderer/components/Sidebar.tsx` responsive state logic, window resize event handler
+
+#### 7. **Content area padding increases but content doesn't scale dynamically**
+- **Observed:** When window size increases, content area padding increases but the content itself remains fixed size instead of growing proportionally
+- **Expected:** Content should scale dynamically with available space
+- **Impact:** Wasted whitespace; poor use of screen real estate; broken responsive layout
+- **File likely:** Main layout wrapper, page content containers (SessionGalleryPage, ProjectListPage, DashboardPage)
+
+#### 8. **New session form shouldn't appear immediately after project creation**
+- **Observed:** User creates a new project → automatically routed to session intake form (modal or page)
+- **Expected:** After project creation, user should navigate to project page (with search bar and "New Session" button), then explicitly initiate session creation
+- **Impact:** Breaks expected flow; user cannot explore project page first
+- **File likely:** `src/renderer/pages/CreateProjectPage.tsx` → post-creation navigation (currently likely routing to SessionIntakePage)
+
+#### 9. **Sessions should be organized by application card in project page**
+- **Observed:** No card-based organization by application name
+- **Expected:** Project page should show cards grouped by application under test (e.g., "B2B" app card contains all sessions tested for B2B; "Mobile App" card for those sessions, etc.). When user creates a session and enters "B2B" as the application name, a B2B card is created automatically. Subsequent sessions for same app go into that card.
+- **Scope:** ProjectOverviewPage (Wk9 scope)
+- **Impact:** Sessions not discoverable; no logical grouping by feature/module being tested
+- **Complexity:** Requires schema update + grouping logic + card component
+- **File likely:** `src/renderer/pages/ProjectOverviewPage.tsx` (not yet created), Session entity schema
+
+#### 10. **Session form pops up after project creation + key bindings not working + black overlay box**
+- **Observed:** 
+  - Session form auto-pops after project creation (related to issue #8)
+  - Keyboard shortcuts (hotkeys) are not triggering
+  - Black small box/overlay appears in middle of screen even after app closes; persists until process is terminated
+- **Expected:**
+  - No auto-pop of session form (navigate to project page instead)
+  - Key bindings should trigger shortcuts (global hotkeys for capture, annotations, etc.)
+  - No stray UI elements left in system after app close
+- **Impact:** Broken shortcut UX; overlay suggests unclean shutdown/resource leak
+- **Files likely:** 
+  - Hotkey binding: `src/main/services/shortcut-service.ts`, `src/renderer/hooks/useHotkey.ts`
+  - Stray overlay: window/tray cleanup in main process, or native window handle leak
+
+#### 11. **Main app requires comprehensive remapping**
+- **Observed:** Multiple broken features in main app:
+  - Key bindings not working (see #10)
+  - Quick toolbar missing or non-functional
+  - Role-based dashboard not differentiated (all roles see same dashboard)
+- **Expected:**
+  - Key bindings wired and functional per role/user context
+  - Quick toolbar present and functional
+  - Dashboard layout/content changes based on role selected during profile creation (e.g., Tester vs Manager vs Admin)
+- **Impact:** Core functionality unavailable; app unusable in main work phase
+- **Scope:** Architectural issue affecting multiple subsystems
+- **Files likely:** Main process shortcut binding, dashboard page, role-based access control
+
+### Summary
+
+All 10 issues are **blocking W9 start**. Issues #1-7 are **onboarding/core UI concerns**. Issues #8-9 are **project/session flow architecture**. Issue #10 is **multi-system (shortcuts + window lifecycle)**. Issue #11 is **overarching main-app integration**.
+
+**Recommended priority for fixes before W9 begins:** 
+1. Fix #1-3 (theme system) → validate onboarding→main-app handoff
+2. Fix #8-9 (project/session flow) → validate ProjectOverviewPage design
+3. Fix #4-7 (responsive layout) → finalize sidebar/content scaling
+4. Fix #10-11 (shortcuts + role-based dashboards) → main-app wiring for W9 start
+
+---
+
 ## 2026-05-05 15:33 — Wk8 gate regression hotfix on Asus — automated checks PASS
 
 **From:** Asus TUF run machine  
