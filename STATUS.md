@@ -8,8 +8,8 @@
 
 | Field | Value |
 |---|---|
-| Last Asus run | 2026-05-08T16:43:49.366Z |
-| Last run commit | `d5ebe103` |
+| Last Asus run | 2026-05-11T11:26:32.878Z |
+| Last run commit | `9091b6f8` |
 | Last run branch | `main` |
 | Node | v22.22.2 |
 | Electron | ^30.4.0 |
