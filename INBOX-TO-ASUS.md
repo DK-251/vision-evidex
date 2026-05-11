@@ -9,7 +9,7 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 ---
 
-## 2026-05-11 — RUN REQUEST — Week 9 complete build
+## [RESOLVED 2026-05-11] 2026-05-11 — RUN REQUEST — Week 9 complete build
 
 **From:** CTS via filesystem connector
 
