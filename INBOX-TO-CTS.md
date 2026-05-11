@@ -10,7 +10,7 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
-## 2026-05-11 — Step 4/5/9 Manual Verification Results (Wk8 gate — long-pending)
+## [RESOLVED 2026-05-11] 2026-05-11 — Step 4/5/9 Manual Verification Results (Wk8 gate — long-pending)
 
 **From:** Asus TUF manual testing session  
 **Gate:** Wk8 gate steps 4/5/9 — originally requested in INBOX-TO-ASUS 2026-05-06 00:30; deferred until pre-W9 UI fixes landed
@@ -64,7 +64,7 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
-## 2026-05-11 — Manual UI & Functional Testing — Critical Issues Found (Pre-W9)
+## [RESOLVED 2026-05-11] 2026-05-11 — Manual UI & Functional Testing — Critical Issues Found (Pre-W9)
 
 **From:** Manual testing session  
 **Testing scope:** Onboarding flow (theme selection), main app (sidebar, content scaling, tooltips), project/session creation flow  

@@ -9,7 +9,7 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 ---
 
-## 2026-05-11 — Step 4/5/9 results logged (Wk8 gate — long-pending) — 3 new issues sent to CTS
+## [RESOLVED 2026-05-11] 2026-05-11 — Step 4/5/9 results logged (Wk8 gate — long-pending) — 3 new issues sent to CTS
 
 **From:** Asus TUF manual testing session  
 **Gate:** Wk8 gate steps 4/5/9 — originally requested in INBOX-TO-ASUS 2026-05-06 00:30; deferred until pre-W9 UI fixes landed  
@@ -34,7 +34,7 @@ Awaiting CTS to fix A + B (+ C dev script). Re-run steps 4/5/9 after fix. W9 ope
 
 ---
 
-## 2026-05-11 — RUN REQUEST — Step 4/5/9 follow-up fixes (3 items)
+## [RESOLVED 2026-05-11] 2026-05-11 — RUN REQUEST — Step 4/5/9 follow-up fixes (3 items)
 
 **From:** CTS via filesystem connector  
 **Based on:** Asus step 4/5/9 manual testing results (INBOX-TO-CTS 2026-05-11 top entry)
@@ -144,7 +144,7 @@ Most likely: `ThemeProvider.tsx` — `setPreference` added to context type. Chec
 
 ---
 
-## 2026-05-11 — INBOX RECEIVED — Manual UI testing findings documented (Pre-W9 testing phase)
+## [RESOLVED 2026-05-11] 2026-05-11 — INBOX RECEIVED — Manual UI testing findings documented (Pre-W9 testing phase)
 
 **From:** Manual testing session  
 **To:** Asus TUF (for gate verification after fixes)
@@ -449,7 +449,7 @@ Mark this entry [RESOLVED] and proceed with manual UI test steps
 
 ---
 
-## 2026-05-06 00:30 — RUN REQUEST — Phase 2 Week 8 (PROJECT LIFECYCLE + per-container DB)
+## [RESOLVED 2026-05-11] 2026-05-06 00:30 — RUN REQUEST — Phase 2 Week 8 (PROJECT LIFECYCLE + per-container DB)
 
 **From:** CTS (Claude Code)
 **Branch/Tip:** `main` at HEAD (latest commit on push)
