@@ -9,6 +9,31 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 ---
 
+## 2026-05-11 — Step 4/5/9 results logged (Wk8 gate — long-pending) — 3 new issues sent to CTS
+
+**From:** Asus TUF manual testing session  
+**Gate:** Wk8 gate steps 4/5/9 — originally requested in INBOX-TO-ASUS 2026-05-06 00:30; deferred until pre-W9 UI fixes landed  
+**Status:** Results logged in INBOX-TO-CTS. 3 new issues found; awaiting CTS fixes before W9 opens.
+
+### What passed
+- Project creation → project list navigation ✅ (fix #8 confirmed)
+- `Ctrl+Shift+2` hotkey capture ✅
+- Capture pipeline: thumbnail, tagging, detail panel (filename/hash/size), `.evidex` growth ✅
+- No black overlay observed ✅
+
+### New issues found (A/B/C in INBOX-TO-CTS)
+- **A:** Opening a zero-session project auto-launches session form (should go to `ProjectOverviewPage`)
+- **B:** Summary bar counts don't update after capture tagging
+- **C:** Dev reset script prevents session persistence testing across relaunches
+
+### Step 9 status
+Blocked — `npm run dev` always clears state via `reset-dev-state.js`. Needs either a `dev:noclean` script or packaged build to verify.
+
+### Next steps
+Awaiting CTS to fix A + B (+ C dev script). Re-run steps 4/5/9 after fix. W9 opens after all confirmed.
+
+---
+
 ## 2026-05-11 — RUN REQUEST — Manual UI bug fixes (6 items, pre-W9 final gate)
 
 **From:** CTS via filesystem connector  

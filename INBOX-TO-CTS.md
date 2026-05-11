@@ -10,6 +10,60 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-05-11 — Step 4/5/9 Manual Verification Results (Wk8 gate — long-pending)
+
+**From:** Asus TUF manual testing session  
+**Gate:** Wk8 gate steps 4/5/9 — originally requested in INBOX-TO-ASUS 2026-05-06 00:30; deferred until pre-W9 UI fixes landed
+
+### Step 4 — Project creation + navigation ✅ PARTIAL PASS
+
+1. App launched, onboarding completed, landed in main app ✅
+2. Created new project — `.evidex` file created on disk ✅
+3. After creation, navigated to **project list** showing recently created project ✅ (fix #8 confirmed)
+4. Clicked the project (with no sessions) — **session creation form launched automatically** ⚠️
+   - **Issue:** Opening a project with zero sessions should navigate to the project overview page (with a "New Session" button), not auto-launch the session form
+   - **Expected:** `ProjectOverviewPage` with empty state + "New Session" CTA button
+   - **File likely:** `src/renderer/pages/ProjectListPage.tsx` → `project:open` handler → navigation target
+
+### Step 5 — Session capture round-trip ✅ MOSTLY PASS
+
+1. Session form launched after clicking project ✅
+2. Filled session details → navigated to session gallery ✅
+3. `Ctrl+Shift+2` captured screenshots → stored under **Untagged** ✅ (hotkey working)
+4. Clicked captures and tagged pass/fail etc. ✅
+5. **Summary bar total counts do not update after tagging** ❌
+   - **Issue:** `derivedCounts` (pass/fail/blocked/skip/untagged totals in the status bar) not refreshing when a capture's tag is changed via the detail panel
+   - **Expected:** Counts update reactively when `statusTag` is changed
+   - **File likely:** `src/renderer/pages/SessionGalleryPage.tsx` — `derivedCounts()` reads from store; check whether `updateCaptureTag` IPC result triggers a store re-read or local mutation
+6. Real capture thumbnails visible ✅
+7. Clicking thumbnail opens detail panel with real filename, hash, size ✅
+8. `.evidex` file on disk grows with each capture ✅ (encryption + persistence pipeline confirmed)
+
+### Step 9 — Close/reopen session persistence ❌ BLOCKED
+
+- **Blocked by dev-reset script:** `npm run dev` runs `reset-dev-state.js` as `predev`, which clears all state/cache on every launch. Cannot verify session persistence across restarts in dev mode.
+- **Action needed:** Add a way to launch without resetting state for persistence testing. Options:
+  1. `npm run dev:noclean` script that skips `reset-dev-state.js`
+  2. Or document that step 9 is only testable in a packaged build
+
+### Summary of new issues for CTS to fix
+
+| # | Issue | Priority |
+|---|---|---|
+| A | Opening a project with zero sessions auto-launches session form (should show ProjectOverviewPage) | High — blocks W9 |
+| B | Summary bar counts don't update after capture tagging | Medium — broken UX |
+| C | No way to test session persistence in dev mode (reset script always clears state) | Medium — test infrastructure |
+
+### Items confirmed fixed ✅
+
+- Fix #8 (session form after project **creation**) ✅ — navigates to project list correctly
+- Fix #10 (black overlay) — not observed during this session ✅
+- Hotkey `Ctrl+Shift+2` capture working ✅
+- Full capture pipeline: screenshot → JPEG → thumbnail → `.evidex` growth ✅
+- Detail panel: real filename, hash, size ✅
+
+---
+
 ## 2026-05-11 — Manual UI & Functional Testing — Critical Issues Found (Pre-W9)
 
 **From:** Manual testing session  
