@@ -191,18 +191,6 @@ export class CaptureService {
     };
   }
 
-  updateTag(captureId: string, tag: StatusTag): void {
-    const db = this.deps.getDb();
-    if (!db) {
-      throw new EvidexError(
-        EvidexErrorCode.PROJECT_NOT_FOUND,
-        'No project is currently open.',
-        { captureId }
-      );
-    }
-    db.updateCaptureTag(captureId, tag);
-  }
-
   /** W9 — list all Capture rows for a session (history view). */
   getForSession(sessionId: string): Capture[] {
     return this.deps.getDb()?.getCapturesForSession(sessionId) ?? [];

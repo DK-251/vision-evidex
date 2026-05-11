@@ -1,9 +1,9 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-05-11T12:36:59.405Z  
+**Date:** 2026-05-11T12:35:01.271Z  
 **Branch:** `main` · **Commit:** `36367831`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
-**Duration:** 1 ms
+**Duration:** 0 ms
 
 ## Summary
 
@@ -23,8 +23,8 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 9159 ms | — |
-| tests | PASS | 10622 ms | 517/517 passed |
+| typecheck | FAIL | 8333 ms | src/main/services/capture.service.ts(92,3): error TS2393: Duplicate function implementation. |
+| tests | PASS | 11136 ms | 517/517 passed |
 
 ## Module results
 
@@ -53,7 +53,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 90.61 ms | 91.94 ms | 92.61 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 90.98 ms | 91.27 ms | 91.6 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +71,5 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [typecheck] FAIL — src/main/services/capture.service.ts(92,3): error TS2393: Duplicate function implementation.
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

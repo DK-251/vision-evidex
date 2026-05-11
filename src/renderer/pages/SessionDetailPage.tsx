@@ -5,7 +5,7 @@ import {
   ChevronLeftRegular,
   CalendarRegular,
   PersonRegular,
-  EnvironmentRegular,
+  GlobeRegular,
   AppsRegular,
   DocumentBulletListRegular,
   TagRegular,
@@ -288,7 +288,7 @@ function SessionMetaCard({ session, counts }: { session: Session; counts: { tota
     <Card variant="default">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 'var(--space-3)' }}>
         <MetaItem icon={<AppsRegular fontSize={16} />} label="Application" value={session.applicationUnderTest} />
-        <MetaItem icon={<EnvironmentRegular fontSize={16} />} label="Environment" value={session.environment} />
+        <MetaItem icon={<GlobeRegular fontSize={16} />} label="Environment" value={session.environment} />
         <MetaItem icon={<PersonRegular fontSize={16} />} label="Tester" value={session.testerName} />
         <MetaItem icon={<CalendarRegular fontSize={16} />} label="Started" value={session.startedAt.slice(0, 16).replace('T', ' ')} />
         {session.endedAt && (

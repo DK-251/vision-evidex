@@ -222,13 +222,6 @@ export class EvidexContainerService {
     return internalPath;
   }
 
-  async extractImage(containerId: string, imagePath: string): Promise<Buffer> {
-    const state = this.requireState(containerId);
-    const buf = state.entries.get(imagePath);
-    if (!buf) throw new Error(`image not found in container: ${imagePath}`);
-    return buf;
-  }
-
   async extractAllImages(
     containerId: string,
     type: 'original' | 'annotated' | 'both'
