@@ -1275,8 +1275,9 @@ body:fullscreen .caption-buttons {
 .nav-sidebar.collapsed .nav-item-label,
 .nav-sidebar.collapsed .nav-sidebar-toggle-label { display: none; }
 .nav-sidebar.collapsed .nav-item.active::before {
-  left: 4px;
+  left: 0;
   height: 20px;
+  border-radius: 0 2px 2px 0;
 }
 
 /* ── Visually hidden (a11y live region helper) ───────────────────── */

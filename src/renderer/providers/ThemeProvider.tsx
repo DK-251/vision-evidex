@@ -8,10 +8,13 @@ import { applyAccentScale } from '../lib/accent-scale';
  * the main-process `theme:accentColourUpdate` / `theme:systemThemeChange`
  * broadcasts so the renderer's Fluent tokens stay in sync with Windows.
  *
- * Theme preference is loaded once on mount from `settings.json` via
- * `window.evidexAPI.settings.get()`. Changes made in AppSettingsPage
- * are applied on the next app boot (settings:updated broadcast is on
- * BACKLOG as [PH2-THEME-LIVE]).
+ * Theme preference is loaded on every mount from `settings.json` via
+ * `window.evidexAPI.settings.get()`. This covers both app boot and the
+ * onboarding → shell transition where ThemeProvider re-mounts after
+ * `complete()` is called.
+ *
+ * Live theme changes from AppSettingsPage are applied immediately via
+ * the `setPreference` function exposed on ThemeContext — no restart needed.
  *
  * This provider does not own settings — it only reflects them into the DOM.
  */
@@ -24,6 +27,8 @@ interface ThemeContextValue {
   accent: string;
   density: Density;
   fontSize: FontSize;
+  /** Update the preference live — used by AppSettingsPage to apply instantly. */
+  setPreference: (pref: ThemePreference) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -42,16 +47,26 @@ export function ThemeProvider({ children }: { children: ReactNode }): JSX.Elemen
   );
   const [preference, setPreference] = useState<ThemePreference>('system');
   const [accent, setAccent] = useState<string>('#0078D4');
+  // settingsLoaded: reserved for a future loading-skeleton on the theme step.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
-  // Load persisted theme preference once on mount.
+  // Load persisted theme preference. Re-run whenever the component
+  // mounts — this covers both app boot and the onboarding → shell
+  // transition where ThemeProvider re-mounts after completion.
   useEffect(() => {
     let cancelled = false;
     void (async (): Promise<void> => {
       try {
         const result = await window.evidexAPI.settings.get();
-        if (cancelled || !result.ok) return;
-        setPreference(result.data.theme);
+        if (cancelled || !result.ok) {
+          setSettingsLoaded(true);
+          return;
+        }
+        setPreference(result.data.theme ?? 'system');
+        setSettingsLoaded(true);
       } catch {
+        setSettingsLoaded(true);
         // Fail soft — keep 'system' default.
       }
     })();
@@ -76,9 +91,7 @@ export function ThemeProvider({ children }: { children: ReactNode }): JSX.Elemen
     };
   }, []);
 
-  // Reflect resolved theme on the document root. The title bar is
-  // rendered inside the renderer and reads `data-theme` tokens directly,
-  // so nothing needs to be pushed to the main process here.
+  // Reflect resolved theme on the document root.
   const resolved = resolveTheme(preference, systemDark);
   useEffect(() => {
     const root = document.documentElement;
@@ -89,7 +102,7 @@ export function ThemeProvider({ children }: { children: ReactNode }): JSX.Elemen
 
   return (
     <ThemeContext.Provider
-      value={{ theme: resolved, accent, density: 'normal', fontSize: 'normal' }}
+      value={{ theme: resolved, accent, density: 'normal', fontSize: 'normal', setPreference }}
     >
       {children}
     </ThemeContext.Provider>

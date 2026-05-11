@@ -110,7 +110,7 @@ export function ProjectListPage(): JSX.Element {
               <li key={p.projectId}>
                 <button
                   type="button"
-                  className="recent-project-row interactive-hover"
+                  className="recent-project-row"
                   onClick={() => void handleOpen(p)}
                   style={{
                     width:      '100%',

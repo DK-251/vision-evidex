@@ -25,6 +25,8 @@ const TIERS = [
 export function useWindowTier(): void {
   useEffect(() => {
     function applyTier(totalWidth: number): void {
+      // Guard against 0-width reads before layout is complete.
+      if (totalWidth === 0) return;
       const tier = [...TIERS]
         .reverse()
         .find((t) => totalWidth >= t.width)?.name ?? 'compact';
@@ -38,12 +40,16 @@ export function useWindowTier(): void {
       }
     }
 
-    // Apply immediately on mount.
-    applyTier(document.body.clientWidth);
+    // Apply immediately on mount. Use window.innerWidth as the
+    // authoritative source since clientWidth may be 0 before paint.
+    const initial = window.innerWidth || document.body.clientWidth;
+    applyTier(initial);
 
     const obs = new ResizeObserver((entries) => {
       const entry = entries[0];
-      if (entry) applyTier(entry.contentRect.width);
+      // Use window.innerWidth for accuracy — contentRect may lag on first paint.
+      const w = (entry ? entry.contentRect.width : 0) || window.innerWidth;
+      if (w > 0) applyTier(w);
     });
 
     obs.observe(document.body);

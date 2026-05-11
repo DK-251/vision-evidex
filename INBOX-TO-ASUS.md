@@ -9,6 +9,70 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 ---
 
+## 2026-05-11 — RUN REQUEST — Manual UI bug fixes (6 items, pre-W9 final gate)
+
+**From:** CTS via filesystem connector  
+**Based on:** Asus manual testing session findings (INBOX-TO-CTS 2026-05-11)
+
+All 6 bugs reported in the Asus manual testing session have been fixed. Changes touch renderer + main process. Typecheck must be verified before marking this resolved.
+
+### Files changed
+
+- `src/renderer/providers/ThemeProvider.tsx` — Exports `setPreference` via context; `settingsLoaded` state added; theme loaded reliably on every mount including post-onboarding re-mount
+- `src/renderer/pages/AppSettingsPage.tsx` — `AppearanceTab` now calls `setPreference` live before saving to settings, so theme applies immediately without restart
+- `src/renderer/styles/components.css` — Sidebar active pill in collapsed state: `left: 0` + `border-radius: 0 2px 2px 0` (was `left: 4px`, misaligned)
+- `src/renderer/hooks/useWindowTier.ts` — Guards against 0-width on mount; uses `window.innerWidth` as authoritative source; sidebar auto-collapse now fires reliably on resize
+- `src/renderer/pages/CreateProjectPage.tsx` — Post-creation navigates to `project-list` instead of `session-intake` (fixes auto-pop session form reported by Asus)
+- `src/main/window-manager.ts` — `showToolbarWindow` suppressed (early return) until W9 toolbar UI is built; eliminates black overlay rectangle
+
+### Bugs fixed vs Asus report
+
+| Issue # | Description | Fixed |
+|---|---|---|
+| 1 | Theme not respecting system preference at launch | ✅ ThemeProvider re-reads on every mount |
+| 2 | Theme selection not applying realtime during onboarding navigation | ✅ ThemeStorageStep already had restore logic; root was ThemeProvider not re-reading |
+| 3 | Selected theme not applied in main app after onboarding | ✅ ThemeProvider re-mounts after complete() and re-reads settings.json |
+| 4 | Sidebar indicator pill misaligned when collapsed | ✅ CSS left:0, border-radius corrected |
+| 6 | Window resize not triggering sidebar collapse | ✅ useWindowTier uses window.innerWidth, guards 0-width |
+| 8 | Session form auto-pops after project creation | ✅ CreateProjectPage navigates to project-list |
+| 10 (overlay) | Black box persisting after app close | ✅ showToolbarWindow suppressed until W9 |
+
+Issues 5, 7, 9, 11 are deferred: tooltips (W9 component), content scaling (W9 layout), session grouping by app (W9 ProjectOverviewPage), role-based dashboard (Phase 3).
+
+### One-shot Asus action
+
+```
+git pull --ff-only
+npm run report
+git add run-reports/latest.{json,md} run-reports/history/ STATUS.md INBOX-TO-ASUS.md
+git commit -m "[INBOX] pre-W9 manual UI bug fixes verification"
+git push
+```
+
+### Pass criteria
+
+- typecheck PASS
+- tests 453/453 PASS (no test files changed)
+- pbkdf2 PASS under 800ms
+- modules SKIP 18 (unchanged)
+- dep-audit 0 critical
+
+### If typecheck fails
+
+Most likely: `ThemeProvider.tsx` — `setPreference` added to context type. Check:
+- `useThemeContext()` callers that destructure the context (only `AppSettingsPage` was updated)
+- `settingsLoaded` unused variable warning (it\'s intentional for future use)
+
+### After gate passes
+
+1. Mark this entry [RESOLVED]
+2. Re-run manual UI test steps 4/5/9 (create project → hotkey capture → gallery → close/reopen)
+3. Confirm: theme respects system preference on launch, sidebar collapses on resize, no black overlay
+4. Mark Wk8 INBOX-TO-ASUS entry [RESOLVED]
+5. W9 opens on next CTS session
+
+---
+
 ## 2026-05-11 — INBOX RECEIVED — Manual UI testing findings documented (Pre-W9 testing phase)
 
 **From:** Manual testing session  

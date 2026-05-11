@@ -262,7 +262,7 @@ function RecentProjectsSection({
             <li key={p.projectId}>
               <button
                 type="button"
-                className="recent-project-row interactive-hover"
+                className="recent-project-row"
                 onClick={() => onOpen(p)}
                 style={{
                   width:      '100%',

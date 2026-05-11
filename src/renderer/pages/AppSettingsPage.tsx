@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { pageForward } from '../components/animations';
+import { useThemeContext } from '../providers/ThemeProvider';
 import type {
   Settings,
   ThemePreference,
@@ -261,6 +262,7 @@ function HotkeysTab({ settings, patch }: TabProps): JSX.Element {
 
 function AppearanceTab({ settings, patch }: TabProps): JSX.Element {
   const theme: ThemePreference = settings.theme;
+  const { setPreference } = useThemeContext();
   return (
     <div>
       <SettingRow label="Theme" hint="Change when the app follows Windows (System) or a fixed appearance">
@@ -272,7 +274,11 @@ function AppearanceTab({ settings, patch }: TabProps): JSX.Element {
               role="radio"
               aria-checked={theme === t}
               className={`segmented-option ${theme === t ? 'active' : ''}`}
-              onClick={() => void patch({ theme: t })}
+              onClick={() => {
+                // Apply live immediately before the async settings save.
+                setPreference(t);
+                void patch({ theme: t });
+              }}
               style={{ textTransform: 'capitalize' }}
             >
               {t}
