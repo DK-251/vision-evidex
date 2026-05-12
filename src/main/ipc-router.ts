@@ -26,6 +26,8 @@ import {
   ProjectGetSchema,
   ProjectListSchema,
   ProjectRecentSchema,
+  ProjectUpdateSchema,
+  CaptureOpenAnnotationSchema,
   ExportOptionsSchema,
   MetricsImportSchema,
   TemplateSaveSchema,
@@ -53,6 +55,10 @@ import type { CaptureService } from './services/capture.service';
 import type { EvidexContainerService } from './services/evidex-container.service';
 import type { ProjectService } from './services/project.service';
 import type { NamingService } from './services/naming.service';
+import {
+  createAnnotationWindow,
+  getAnnotationWindow,
+} from './window-manager';
 
 export interface ServiceRegistry {
   licence: LicenceService;
@@ -261,6 +267,29 @@ export function registerAllHandlers(services: ServiceRegistry): void {
   registerHandler(IPC.PROJECT_RECENT, ProjectRecentSchema, async () =>
     services.project.getRecent()
   );
+  registerHandler(IPC.PROJECT_UPDATE, ProjectUpdateSchema, async (input) =>
+    services.project.update(input.projectId, input.patch)
+  );
+  registerHandler(IPC.CAPTURE_OPEN_ANNOTATION, CaptureOpenAnnotationSchema, async (input) => {
+    const db = services.container.getProjectDb();
+    const capture = db?.getCapture(input.captureId) ?? null;
+    if (!capture) throw new EvidexError(EvidexErrorCode.PROJECT_NOT_FOUND, 'Capture not found', { captureId: input.captureId });
+    const handle = services.container.getCurrentHandle();
+    if (!handle) throw new EvidexError(EvidexErrorCode.PROJECT_NOT_FOUND, 'No project open');
+    const imageData = await services.container.extractImage(handle.containerId, `images/original/${capture.originalFilename}`);
+    if (!imageData) throw new EvidexError(EvidexErrorCode.PROJECT_NOT_FOUND, 'Image not found in container', { captureId: input.captureId });
+    const win = getAnnotationWindow()?.isDestroyed() === false ? getAnnotationWindow()! : createAnnotationWindow();
+    const payload = {
+      captureId:   capture.id,
+      imageBase64: `data:image/jpeg;base64,${imageData.toString('base64')}`,
+      width: 1920,
+      height: 1080,
+    };
+    const push = (): void => { if (!win.isDestroyed()) win.webContents.send(IPC_EVENTS.ANNOTATION_LOAD, payload); };
+    if (win.webContents.isLoading()) win.webContents.once('did-finish-load', push);
+    else push();
+    return null;
+  });
   registerHandler(IPC.EXPORT_WORD, ExportOptionsSchema, stub);
   registerHandler(IPC.EXPORT_PDF, ExportOptionsSchema, stub);
   registerHandler(IPC.EXPORT_HTML, ExportOptionsSchema, stub);

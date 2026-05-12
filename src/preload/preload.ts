@@ -63,6 +63,8 @@ const evidexAPI = {
       ipcRenderer.invoke(IPC.CAPTURE_LIST, { sessionId }),
     getThumbnail: (captureId: string): Promise<IpcResult<string | null>> =>
       ipcRenderer.invoke(IPC.CAPTURE_GET_THUMBNAIL, { captureId }),
+    openAnnotation: (captureId: string): Promise<IpcResult<null>> =>
+      ipcRenderer.invoke(IPC.CAPTURE_OPEN_ANNOTATION, { captureId }),
   },
 
   project: {
@@ -78,6 +80,8 @@ const evidexAPI = {
       ipcRenderer.invoke(IPC.PROJECT_LIST, {}),
     getRecent: (): Promise<IpcResult<RecentProject[]>> =>
       ipcRenderer.invoke(IPC.PROJECT_RECENT, {}),
+    update: (projectId: string, patch: { name?: string; clientName?: string; status?: 'active' | 'archived' }): Promise<IpcResult<Project>> =>
+      ipcRenderer.invoke(IPC.PROJECT_UPDATE, { projectId, patch }),
     previewNamingPattern: (
       input: { pattern: string; projectName?: string; clientName?: string }
     ): Promise<IpcResult<string>> =>
@@ -199,6 +203,11 @@ const evidexAPI = {
       const listener = (_e: unknown, maximized: boolean): void => handler(maximized);
       ipcRenderer.on(IPC_EVENTS.WINDOW_MAXIMIZED_CHANGE, listener);
       return () => ipcRenderer.removeListener(IPC_EVENTS.WINDOW_MAXIMIZED_CHANGE, listener);
+    },
+    onAnnotationLoad: (handler: (payload: { captureId: string; imageBase64: string; width: number; height: number }) => void): (() => void) => {
+      const listener = (_e: unknown, payload: { captureId: string; imageBase64: string; width: number; height: number }): void => handler(payload);
+      ipcRenderer.on(IPC_EVENTS.ANNOTATION_LOAD, listener);
+      return () => ipcRenderer.removeListener(IPC_EVENTS.ANNOTATION_LOAD, listener);
     },
   },
 } as const;

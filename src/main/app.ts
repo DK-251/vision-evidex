@@ -1,10 +1,12 @@
-import { app, BrowserWindow, globalShortcut, session } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, session } from 'electron';
 import path from 'node:path';
 import os from 'node:os';
 import {
   createMainWindow,
+  createRegionWindow,
   destroyAllWindows,
   getMainWindow,
+  getRegionWindow,
   showToolbarWindow,
   hideToolbarWindow,
 } from './window-manager';
@@ -33,7 +35,26 @@ import { bindThemeBroadcasts, pushAccentToAllWindows, pushSystemThemeToAllWindow
 import { IPC_EVENTS } from '@shared/ipc-channels';
 import { EvidexError } from '@shared/types/errors';
 import { EvidexErrorCode } from '@shared/types/ipc';
-import type { CaptureMode } from '@shared/types/entities';
+import type { CaptureMode, CaptureResult, ScreenRegion } from '@shared/types/entities';
+
+/** W10 — broadcast a capture result to all renderer windows. */
+function broadcastCapture(sessionId: string, result: CaptureResult): void {
+  const updated = sessionService?.get(sessionId);
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (win.isDestroyed()) continue;
+    if (updated) {
+      win.webContents.send(IPC_EVENTS.SESSION_STATUS_UPDATE, {
+        sessionId:    updated.id,
+        captureCount: updated.captureCount,
+        passCount:    updated.passCount,
+        failCount:    updated.failCount,
+        blockedCount: updated.blockedCount,
+      });
+    }
+    win.webContents.send(IPC_EVENTS.CAPTURE_FLASH);
+    win.webContents.send(IPC_EVENTS.CAPTURE_ARRIVED, result);
+  }
+}
 
 export const isDev = !app.isPackaged;
 
@@ -48,6 +69,8 @@ let shortcutService: ShortcutService | undefined;
 let sessionService: SessionService | undefined;
 let captureService: CaptureService | undefined;
 let projectService: ProjectService | undefined;
+/** W10 D34 — resolve function waiting for region selection result. */
+let pendingRegionCapture: ((rect: ScreenRegion) => Promise<void>) | null = null;
 
 function applyCSP(): void {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -204,29 +227,18 @@ function bootstrap(): void {
         const sess = sessionService.get(sessionId);
         if (!sess || sess.endedAt !== undefined) return;
         try {
-          const result = await captureService.screenshot({ sessionId, mode });
-          const updated = sessionService.get(sessionId);
-          for (const win of BrowserWindow.getAllWindows()) {
-            if (win.isDestroyed()) continue;
-            if (updated) {
-              win.webContents.send(IPC_EVENTS.SESSION_STATUS_UPDATE, {
-                sessionId:    updated.id,
-                captureCount: updated.captureCount,
-                passCount:    updated.passCount,
-                failCount:    updated.failCount,
-                blockedCount: updated.blockedCount,
-              });
-            }
-            win.webContents.send(IPC_EVENTS.CAPTURE_FLASH);
-            // Wk 8 — push the new capture so the gallery's GallerySkeleton
-            // transitions to a real CaptureThumbnail without a refetch.
-            win.webContents.send(IPC_EVENTS.CAPTURE_ARRIVED, result);
+          // W10 D34 — Region mode: open the overlay, wait for user selection.
+          if (mode === 'region') {
+            pendingRegionCapture = async (rect: ScreenRegion): Promise<void> => {
+              const result = await captureService!.screenshot({ sessionId, mode, region: rect });
+              broadcastCapture(sessionId, result);
+            };
+            createRegionWindow();
+            return; // resolve happens in ipcMain.on(REGION_SELECTED)
           }
+          const result = await captureService.screenshot({ sessionId, mode });
+          broadcastCapture(sessionId, result);
         } catch (err) {
-          // Never throw from a globalShortcut callback. In D35 plumbing
-          // mode the failure is expected (NO_CONTAINER sentinel blocks
-          // step 7 of the capture pipeline) — the tester sees a logger
-          // entry, not a crash.
           logger.warn('hotkey.capture failed', {
             sessionId, mode, err: err instanceof Error ? err.message : String(err),
           });
@@ -267,6 +279,23 @@ function bootstrap(): void {
       project: projectService,
       naming: namingService,
       getMainWindow,
+    });
+
+    // W10 D34 — Region capture IPC. The region renderer sends
+    // 'region:selected' with { x, y, width, height } on mouseup, or
+    // 'region:cancel' on Esc. Both close the region window.
+    ipcMain.on(IPC_EVENTS.REGION_SELECTED, (_e, rect: { x: number; y: number; width: number; height: number }) => {
+      const rw = getRegionWindow();
+      if (rw && !rw.isDestroyed()) rw.close();
+      // If there is a pending region capture callback, fire it now.
+      const pending = pendingRegionCapture;
+      pendingRegionCapture = null;
+      if (pending) void pending(rect);
+    });
+    ipcMain.on(IPC_EVENTS.REGION_CANCEL, () => {
+      const rw = getRegionWindow();
+      if (rw && !rw.isDestroyed()) rw.close();
+      pendingRegionCapture = null;
     });
 
     logger.info('services.ready', {

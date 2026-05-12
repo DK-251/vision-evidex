@@ -9,6 +9,7 @@ import { CreateProjectPage } from './pages/CreateProjectPage';
 import { ProjectOverviewPage } from './pages/ProjectOverviewPage';
 import { SessionListPage } from './pages/SessionListPage';
 import { SessionDetailPage } from './pages/SessionDetailPage';
+import { ProjectSettingsPage } from './pages/ProjectSettingsPage';
 import { useOnboardingStore } from './stores/onboarding-store';
 import { useNavStore } from './stores/nav-store';
 import { BootSkeleton } from './components/Skeleton';
@@ -122,6 +123,8 @@ function ShellPageSwitch({ page }: { page: ReturnType<typeof useNavStore.getStat
       return <SessionListPage />;
     case 'session-detail':
       return <SessionDetailPage />;
+    case 'project-settings':
+      return <ProjectSettingsPage />;
     case 'project-list':
     default:
       return <ProjectListPage />;

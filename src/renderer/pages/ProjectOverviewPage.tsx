@@ -14,6 +14,7 @@ import {
   AppsRegular,
   ChevronRightRegular,
   HistoryRegular,
+  SettingsRegular,
 } from '@fluentui/react-icons';
 import type { Session } from '@shared/types/entities';
 import { Button, Card, FluentSkeleton } from '../components/ui';
@@ -139,6 +140,13 @@ export function ProjectOverviewPage(): JSX.Element | null {
           </div>
 
           <div style={{ display: 'flex', gap: 'var(--space-2)', flexShrink: 0 }}>
+            <Button
+              variant="standard"
+              startIcon={<SettingsRegular />}
+              onClick={() => navigate('project-settings', { projectId: projectId! })}
+            >
+              Settings
+            </Button>
             <Button
               variant="standard"
               startIcon={<HistoryRegular />}

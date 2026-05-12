@@ -150,13 +150,29 @@ export function getToolbarWindow(): BrowserWindow | undefined {
  * without re-querying the DB on every render.
  */
 export function showToolbarWindow(session: Session): void {
-  // TODO W9 — toolbar UI is a placeholder (src/toolbar/App.tsx renders
-  // only a label). Creating the window shows a transparent black rectangle
-  // on screen. Suppress until the toolbar UI is implemented in W9.
-  // Re-enable by removing this early return once toolbar/App.tsx has its
-  // capture buttons, counter, and end-session button.
-  void session; // suppress unused-param lint
-  return;
+  const win = toolbarWindow && !toolbarWindow.isDestroyed()
+    ? toolbarWindow
+    : createToolbarWindow();
+
+  const initialStatus = {
+    sessionId:    session.id,
+    captureCount: session.captureCount,
+    passCount:    session.passCount,
+    failCount:    session.failCount,
+    blockedCount: session.blockedCount,
+  };
+
+  const pushInitial = (): void => {
+    if (win.isDestroyed()) return;
+    win.webContents.send(IPC_EVENTS.SESSION_STATUS_UPDATE, initialStatus);
+  };
+  if (win.webContents.isLoading()) {
+    win.webContents.once('did-finish-load', pushInitial);
+  } else {
+    pushInitial();
+  }
+
+  if (!win.isVisible()) win.show();
 }
 
 export function hideToolbarWindow(): void {

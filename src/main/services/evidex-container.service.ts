@@ -266,6 +266,19 @@ export class EvidexContainerService {
   }
 
   /**
+   * D28 — auto-backup: copy current .evidex to .evidex.bak (overwrites
+   * prior backup). Called after every 10th capture. Never throws —
+   * backup failure is logged by the caller but must not abort the
+   * capture pipeline.
+   */
+  async backup(containerId: string): Promise<void> {
+    const state = this.requireState(containerId);
+    const { filePath } = state.handle;
+    if (!(await fileExists(filePath))) return;
+    await fs.promises.copyFile(filePath, `${filePath}.bak`);
+  }
+
+  /**
    * W9 — extract a single file from the open container by its internal path.
    * Returns the raw Buffer or null if the entry doesn\'t exist.
    * Used by CaptureService.getThumbnail() to load original JPEGs for

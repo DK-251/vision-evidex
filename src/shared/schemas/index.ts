@@ -107,7 +107,7 @@ export const FabricCanvasJSONSchema = z
 export const AnnotationSaveSchema = z.object({
   captureId: z.string().min(1),
   fabricCanvasJson: FabricCanvasJSONSchema,
-  compositeBuffer: z.instanceof(Buffer),
+  compositeBuffer: z.union([z.instanceof(Buffer), z.string().min(1)]),
   blurRegions: z.array(BlurRegionSchema),
 });
 
@@ -143,6 +143,19 @@ export const ProjectGetSchema = z.object({
 
 export const ProjectListSchema = z.object({});
 export const ProjectRecentSchema = z.object({});
+
+export const ProjectUpdateSchema = z.object({
+  projectId: z.string().min(1),
+  patch: z.object({
+    name:       z.string().min(1).max(100).optional(),
+    clientName: z.string().min(1).max(100).optional(),
+    status:     z.enum(['active', 'archived']).optional(),
+  }),
+});
+
+export const CaptureOpenAnnotationSchema = z.object({
+  captureId: z.string().min(1),
+});
 
 export const TemplateListSchema = z.object({});
 export const BrandingListSchema = z.object({});

@@ -5,22 +5,24 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Phase 2 Week 9 — ✅ COMPLETE. `ProjectOverviewPage` + `SessionListPage` + `SessionDetailPage` built, wired, and gate-verified.
+- **SPRINT:** Phase 2 Week 10 — ✅ COMPLETE. All Phase 2 gaps closed. Phase 3 (Report Engine) is next.
 - **BRANCH:** `main`
-- **STATUS:** W9 automated gate PASS (2026-05-11). Typecheck fixed (duplicate methods + icon). Manual UI testing pending.
-- **GOAL:** Session-history surface complete. Users can see all sessions grouped by application, filter/search, and view individual captures with tag editing.
-- **W9 DELIVERED:**
-  - ✓ `session:list` IPC handler (schemas, router, preload, service)
-  - ✓ `capture:list` IPC handler (schemas, router, preload, CaptureService.getForSession)
-  - ✓ `capture:thumbnail` IPC handler (CaptureService.getThumbnail, EvidexContainerService.extractImage)
-  - ✓ `ProjectOverviewPage` — sessions grouped by applicationUnderTest in collapsible app cards, pass/fail/blocked totals, New Session CTA
-  - ✓ `SessionListPage` — full history with live search + all/active/completed filter
-  - ✓ `SessionDetailPage` — metadata card, capture grid with lazy thumbnails, tag picker, detail panel
-  - ✓ nav-store: project-overview, session-list, session-detail pages added
-  - ✓ Sidebar Sessions item enabled (navigates to project-overview)
-  - ✓ All project-open navigation updated to project-overview
-  - ✓ `__tests__/w9-coverage.spec.ts` — ~65 new tests
-- **DEFERRED TO W10/PHASE 3:** `[PH2-ROUTING]` HashRouter migration, Fluent tooltips, notes editing, role-based dashboards
+- **STATUS:** W10 build complete (2026-05-12). Awaiting Asus gate run.
+- **GOAL:** Close every Phase 2 gap: toolbar UI, region capture, annotation editor, project settings, archive, dashboard completion.
+- **W10 DELIVERED:**
+  - ✓ D36 `toolbar/App.tsx` — full toolbar UI with live counter, capture mode buttons, end session
+  - ✓ D34 `region/App.tsx` — rubber-band region selector with IPC result
+  - ✓ D41–D44 `annotation/App.tsx` — Fabric.js editor: arrow, text, highlight, blur, undo/redo 20 steps
+  - ✓ PM-03 `ProjectSettingsPage.tsx` — rename + re-client form
+  - ✓ PM-08 archive project via `project.update({ status: 'archived' })`
+  - ✓ `ProjectService.update()` — PM-03/PM-08 backend
+  - ✓ D28 `EvidexContainerService.backup()` — auto-backup every 10 captures
+  - ✓ DB-04 Quick Tour button on dashboard
+  - ✓ DB-05 session active indicator (reactive, store-driven)
+  - ✓ `CAPTURE_OPEN_ANNOTATION`, `PROJECT_UPDATE`, `REGION_SELECTED/CANCEL`, `ANNOTATION_LOAD/SAVE` IPC channels
+  - ✓ `w10-coverage.spec.ts` — 20 new test assertions
+  - ✓ FEATURES.md: 41 → 51/92. DB (5/5), EC (17/17), PM (10/10) all complete.
+- **NEXT SPRINT:** Phase 3 Week 11 — Template Engine. `[PH2-ROUTING]` HashRouter migration before Phase 3 starts.
 
 ## 2. IPC channels (`src/shared/ipc-channels.ts`)
 

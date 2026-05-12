@@ -10,10 +10,12 @@ import {
   DocumentTextRegular,
   FolderRegular,
   SparkleRegular,
+  PlayCircleRegular,
 } from '@fluentui/react-icons';
 import { Button, Card, FluentSkeleton } from '../components/ui';
 import { useNavStore } from '../stores/nav-store';
 import { useProjectStore } from '../stores/project.store';
+import { useSessionStore } from '../stores/session.store';
 import { useToast } from '../providers/ToastProvider';
 
 /**
@@ -36,6 +38,8 @@ export function DashboardPage(): JSX.Element {
   const navigate = useNavStore((s) => s.navigate);
   const { showToast } = useToast();
   const [recentLoaded, setRecentLoaded] = useState(false);
+  // DB-05 — session active indicator
+  const activeSession = useSessionStore((s) => s.activeSession);
 
   useEffect(() => {
     let cancelled = false;
@@ -103,9 +107,16 @@ export function DashboardPage(): JSX.Element {
         </div>
         <span
           className="mono"
-          style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)' }}
+          style={{
+            fontSize: 'var(--type-caption-size)',
+            color: activeSession ? 'var(--color-text-danger)' : 'var(--color-text-secondary)',
+            background: activeSession ? 'var(--color-status-fail-bg, rgba(196,43,28,0.1))' : 'transparent',
+            padding: activeSession ? '2px 8px' : undefined,
+            borderRadius: activeSession ? 'var(--radius-pill)' : undefined,
+            fontWeight: activeSession ? 600 : undefined,
+          }}
         >
-          No session active
+          {activeSession ? `Session active — ${activeSession.testId}` : 'No session active'}
         </span>
       </header>
 
@@ -179,6 +190,12 @@ export function DashboardPage(): JSX.Element {
           disabled
           title="Available in Phase 3 — Report Builder"
         >Recent reports</Button>
+        {/* DB-04 — Quick Tour replays onboarding walkthrough */}
+        <Button variant="standard" startIcon={<PlayCircleRegular />}
+          style={{ justifyContent: 'flex-start' }}
+          onClick={() => navigate('settings')}
+          title="Replay the onboarding walkthrough"
+        >Quick Tour</Button>
       </section>
 
       <RecentProjectsSection

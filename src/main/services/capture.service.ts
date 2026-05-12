@@ -167,6 +167,17 @@ export class CaptureService {
     };
     db.insertCapture(captureRow);
 
+    // D28 — auto-backup after every 10 captures (Risk R-12 mitigation).
+    // getNextSequenceNum was called before screenshot; ctx.nextSequenceNum
+    // is the 1-based index of THIS capture. Trigger on every multiple of 10.
+    if (ctx.nextSequenceNum % 10 === 0) {
+      try {
+        await this.deps.container.backup(ctx.containerId);
+      } catch {
+        // Auto-backup failure must never abort the capture pipeline.
+      }
+    }
+
     const manifestEntry: ManifestEntry = {
       captureId,
       originalFilename: filename,

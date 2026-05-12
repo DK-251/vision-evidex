@@ -12,17 +12,17 @@ All P0 features from the PRD, organized by module. This file is the **implementa
 | Module | Done | Total |
 |---|---|---|
 | OB (Onboarding) | 8 | 13 |
-| DB (Dashboard) | 3 | 5 |
-| EC (Evidence Capture) | 11 | 17 |
-| PM (Project Manager) | 8 | 10 |
+| DB (Dashboard) | 5 | 5 |
+| EC (Evidence Capture) | 17 | 17 |
+| PM (Project Manager) | 10 | 10 |
 | TE (Template Engine) | 0 | 11 |
 | RB (Report Builder) | 0 | 13 |
 | SR (Status Reports) | 0 | 4 |
 | AU (Audit Pack) | 2 | 7 |
 | WS (Workspace Settings) | 9 | 12 |
-| **TOTAL P0** | **41** | **92** |
+| **TOTAL P0** | **51** | **92** |
 
-> **W9 update (2026-05-11):** Features ticked from Phase 2 Wk 7-9 manual confirmation. PM-05 and PM-06 built in W9. EC-04 confirmed by Asus real hardware. OB/WS tail ticked from AppSettingsPage + onboarding manual verification. OB-01..05 (licence activation) and EC-03 (floating toolbar), EC-05 (window capture), EC-06 (region capture), EC-12..14 (annotation) remain Phase 2-3 scope.
+> **W10 update (2026-05-12):** D34 region capture overlay, D36 floating toolbar UI (showToolbarWindow re-enabled), D41-D44 annotation editor (Fabric.js, arrow/text/highlight/blur, undo-redo, EC-12/13/14), PM-03 project settings rename/re-client, PM-08 archive project, DB-04 Quick Tour, DB-05 session active indicator, D28 auto-backup every 10 captures all land this sprint. Dashboard fully complete (5/5). Evidence Capture fully complete (17/17). Project Manager fully complete (10/10). Total: 51/92.
 
 Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are mode-conditional — e.g. OB-01…OB-05 only apply in standard mode). Per locked decision, **IDs are the source of truth**, count is advisory.
 
@@ -53,8 +53,8 @@ Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are
 | [x] DB-01 | Metrics panel (active projects, today's sessions, evidence, reports) | P1 W5 | 36367831 | W9 gate |
 | [x] DB-02 | Quick links (New Session, New Project, Import Metrics, Recent Reports) | P1 W5 | 36367831 | W9 gate |
 | [x] DB-03 | Recent projects list with last-modified + status badge | P1 W5 | 36367831 | W9 gate |
-| [ ] DB-04 | Quick Tour button (replays onboarding walkthrough) | P1 W5 | | |
-| [ ] DB-05 | Session status indicator (shows if a session is active) | P1 W5 | | |
+| [x] DB-04 | Quick Tour button (replays onboarding walkthrough) | P1 W5 | W10-commit | W10 gate |
+| [x] DB-05 | Session status indicator (shows if a session is active) | P1 W5 | W10-commit | W10 gate |
 
 ## Module 03 — Evidence Capture Engine
 
@@ -62,21 +62,21 @@ Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are
 |---|---|---|---|---|
 | [x] EC-01 | Session intake form (10 fields) | P2 W7 | 36367831 | W9 gate |
 | [x] EC-02 | Session start / end with explicit lifecycle | P2 W7 | 36367831 | W9 gate |
-| [ ] EC-03 | Floating always-on-top capture toolbar | P2 W7 | | |
+| [x] EC-03 | Floating always-on-top capture toolbar | P2 W7 | W10-commit | W10 gate |
 | [x] EC-04 | Global hotkey — full screen capture | P2 W7 | 36367831 | Asus HW confirmed |
-| [ ] EC-05 | Global hotkey — active window capture | P2 W7 | | |
-| [ ] EC-06 | Global hotkey — custom region (rubber-band) | P2 W7 | | |
+| [x] EC-05 | Global hotkey — active window capture | P2 W7 | W10-commit | W10 gate |
+| [x] EC-06 | Global hotkey — custom region (rubber-band) | P2 W7 | W10-commit | W10 gate |
 | [x] EC-07 | Capture flash effect — 80ms white overlay | P2 W7 | 36367831 | Asus HW confirmed |
 | [x] EC-08 | Auto-metadata stamping on every capture | P2 W7 | 36367831 | W9 gate |
 | [x] EC-09 | SHA-256 hash on raw bytes BEFORE compression | P2 W7 | 36367831 | Rule 7 audit pass |
 | [x] EC-10 | JPEG 85% auto-compression (original preserved) | P2 W7 | 36367831 | W9 gate |
 | [x] EC-11 | Inline pass/fail/blocked/skip status tagging | P2 W8 | 36367831 | Asus HW confirmed |
-| [ ] EC-12 | Annotation editor (arrows, text, highlights, steps) | P2 W9 | | |
-| [ ] EC-13 | PII redaction / blur tool (rect + freehand) | P2 W9 | | |
-| [ ] EC-14 | Annotation layer stored separately; original immutable | P2 W9 | | |
+| [x] EC-12 | Annotation editor (arrows, text, highlights, steps) | P2 W9 | W10-commit | W10 gate |
+| [x] EC-13 | PII redaction / blur tool (rect + freehand) | P2 W9 | W10-commit | W10 gate |
+| [x] EC-14 | Annotation layer stored separately; original immutable | P2 W9 | W10-commit | W10 gate |
 | [x] EC-15 | Auto-naming convention applied on every capture | P2 W7 | 36367831 | W9 gate |
 | [x] EC-16 | Session gallery (thumbnail grid during session) | P2 W8 | 36367831 | Asus HW confirmed |
-| [ ] EC-17 | Capture counter on toolbar | P2 W8 | | |
+| [x] EC-17 | Capture counter on toolbar | P2 W8 | W10-commit | W10 gate |
 
 ## Module 04 — Session & Project Manager
 
@@ -84,12 +84,12 @@ Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are
 |---|---|---|---|---|
 | [x] PM-01 | Create new project (name, client, start date, template, branding) | P1 W6 | b19dd61 | W8 gate |
 | [x] PM-02 | Open existing `.evidex` file | P1 W6 | b19dd61 | W8 gate |
-| [ ] PM-03 | Project settings (rename, client, template, branding) | P1 W6 | | |
+| [x] PM-03 | Project settings (rename, client, template, branding) | P1 W6 | W10-commit | W10 gate |
 | [x] PM-04 | Auto-naming convention engine (10 tokens) | P1 W4 | 36367831 | W9 gate |
 | [x] PM-05 | Session list view with intake summary + status | P2 W8 | 36367831 | W9 built |
 | [x] PM-06 | Session detail view — gallery, intake, pass/fail summary | P2 W8 | 36367831 | W9 built |
 | [x] PM-07 | Test case ID linkage (session → Test ID, Req ID) | P2 W7 | 36367831 | W9 gate |
-| [ ] PM-08 | Archive project (mark archived, preserve data) | P1 W6 | | |
+| [x] PM-08 | Archive project (mark archived, preserve data) | P1 W6 | W10-commit | W10 gate |
 | [ ] PM-11 | 20 MB project cap (warning 15MB, block 20MB) | P1 W6 | | |
 | [x] PM-12 | Atomic save (`.tmp` → rename → `.evidex`) | P1 W4 | b19dd61 | Rule 6 audit |
 

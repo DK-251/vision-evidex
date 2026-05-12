@@ -276,6 +276,51 @@ export class ProjectService {
   getRecent(): RecentProject[] {
     return this.deps.appDb.getRecentProjects();
   }
+
+  /**
+   * W10 PM-03 / PM-08 — update project metadata or archive.
+   * Writes to the per-container project DB and optionally refreshes
+   * the recent_projects entry in app.db.
+   */
+  async update(
+    projectId: string,
+    patch: { name?: string; clientName?: string; status?: 'active' | 'archived' }
+  ): Promise<Project> {
+    const db = this.deps.container.getProjectDb();
+    if (!db) {
+      throw new EvidexError(
+        EvidexErrorCode.PROJECT_NOT_FOUND,
+        'No project is currently open.',
+        { projectId }
+      );
+    }
+    const existing = db.getProject(projectId);
+    if (!existing) {
+      throw new EvidexError(
+        EvidexErrorCode.PROJECT_NOT_FOUND,
+        `Project ${projectId} not found in the open container.`,
+        { projectId }
+      );
+    }
+    const updatedAt = this.now();
+    const updated: Project = { ...existing, ...patch, updatedAt };
+    db.updateProject(updated);
+
+    // Refresh recent_projects in app.db if display fields changed.
+    if (patch.name !== undefined || patch.clientName !== undefined) {
+      const handle = this.deps.container.getCurrentHandle();
+      this.deps.appDb.upsertRecentProject({
+        projectId,
+        name:         updated.name,
+        clientName:   updated.clientName,
+        filePath:     handle?.filePath ?? existing.storagePath,
+        lastOpenedAt: updatedAt,
+      });
+    }
+
+    logger.info('project.update', { projectId, patch });
+    return updated;
+  }
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────

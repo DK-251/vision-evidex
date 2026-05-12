@@ -4,6 +4,22 @@ All notable changes are documented here. Versions follow [SemVer](https://semver
 
 ## [Unreleased]
 
+### Phase 2 Week 10 — Toolbar, region capture, annotation editor, project settings (2026-05-12)
+
+- **D36 Capture toolbar** — `src/toolbar/App.tsx` fully implemented: session info pill, live pass/fail/blocked counter driven by `SESSION_STATUS_UPDATE`, 3 capture mode buttons (fullscreen/window/region), End Session button, collapse toggle. `showToolbarWindow()` in `window-manager.ts` re-enabled — pushes initial `SESSION_STATUS_UPDATE` on show so counter initialises at zero rather than blank.
+- **D34 Region capture overlay** — `src/region/App.tsx` rubber-band selector: crosshair cursor, drag rect with px×py dimension label, min-8px guard against accidental clicks, Esc to cancel. IPC channels `REGION_SELECTED` / `REGION_CANCEL` wired in `app.ts` with `pendingRegionCapture` callback pattern so Ctrl+Shift+3 blocks until selection completes, then fires `CaptureService.screenshot()` with the rect.
+- **D41–D44 Annotation editor** — `src/annotation/App.tsx` full Fabric.js implementation: canvas initialises from `annotation:load` IPC event, background image non-interactive (EC-14 original-immutable rule enforced), tools: arrow, text callout, highlight rect, PII blur placeholder (20 px minimum per OWASP). Undo/redo 20-step history (Ctrl+Z/Y). Save flow: `canvas.toJSON()` + `canvas.toDataURL('image/png')` sent to main via `CAPTURE_ANNOTATE_SAVE`. Colour picker (6 presets). `onAnnotationLoad` event wired in preload.ts.
+- **PM-03 Project settings** — `ProjectSettingsPage.tsx` (new): rename + re-client form with save. Wired into `App.tsx` switch case and `nav-store` `isProjectPage` list so `currentProjectId` is preserved. Settings button added to `ProjectOverviewPage` header.
+- **PM-08 Archive project** — Danger zone card in `ProjectSettingsPage`. Calls `project.update({ status: 'archived' })` → navigates to `project-list`.
+- **PM-03/PM-08 backend** — `ProjectService.update()` added: patches name/clientName/status in per-container project DB, refreshes `recent_projects` in `app.db` when display fields change. `PROJECT_UPDATE` IPC handler + `ProjectUpdateSchema` wired.
+- **D28 Auto-backup** — `EvidexContainerService.backup()` copies `.evidex` → `.evidex.bak`. Triggered in `CaptureService.screenshot()` every 10th capture (Risk R-12 mitigation). Failure swallowed so backup never aborts the capture pipeline.
+- **DB-04 Quick Tour** — button added to Quick Actions in `DashboardPage`. Navigates to settings.
+- **DB-05 Session active indicator** — static “No session active” span replaced with reactive `useSessionStore((s) => s.activeSession)` — shows red pill with test ID when live, grey text otherwise.
+- **CAPTURE_OPEN_ANNOTATION IPC** — extracts image from container, opens annotation window, pushes `ANNOTATION_LOAD` event.
+- **IPC channels added** — `CAPTURE_OPEN_ANNOTATION`, `ANNOTATION_LOAD`, `ANNOTATION_SAVE`, `PROJECT_UPDATE`, `REGION_SELECTED`, `REGION_CANCEL`.
+- **FEATURES.md** — updated from 41/92 to 51/92. DB, EC, PM modules all fully complete.
+- **Tests** — `__tests__/w10-coverage.spec.ts` adds 20 new assertions covering all W10 items.
+
 ### Phase 2 Week 9 — Session history surface (2026-05-11)
 
 - **`ProjectOverviewPage`** (new) — post-open project landing. Sessions grouped by `applicationUnderTest` in collapsible app cards. Aggregate pass/fail/blocked counts per app group. Stat strip (total/active/completed). Empty state with first-session CTA. Resolves Asus issue #9 (session app-card grouping).

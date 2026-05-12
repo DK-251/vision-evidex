@@ -17,6 +17,11 @@ export const IPC = {
   CAPTURE_GET_THUMBNAIL: 'capture:thumbnail', // W9 — load thumbnail for historical capture
   CAPTURE_ANNOTATE_SAVE: 'capture:annotate:save',
   CAPTURE_TAG_UPDATE: 'capture:tag:update',
+  CAPTURE_OPEN_ANNOTATION: 'capture:openAnnotation',  // W10 — open annotation editor window
+
+  // Annotation (separate BrowserWindow renderer)
+  ANNOTATION_LOAD: 'annotation:load',             // W10 — main sends image to annotation renderer
+  ANNOTATION_SAVE: 'annotation:save',             // W10 — annotation renderer sends composite back
 
   // Project
   PROJECT_CREATE: 'project:create',
@@ -25,6 +30,7 @@ export const IPC = {
   PROJECT_GET: 'project:get',
   PROJECT_LIST: 'project:list',
   PROJECT_RECENT: 'project:recent',
+  PROJECT_UPDATE: 'project:update',               // W10 — PM-03 rename / re-client
 
   // Export
   EXPORT_WORD: 'export:word',
@@ -84,6 +90,8 @@ export const IPC_EVENTS = {
   THEME_ACCENT_COLOUR_UPDATE: 'theme:accentColourUpdate',
   THEME_SYSTEM_CHANGE: 'theme:systemThemeChange',
   WINDOW_MAXIMIZED_CHANGE: 'window:maximizedChange',
+  REGION_SELECTED: 'region:selected',  // W10 — region renderer → main with selected Rect
+  REGION_CANCEL:   'region:cancel',    // W10 — region renderer cancels via Esc
 } as const;
 
 export type IpcChannel = typeof IPC[keyof typeof IPC];

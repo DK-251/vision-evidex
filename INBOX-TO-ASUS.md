@@ -4,6 +4,49 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 **Protocol:**
 - Append new entries at the TOP (reverse chronological).
+- Date format: `YYYY-MM-DD HH:MM` (local CTS time).
+- Mark entries resolved with `[RESOLVED YYYY-MM-DD]` prefix when Asus has actioned them. Never delete.
+
+---
+
+## 2026-05-12 — W10 gate request
+
+**From:** CTS
+**Commit:** push main after this message
+**Action needed:** `git pull && npm run report`
+
+### W10 what landed
+
+- D36 toolbar window live (was suppressed)
+- D34 region capture rubber-band selector UI
+- D41-D44 annotation editor (Fabric.js, all tools)
+- PM-03/PM-08 ProjectSettingsPage + ProjectService.update()
+- D28 auto-backup every 10 captures
+- DB-04 Quick Tour button + DB-05 session active indicator
+- 20 new tests in `__tests__/w10-coverage.spec.ts`
+
+### Manual steps to verify
+
+1. `npm run report` — expect: typecheck PASS, all tests PASS (target ~537+), PBKDF2 <800ms
+2. `npm run dev` — start app, complete onboarding if needed
+3. **Toolbar:** Create project, start session via session intake form. Toolbar should appear top-right with test ID pill, live counter (0/0/0), capture mode buttons, End button.
+4. **Region capture:** With session active, press Ctrl+Shift+3. Overlay should appear with crosshair cursor + hint text. Drag to select a region. Should capture and gallery should update.
+5. **Annotation editor:** In session gallery, click any capture thumbnail. Click "Open in annotation editor" button. Annotation window should open with capture image loaded. Try arrow, text, highlight, blur tools. Ctrl+Z to undo. Click Save.
+6. **Project settings:** Open any project, click Settings button in ProjectOverviewPage header. Rename the project, click Save Changes. Verify name updates. Click Archive — confirm dialog — verify navigates to project list.
+7. **Dashboard DB-05:** With an active session, go to Dashboard. Status indicator should show “Session active — [testId]” in red pill.
+8. **Dashboard DB-04:** Click Quick Tour button. Should navigate to Settings page.
+
+### Expected PASS criteria
+
+- Typecheck: 0 errors
+- Tests: all pass (current baseline 517 + ~20 new W10 = ~537)
+- PBKDF2: mean <800ms
+- Manual steps 3-8 all confirm visually
+
+---
+
+
+- Append new entries at the TOP (reverse chronological).
 - Date format: `YYYY-MM-DD HH:MM` (local Asus time — consistent reference).
 - Mark entries resolved with `[RESOLVED YYYY-MM-DD]` prefix. Never delete.
 
