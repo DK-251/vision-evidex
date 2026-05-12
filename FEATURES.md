@@ -14,15 +14,15 @@ All P0 features from the PRD, organized by module. This file is the **implementa
 | OB (Onboarding) | 8 | 13 |
 | DB (Dashboard) | 5 | 5 |
 | EC (Evidence Capture) | 17 | 17 |
-| PM (Project Manager) | 10 | 10 |
+| PM (Project Manager) | 9 | 10 |
 | TE (Template Engine) | 0 | 11 |
 | RB (Report Builder) | 0 | 13 |
 | SR (Status Reports) | 0 | 4 |
 | AU (Audit Pack) | 2 | 7 |
-| WS (Workspace Settings) | 9 | 12 |
-| **TOTAL P0** | **51** | **92** |
+| WS (Workspace Settings) | 8 | 12 |
+| **TOTAL P0** | **49** | **92** |
 
-> **W10 update (2026-05-12):** D34 region capture overlay, D36 floating toolbar UI (showToolbarWindow re-enabled), D41-D44 annotation editor (Fabric.js, arrow/text/highlight/blur, undo-redo, EC-12/13/14), PM-03 project settings rename/re-client, PM-08 archive project, DB-04 Quick Tour, DB-05 session active indicator, D28 auto-backup every 10 captures all land this sprint. Dashboard fully complete (5/5). Evidence Capture fully complete (17/17). Project Manager fully complete (10/10). Total: 51/92.
+> **W10 update (2026-05-12):** D34 region capture overlay, D36 floating toolbar UI (showToolbarWindow re-enabled), D41-D44 annotation editor (Fabric.js, arrow/text/highlight/blur, undo-redo, EC-12/13/14), PM-03 project settings rename/re-client, PM-08 archive project, DB-04 Quick Tour, DB-05 session active indicator, D28 auto-backup every 10 captures all land this sprint. Dashboard fully complete (5/5). Evidence Capture fully complete (17/17). Project Manager partially complete (9/10 — PM-11 20MB cap deferred). Total: 49/92.
 
 Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are mode-conditional — e.g. OB-01…OB-05 only apply in standard mode). Per locked decision, **IDs are the source of truth**, count is advisory.
 
