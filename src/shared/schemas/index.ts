@@ -147,11 +147,13 @@ export const ProjectRecentSchema = z.object({});
 export const ProjectUpdateSchema = z.object({
   projectId: z.string().min(1),
   patch: z.object({
-    name:       z.string().min(1).max(100).optional(),
-    clientName: z.string().min(1).max(100).optional(),
-    status:     z.enum(['active', 'archived']).optional(),
-  }),
+    name:       z.string().min(1).max(100),
+    clientName: z.string().min(1).max(100),
+    status:     z.enum(['active', 'archived']),
+  }).partial(),  // make all fields optional without explicit | undefined
 });
+
+export type ProjectUpdateInput = z.infer<typeof ProjectUpdateSchema>;
 
 export const CaptureOpenAnnotationSchema = z.object({
   captureId: z.string().min(1),

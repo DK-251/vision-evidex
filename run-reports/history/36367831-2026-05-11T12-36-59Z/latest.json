@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-05-12T07:00:14.501Z",
+  "timestamp": "2026-05-11T12:36:59.405Z",
   "branch": "main",
-  "commitSha": "0b586a939c5bd59b100f95a88446edfff08b5445",
-  "shortSha": "0b586a93",
+  "commitSha": "36367831fbdf6c56c7016b185e60fa66ad7bc0b0",
+  "shortSha": "36367831",
   "nodeVersion": "22.22.2",
   "electronVersion": "^30.4.0",
-  "totalDurationMs": 0,
+  "totalDurationMs": 1,
   "modules": [
     {
       "name": "licence",
@@ -161,23 +161,23 @@
     "skip": 18
   },
   "features": {
-    "done": 49,
+    "done": 3,
     "total": 92,
     "byModule": {
       "OB": {
-        "done": 8,
+        "done": 0,
         "total": 13
       },
       "DB": {
-        "done": 5,
+        "done": 0,
         "total": 5
       },
       "EC": {
-        "done": 17,
+        "done": 0,
         "total": 17
       },
       "PM": {
-        "done": 9,
+        "done": 3,
         "total": 10
       },
       "TE": {
@@ -193,11 +193,11 @@
         "total": 4
       },
       "AU": {
-        "done": 2,
+        "done": 0,
         "total": 7
       },
       "WS": {
-        "done": 8,
+        "done": 0,
         "total": 12
       }
     }
@@ -205,22 +205,22 @@
   "prechecks": {
     "typecheck": {
       "ok": true,
-      "duration_ms": 15210
+      "duration_ms": 9159
     },
     "tests": {
       "ok": true,
-      "duration_ms": 16117,
-      "total": 537,
-      "passed": 537,
+      "duration_ms": 10622,
+      "total": 517,
+      "passed": 517,
       "failed": 0,
       "failures": []
     }
   },
   "pbkdf2": {
     "ok": true,
-    "duration_ms": 931,
+    "duration_ms": 555,
     "record": {
-      "ts": "2026-05-12T07:00:47.010Z",
+      "ts": "2026-05-11T12:37:19.905Z",
       "node": "22.22.2",
       "platform": "win32-x64",
       "iterations": 310000,
@@ -228,15 +228,15 @@
       "salt_len_bytes": 16,
       "runs": 5,
       "samples_ms": [
-        157.66,
-        150.79,
-        151.28,
-        158.9,
-        157.22
+        92.61,
+        92.17,
+        92.43,
+        91.9,
+        90.61
       ],
-      "min_ms": 150.79,
-      "max_ms": 158.9,
-      "mean_ms": 155.17,
+      "min_ms": 90.61,
+      "max_ms": 92.61,
+      "mean_ms": 91.94,
       "budget_ms": 800,
       "passed": true
     }
@@ -251,7 +251,7 @@
       "critical": 0,
       "total": 8
     },
-    "duration_ms": 8680
+    "duration_ms": 1982
   },
   "next_actions": [
     "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"

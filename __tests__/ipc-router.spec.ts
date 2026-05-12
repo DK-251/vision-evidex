@@ -115,6 +115,7 @@ describe('ipc-router (Phase 1 Wk3 security gate)', () => {
   });
 
   it('registers every IPC invoke channel', () => {
+    // W10: ANNOTATION_LOAD moved to IPC_EVENTS (one-way push), so 40 invoke channels remain
     expect(handlers.size).toBe(Object.values(IPC).length);
     for (const channel of Object.values(IPC)) {
       expect(handlers.has(channel)).toBe(true);

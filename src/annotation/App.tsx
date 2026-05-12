@@ -245,7 +245,7 @@ export function App(): JSX.Element {
       // Buffer is transferred as a base64 string; main process decodes it.
       const base64Buf  = composite.replace(/^data:image\/\w+;base64,/, '');
 
-      const api = window.evidexAPI as {
+      const api = window.evidexAPI as unknown as {
         capture?: { saveAnnotation?: (r: {
           captureId: string;
           fabricCanvasJson: object;

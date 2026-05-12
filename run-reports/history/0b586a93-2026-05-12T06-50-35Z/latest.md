@@ -1,9 +1,9 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-05-12T07:00:14.501Z  
+**Date:** 2026-05-12T06:50:35.221Z  
 **Branch:** `main` · **Commit:** `0b586a93`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
-**Duration:** 0 ms
+**Duration:** 1 ms
 
 ## Summary
 
@@ -23,8 +23,12 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 15210 ms | — |
-| tests | PASS | 16117 ms | 537/537 passed |
+| typecheck | FAIL | 12983 ms | src/annotation/App.tsx(248,19): error TS2352: Conversion of type '{ readonly session: { readonly create: (input: SessionIntakeInput) => Promise<IpcResult<Session>>; readonly end: (sessionId: string) = |
+| tests | FAIL | 19988 ms | 1/537 failed |
+
+**Failing tests:**
+
+- `__tests__\ipc-router.spec.ts` › ipc-router (Phase 1 Wk3 security gate) registers every IPC invoke channel
 
 ## Module results
 
@@ -53,7 +57,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 150.79 ms | 155.17 ms | 158.9 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 145.42 ms | 149.21 ms | 153.99 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +75,7 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [tests] FAIL — 1/537 failed
+- PRECHECK [typecheck] FAIL — src/annotation/App.tsx(248,19): error TS2352: Conversion of type '{ readonly session: { readonly create: (input: SessionIntakeInput) => Promise<IpcResult<Session>>; readonly end: (sessionId: string) => Promise<IpcResult<SessionSummary>>; readonly get: (sessionId: string) => Promise<IpcResult<Session | null>>; readonly list: (projectId: string) => Promise<IpcResult<Session[]>>; }; ...' to type '{ capture?: { saveAnnotation?: (r: { captureId: string; fabricCanvasJson: object; compositeBuffer: string; blurRegions: BlurRegion[]; }) => Promise<{ ok: boolean; error?: { message: string; }; }>; }; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+-   · __tests__\ipc-router.spec.ts › ipc-router (Phase 1 Wk3 security gate) registers every IPC invoke channel
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

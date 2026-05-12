@@ -36,7 +36,7 @@ export function App(): JSX.Element {
     const handler = (_e: Electron.IpcRendererEvent, s: SessionStatus & { testId?: string }): void => {
       setStatus({
         sessionId:    s.sessionId,
-        testId:       s.testId,
+        ...(s.testId !== undefined ? { testId: s.testId } : {}),
         captureCount: s.captureCount,
         passCount:    s.passCount,
         failCount:    s.failCount,
@@ -57,8 +57,9 @@ export function App(): JSX.Element {
       return off;
     }
     // Fallback: direct ipcRenderer for toolbar window (preload may differ).
-    if ((window as Window & { electron?: { ipcRenderer?: { on: (ch: string, fn: (e: unknown, v: unknown) => void) => void; removeListener: (ch: string, fn: (e: unknown, v: unknown) => void) => void } } }).electron?.ipcRenderer) {
-      const el = (window as Window & { electron: { ipcRenderer: { on: (ch: string, fn: (e: unknown, v: unknown) => void) => void; removeListener: (ch: string, fn: (e: unknown, v: unknown) => void) => void } } }).electron.ipcRenderer;
+    const w = window as unknown as { electron?: { ipcRenderer?: { on: (ch: string, fn: (e: unknown, v: unknown) => void) => void; removeListener: (ch: string, fn: (e: unknown, v: unknown) => void) => void } } };
+    if (w.electron?.ipcRenderer) {
+      const el = w.electron.ipcRenderer;
       const fn = (_e: unknown, v: unknown): void => {
         const s = v as SessionStatus;
         handler({} as Electron.IpcRendererEvent, s);

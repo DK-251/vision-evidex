@@ -173,6 +173,23 @@ export class DatabaseService {
     return row ? mapProject(row) : null;
   }
 
+  /** W10 PM-03/PM-08 — update project metadata or status. */
+  updateProject(project: Project): void {
+    this.db
+      .prepare(
+        `UPDATE projects
+         SET name = ?, client_name = ?, status = ?, updated_at = ?
+         WHERE id = ?`
+      )
+      .run(
+        project.name,
+        project.clientName,
+        project.status,
+        project.updatedAt,
+        project.id
+      );
+  }
+
   updateProjectStatus(projectId: string, status: ProjectStatus): void {
     this.db
       .prepare(

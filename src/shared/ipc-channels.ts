@@ -20,7 +20,6 @@ export const IPC = {
   CAPTURE_OPEN_ANNOTATION: 'capture:openAnnotation',  // W10 — open annotation editor window
 
   // Annotation (separate BrowserWindow renderer)
-  ANNOTATION_LOAD: 'annotation:load',             // W10 — main sends image to annotation renderer
   ANNOTATION_SAVE: 'annotation:save',             // W10 — annotation renderer sends composite back
 
   // Project
@@ -92,6 +91,7 @@ export const IPC_EVENTS = {
   WINDOW_MAXIMIZED_CHANGE: 'window:maximizedChange',
   REGION_SELECTED: 'region:selected',  // W10 — region renderer → main with selected Rect
   REGION_CANCEL:   'region:cancel',    // W10 — region renderer cancels via Esc
+  ANNOTATION_LOAD: 'annotation:load',  // W10 — main sends image to annotation renderer
 } as const;
 
 export type IpcChannel = typeof IPC[keyof typeof IPC];

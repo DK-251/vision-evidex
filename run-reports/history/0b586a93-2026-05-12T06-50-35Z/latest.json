@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-05-12T07:00:14.501Z",
+  "timestamp": "2026-05-12T06:50:35.221Z",
   "branch": "main",
   "commitSha": "0b586a939c5bd59b100f95a88446edfff08b5445",
   "shortSha": "0b586a93",
   "nodeVersion": "22.22.2",
   "electronVersion": "^30.4.0",
-  "totalDurationMs": 0,
+  "totalDurationMs": 1,
   "modules": [
     {
       "name": "licence",
@@ -204,23 +204,39 @@
   },
   "prechecks": {
     "typecheck": {
-      "ok": true,
-      "duration_ms": 15210
+      "ok": false,
+      "duration_ms": 12983,
+      "errors": [
+        "src/annotation/App.tsx(248,19): error TS2352: Conversion of type '{ readonly session: { readonly create: (input: SessionIntakeInput) => Promise<IpcResult<Session>>; readonly end: (sessionId: string) => Promise<IpcResult<SessionSummary>>; readonly get: (sessionId: string) => Promise<IpcResult<Session | null>>; readonly list: (projectId: string) => Promise<IpcResult<Session[]>>; }; ...' to type '{ capture?: { saveAnnotation?: (r: { captureId: string; fabricCanvasJson: object; compositeBuffer: string; blurRegions: BlurRegion[]; }) => Promise<{ ok: boolean; error?: { message: string; }; }>; }; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.\r",
+        "src/main/ipc-router.ts(271,46): error TS2379: Argument of type '{ status?: \"active\" | \"archived\" | undefined; name?: string | undefined; clientName?: string | undefined; }' is not assignable to parameter of type '{ name?: string; clientName?: string; status?: \"active\" | \"archived\"; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r",
+        "src/main/ipc-router.ts(288,88): error TS2339: Property 'ANNOTATION_LOAD' does not exist on type '{ readonly CAPTURE_FLASH: \"capture:flash\"; readonly CAPTURE_ARRIVED: \"capture:arrived\"; readonly SESSION_STATUS_UPDATE: \"session:statusUpdate\"; readonly STORAGE_WARNING: \"storage:warning\"; ... 5 more ...; readonly REGION_CANCEL: \"region:cancel\"; }'.\r",
+        "src/main/services/project.service.ts(307,8): error TS2339: Property 'updateProject' does not exist on type 'DatabaseService'.\r",
+        "src/preload/preload.ts(209,33): error TS2339: Property 'ANNOTATION_LOAD' does not exist on type '{ readonly CAPTURE_FLASH: \"capture:flash\"; readonly CAPTURE_ARRIVED: \"capture:arrived\"; readonly SESSION_STATUS_UPDATE: \"session:statusUpdate\"; readonly STORAGE_WARNING: \"storage:warning\"; ... 5 more ...; readonly REGION_CANCEL: \"region:cancel\"; }'.\r",
+        "src/preload/preload.ts(210,58): error TS2339: Property 'ANNOTATION_LOAD' does not exist on type '{ readonly CAPTURE_FLASH: \"capture:flash\"; readonly CAPTURE_ARRIVED: \"capture:arrived\"; readonly SESSION_STATUS_UPDATE: \"session:statusUpdate\"; readonly STORAGE_WARNING: \"storage:warning\"; ... 5 more ...; readonly REGION_CANCEL: \"region:cancel\"; }'.\r",
+        "src/toolbar/App.tsx(37,17): error TS2345: Argument of type '{ sessionId: string; testId: string | undefined; captureCount: number; passCount: number; failCount: number; blockedCount: number; }' is not assignable to parameter of type 'SetStateAction<ToolbarStatus | null>'.\r",
+        "src/toolbar/App.tsx(61,19): error TS2352: Conversion of type 'Window & typeof globalThis' to type 'Window & { electron: { ipcRenderer: { on: (ch: string, fn: (e: unknown, v: unknown) => void) => void; removeListener: (ch: string, fn: (e: unknown, v: unknown) => void) => void; }; }; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.\r"
+      ]
     },
     "tests": {
-      "ok": true,
-      "duration_ms": 16117,
+      "ok": false,
+      "duration_ms": 19988,
       "total": 537,
-      "passed": 537,
-      "failed": 0,
-      "failures": []
+      "passed": 536,
+      "failed": 1,
+      "failures": [
+        {
+          "file": "__tests__\\ipc-router.spec.ts",
+          "name": "ipc-router (Phase 1 Wk3 security gate) registers every IPC invoke channel",
+          "message": "AssertionError: expected 40 to be 42 // Object.is equality\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\ipc-router.spec.ts:118:27\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_modules/@vites"
+        }
+      ]
     }
   },
   "pbkdf2": {
     "ok": true,
-    "duration_ms": 931,
+    "duration_ms": 902,
     "record": {
-      "ts": "2026-05-12T07:00:47.010Z",
+      "ts": "2026-05-12T06:51:09.369Z",
       "node": "22.22.2",
       "platform": "win32-x64",
       "iterations": 310000,
@@ -228,15 +244,15 @@
       "salt_len_bytes": 16,
       "runs": 5,
       "samples_ms": [
-        157.66,
-        150.79,
-        151.28,
-        158.9,
-        157.22
+        147.32,
+        151.65,
+        147.66,
+        153.99,
+        145.42
       ],
-      "min_ms": 150.79,
-      "max_ms": 158.9,
-      "mean_ms": 155.17,
+      "min_ms": 145.42,
+      "max_ms": 153.99,
+      "mean_ms": 149.21,
       "budget_ms": 800,
       "passed": true
     }
@@ -251,9 +267,12 @@
       "critical": 0,
       "total": 8
     },
-    "duration_ms": 8680
+    "duration_ms": 5311
   },
   "next_actions": [
+    "PRECHECK [tests] FAIL — 1/537 failed",
+    "PRECHECK [typecheck] FAIL — src/annotation/App.tsx(248,19): error TS2352: Conversion of type '{ readonly session: { readonly create: (input: SessionIntakeInput) => Promise<IpcResult<Session>>; readonly end: (sessionId: string) => Promise<IpcResult<SessionSummary>>; readonly get: (sessionId: string) => Promise<IpcResult<Session | null>>; readonly list: (projectId: string) => Promise<IpcResult<Session[]>>; }; ...' to type '{ capture?: { saveAnnotation?: (r: { captureId: string; fabricCanvasJson: object; compositeBuffer: string; blurRegions: BlurRegion[]; }) => Promise<{ ok: boolean; error?: { message: string; }; }>; }; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.\r",
+    "  · __tests__\\ipc-router.spec.ts › ipc-router (Phase 1 Wk3 security gate) registers every IPC invoke channel",
     "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
   ]
 }

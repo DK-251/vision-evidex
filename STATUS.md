@@ -8,12 +8,12 @@
 
 | Field | Value |
 |---|---|
-| Last Asus run | 2026-05-11T12:36:59.405Z |
-| Last run commit | `36367831` |
+| Last Asus run | 2026-05-12T07:00:14.501Z |
+| Last run commit | `0b586a93` |
 | Last run branch | `main` |
 | Node | v22.22.2 |
 | Electron | ^30.4.0 |
-| Run duration | 1 ms |
+| Run duration | 0 ms |
 
 ## Module results
 
@@ -27,19 +27,19 @@
 
 ## Feature progress
 
-**3 / 92** P0 features merged + PASS
+**49 / 92** P0 features merged + PASS
 
 | Module | Done / Total |
 |---|---|
-| OB Onboarding & Licence | 0 / 13 |
-| DB Dashboard | 0 / 5 |
-| EC Evidence Capture | 0 / 17 |
-| PM Project Manager | 3 / 10 |
+| OB Onboarding & Licence | 8 / 13 |
+| DB Dashboard | 5 / 5 |
+| EC Evidence Capture | 17 / 17 |
+| PM Project Manager | 9 / 10 |
 | TE Template Engine | 0 / 11 |
 | RB Report Builder | 0 / 13 |
 | SR Status Reports | 0 / 4 |
-| AU Audit Pack | 0 / 7 |
-| WS Workspace Settings | 0 / 12 |
+| AU Audit Pack | 2 / 7 |
+| WS Workspace Settings | 8 / 12 |
 
 See [FEATURES.md](FEATURES.md) for the full checklist.
 

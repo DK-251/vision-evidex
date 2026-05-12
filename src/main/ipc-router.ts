@@ -267,9 +267,13 @@ export function registerAllHandlers(services: ServiceRegistry): void {
   registerHandler(IPC.PROJECT_RECENT, ProjectRecentSchema, async () =>
     services.project.getRecent()
   );
-  registerHandler(IPC.PROJECT_UPDATE, ProjectUpdateSchema, async (input) =>
-    services.project.update(input.projectId, input.patch)
-  );
+  registerHandler(IPC.PROJECT_UPDATE, ProjectUpdateSchema, async (input) => {
+    // Filter out undefined values from patch to satisfy exactOptionalPropertyTypes
+    const patch = Object.fromEntries(
+      Object.entries(input.patch).filter(([, v]) => v !== undefined)
+    ) as { name?: string; clientName?: string; status?: 'active' | 'archived' };
+    return services.project.update(input.projectId, patch);
+  });
   registerHandler(IPC.CAPTURE_OPEN_ANNOTATION, CaptureOpenAnnotationSchema, async (input) => {
     const db = services.container.getProjectDb();
     const capture = db?.getCapture(input.captureId) ?? null;
@@ -290,6 +294,7 @@ export function registerAllHandlers(services: ServiceRegistry): void {
     else push();
     return null;
   });
+  registerHandler(IPC.ANNOTATION_SAVE, AnnotationSaveSchema, stub);
   registerHandler(IPC.EXPORT_WORD, ExportOptionsSchema, stub);
   registerHandler(IPC.EXPORT_PDF, ExportOptionsSchema, stub);
   registerHandler(IPC.EXPORT_HTML, ExportOptionsSchema, stub);
