@@ -1379,8 +1379,9 @@
 .shell-root {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100%; /* cap to viewport — min-height let body scroll */
   width: 100%;
+  overflow: hidden;
   background: var(--color-layer-0);
 }
 
@@ -1485,6 +1486,7 @@ body:fullscreen .caption-buttons {
   flex: 1;
   display: flex;
   min-height: 0; /* allow child flex boxes to scroll */
+  overflow: hidden; /* contain sidebar + content within the row */
 }
 
 .shell-content {
@@ -1521,6 +1523,8 @@ body:fullscreen .caption-buttons {
   -webkit-backdrop-filter: blur(var(--color-layer-acrylic-blur)) saturate(180%);
   border-right: 1px solid var(--color-stroke-divider);
   transition: width var(--duration-fast) var(--easing-standard);
+  overflow-y: auto;  /* nav items scroll inside rail if window is very short */
+  overflow-x: hidden;
 }
 .nav-sidebar.collapsed { width: 48px; }
 
