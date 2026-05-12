@@ -16,7 +16,7 @@ import type { RecentProject } from '@shared/types/entities';
  * S-13 (Docs §15) — Project list. Post-onboarding home page (AQ5).
  *
  * Lists recent projects from app.db and offers the create-project CTA.
- * Click a row → openProject → navigate to session-intake. Empty state
+ * Click a row → openProject → navigate to project-overview (W9). Empty state
  * shows the "no projects yet" hero with the Create CTA.
  */
 
