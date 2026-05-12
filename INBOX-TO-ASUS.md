@@ -9,11 +9,38 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 ---
 
-## 2026-05-12 — W10 gate request
+## [RESOLVED 2026-05-12] 2026-05-12 — W10 gate request (Fixed 7 typecheck errors + 1 missing handler)
 
-**From:** CTS
-**Commit:** push main after this message
-**Action needed:** `git pull && npm run report`
+**From:** CTS | **Commit:** `c846d83` | **Status:** typecheck PASS, tests 537/537 PASS, pbkdf2 158.9ms
+
+### Mistakes CTS made (detailed for retrospective)
+
+**1. ANNOTATION_SAVE handler missing from ipc-router.ts (CRITICAL)**
+- IPC channel existed but was never registered with `registerHandler()`
+- Caused test failure: "expected 40 to be 41" (handler count mismatch)
+- Fix: Added `registerHandler(IPC.ANNOTATION_SAVE, AnnotationSaveSchema, stub);` at line 296
+- Root cause: W10 moved ANNOTATION_LOAD to IPC_EVENTS, reducing invoke count to 40, but ANNOTATION_SAVE stayed in IPC
+
+**2. exactOptionalPropertyTypes violation in ProjectUpdateSchema**
+- Used `.optional()` which creates `T | undefined` union type — wrong for tsconfig strict mode
+- Should use `.partial()` which creates `key?: T` without undefined union
+- Line 147 in src/shared/schemas/index.ts fixed
+
+**3. PROJECT_UPDATE handler didn't filter undefined patch values**
+- Zod validation passed undefined values, database expected clean patch
+- Added Object.fromEntries filter before service.project.update() call
+
+**4. toolbar.tsx passed undefined testId to React component**
+- Session testId may be undefined, can't pass `testId={undefined}`
+- Fixed with conditional spread: `...(s.testId !== undefined ? { testId: s.testId } : {})`
+
+**5-6. Type casting for window bridges**
+- toolbar.tsx: `window.electron` not typed — double-cast through unknown
+- annotation/App.tsx: `window.evidexAPI` not typed — double-cast through unknown
+- Root cause: preload.ts bridge properties not declared with types
+
+**7. ANNOTATION_LOAD defined in both IPC and IPC_EVENTS**
+- Removed from IPC object, kept only in IPC_EVENTS (correct for one-way window-to-window events)
 
 ### W10 what landed
 
