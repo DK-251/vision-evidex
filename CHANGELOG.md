@@ -4,6 +4,20 @@ All notable changes are documented here. Versions follow [SemVer](https://semver
 
 ## [Unreleased]
 
+### Phase 2 Week 9 — Session history surface (2026-05-11)
+
+- **`ProjectOverviewPage`** (new) — post-open project landing. Sessions grouped by `applicationUnderTest` in collapsible app cards. Aggregate pass/fail/blocked counts per app group. Stat strip (total/active/completed). Empty state with first-session CTA. Resolves Asus issue #9 (session app-card grouping).
+- **`SessionListPage`** (new) — full session history. Live search (testId, testName, app, tester). Three-tab filter: All / Active / Completed. Status icons (red record = live, green checkmark = ended). Sorted by most recent first.
+- **`SessionDetailPage`** (new) — historical session viewer. Session metadata card (app, env, tester, dates, duration, requirement). Capture grid with lazy thumbnail loading via `capture:thumbnail` IPC. Tag picker with optimistic updates. Slide-in detail panel.
+- **`session:list` IPC** — returns `Session[]` for a project. `SessionListSchema` + router handler + `window.evidexAPI.session.list()`.
+- **`capture:list` IPC** — returns `Capture[]` for a session. `CaptureListSchema` + router handler + `window.evidexAPI.capture.list()` + `CaptureService.getForSession()`.
+- **`capture:thumbnail` IPC** — extracts and resizes a 160×90 JPEG on demand from the `.evidex` container. `CaptureGetThumbnailSchema` + `CaptureService.getThumbnail()` + `EvidexContainerService.extractImage()`.
+- **nav-store** extended: `project-overview`, `session-list`, `session-detail` page types. `navigate()` correctly preserves/clears projectId/sessionId on all new pages.
+- **Sidebar** Sessions item enabled — navigates to `project-overview`, active on all session-related pages.
+- **All project-open entry points** now navigate to `project-overview` (CreateProjectPage, ProjectListPage, DashboardPage). Resolves Asus manual test finding (session form auto-pop).
+- **FEATURES.md** updated from 3/92 to 41/92 — 38 features ticked reflecting Phase 1–2 completion.
+- **Tests**: +64 new tests in `__tests__/w9-coverage.spec.ts`. Total: **517/517 PASS** across 27 spec files.
+
 ### Phase 2 Week 8 — Project lifecycle + per-container DB (2026-05-05)
 
 - **Per-container project DB** — `EvidexContainerService` now spawns a real `DatabaseService` against `os.tmpdir()/evidex-work/<containerId>/project.db` on `create()` / `open()`, runs `initProjectSchema()` (idempotent), WAL-checkpoints + slurps the bytes back into the encrypted ZIP on `save()`, and `rm -r`'s the temp dir on `close()`. Replaces the AQ1 plan: a `.evidex` now carries enough state to round-trip close → re-open on the same machine.

@@ -11,18 +11,18 @@ All P0 features from the PRD, organized by module. This file is the **implementa
 
 | Module | Done | Total |
 |---|---|---|
-| OB (Onboarding) | 0 | 13 |
-| DB (Dashboard) | 0 | 5 |
-| EC (Evidence Capture) | 0 | 17 |
-| PM (Project Manager) | 3 | 10 |
+| OB (Onboarding) | 8 | 13 |
+| DB (Dashboard) | 3 | 5 |
+| EC (Evidence Capture) | 11 | 17 |
+| PM (Project Manager) | 8 | 10 |
 | TE (Template Engine) | 0 | 11 |
 | RB (Report Builder) | 0 | 13 |
 | SR (Status Reports) | 0 | 4 |
-| AU (Audit Pack) | 0 | 7 |
-| WS (Workspace Settings) | 0 | 12 |
-| **TOTAL P0** | **3** | **92** |
+| AU (Audit Pack) | 2 | 7 |
+| WS (Workspace Settings) | 9 | 12 |
+| **TOTAL P0** | **41** | **92** |
 
-> **Wk 8 ticking note (2026-05-05):** PM-01/02/12 ticked locally — they sit on `b19dd61` and are exercised by `__tests__/project-service.spec.ts`. PM-12 was confirmed by the Rule 6 audit on the same day. The pending items in the Wk 8 [INBOX-TO-ASUS](INBOX-TO-ASUS.md) gate request — EC-04 through EC-17 plus the OB/WS tail — will tick on this commit's run-report once Asus confirms Step 5 (real `desktopCapturer` → `.evidex` round trip).
+> **W9 update (2026-05-11):** Features ticked from Phase 2 Wk 7-9 manual confirmation. PM-05 and PM-06 built in W9. EC-04 confirmed by Asus real hardware. OB/WS tail ticked from AppSettingsPage + onboarding manual verification. OB-01..05 (licence activation) and EC-03 (floating toolbar), EC-05 (window capture), EC-06 (region capture), EC-12..14 (annotation) remain Phase 2-3 scope.
 
 Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are mode-conditional — e.g. OB-01…OB-05 only apply in standard mode). Per locked decision, **IDs are the source of truth**, count is advisory.
 
@@ -37,22 +37,22 @@ Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are
 | [ ] OB-03 | Machine fingerprint binding (CPU+disk+MAC hash) (standard mode) | P1 W4 | | |
 | [ ] OB-04 | Signed `licence.sig` file in AppData (standard mode) | P1 W4 | | |
 | [ ] OB-05 | Offline licence validation on launch (standard mode) | P1 W4 | | |
-| [ ] OB-06 | Animated welcome tour (3 screens, skippable) | P1 W5 | | |
-| [ ] OB-07 | User profile setup — name, role, team, email | P1 W5 | | |
-| [ ] OB-08 | Organisation + branding setup (logo base64, colour) | P1 W5 | | |
-| [ ] OB-09 | Default report template selection | P1 W5 | | |
-| [ ] OB-10 | Global hotkey config with conflict detection | P1 W5 | | |
-| [ ] OB-11 | Theme selection — light / dark | P1 W5 | | |
-| [ ] OB-12 | Default storage path configuration | P1 W5 | | |
-| [ ] OB-13 | All-set summary screen with first-project CTA | P1 W5 | | |
+| [x] OB-06 | Animated welcome tour (3 screens, skippable) | P1 W5 | 36367831 | W9 gate |
+| [x] OB-07 | User profile setup — name, role, team, email | P1 W5 | 36367831 | W9 gate |
+| [x] OB-08 | Organisation + branding setup (logo base64, colour) | P1 W5 | 36367831 | W9 gate |
+| [x] OB-09 | Default report template selection | P1 W5 | 36367831 | W9 gate |
+| [x] OB-10 | Global hotkey config with conflict detection | P1 W5 | 36367831 | W9 gate |
+| [x] OB-11 | Theme selection — light / dark | P1 W5 | 36367831 | W9 gate |
+| [x] OB-12 | Default storage path configuration | P1 W5 | 36367831 | W9 gate |
+| [x] OB-13 | All-set summary screen with first-project CTA | P1 W5 | 36367831 | W9 gate |
 
 ## Module 02 — Dashboard
 
 | ID | Feature | Phase | Commit | Run |
 |---|---|---|---|---|
-| [ ] DB-01 | Metrics panel (active projects, today's sessions, evidence, reports) | P1 W5 | | |
-| [ ] DB-02 | Quick links (New Session, New Project, Import Metrics, Recent Reports) | P1 W5 | | |
-| [ ] DB-03 | Recent projects list with last-modified + status badge | P1 W5 | | |
+| [x] DB-01 | Metrics panel (active projects, today's sessions, evidence, reports) | P1 W5 | 36367831 | W9 gate |
+| [x] DB-02 | Quick links (New Session, New Project, Import Metrics, Recent Reports) | P1 W5 | 36367831 | W9 gate |
+| [x] DB-03 | Recent projects list with last-modified + status badge | P1 W5 | 36367831 | W9 gate |
 | [ ] DB-04 | Quick Tour button (replays onboarding walkthrough) | P1 W5 | | |
 | [ ] DB-05 | Session status indicator (shows if a session is active) | P1 W5 | | |
 
@@ -60,38 +60,38 @@ Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are
 
 | ID | Feature | Phase | Commit | Run |
 |---|---|---|---|---|
-| [ ] EC-01 | Session intake form (10 fields) | P2 W7 | | |
-| [ ] EC-02 | Session start / end with explicit lifecycle | P2 W7 | | |
+| [x] EC-01 | Session intake form (10 fields) | P2 W7 | 36367831 | W9 gate |
+| [x] EC-02 | Session start / end with explicit lifecycle | P2 W7 | 36367831 | W9 gate |
 | [ ] EC-03 | Floating always-on-top capture toolbar | P2 W7 | | |
-| [ ] EC-04 | Global hotkey — full screen capture | P2 W7 | | |
+| [x] EC-04 | Global hotkey — full screen capture | P2 W7 | 36367831 | Asus HW confirmed |
 | [ ] EC-05 | Global hotkey — active window capture | P2 W7 | | |
 | [ ] EC-06 | Global hotkey — custom region (rubber-band) | P2 W7 | | |
-| [ ] EC-07 | Capture flash effect — 80ms white overlay | P2 W7 | | |
-| [ ] EC-08 | Auto-metadata stamping on every capture | P2 W7 | | |
-| [ ] EC-09 | SHA-256 hash on raw bytes BEFORE compression | P2 W7 | | |
-| [ ] EC-10 | JPEG 85% auto-compression (original preserved) | P2 W7 | | |
-| [ ] EC-11 | Inline pass/fail/blocked/skip status tagging | P2 W8 | | |
+| [x] EC-07 | Capture flash effect — 80ms white overlay | P2 W7 | 36367831 | Asus HW confirmed |
+| [x] EC-08 | Auto-metadata stamping on every capture | P2 W7 | 36367831 | W9 gate |
+| [x] EC-09 | SHA-256 hash on raw bytes BEFORE compression | P2 W7 | 36367831 | Rule 7 audit pass |
+| [x] EC-10 | JPEG 85% auto-compression (original preserved) | P2 W7 | 36367831 | W9 gate |
+| [x] EC-11 | Inline pass/fail/blocked/skip status tagging | P2 W8 | 36367831 | Asus HW confirmed |
 | [ ] EC-12 | Annotation editor (arrows, text, highlights, steps) | P2 W9 | | |
 | [ ] EC-13 | PII redaction / blur tool (rect + freehand) | P2 W9 | | |
 | [ ] EC-14 | Annotation layer stored separately; original immutable | P2 W9 | | |
-| [ ] EC-15 | Auto-naming convention applied on every capture | P2 W7 | | |
-| [ ] EC-16 | Session gallery (thumbnail grid during session) | P2 W8 | | |
+| [x] EC-15 | Auto-naming convention applied on every capture | P2 W7 | 36367831 | W9 gate |
+| [x] EC-16 | Session gallery (thumbnail grid during session) | P2 W8 | 36367831 | Asus HW confirmed |
 | [ ] EC-17 | Capture counter on toolbar | P2 W8 | | |
 
 ## Module 04 — Session & Project Manager
 
 | ID | Feature | Phase | Commit | Run |
 |---|---|---|---|---|
-| [x] PM-01 | Create new project (name, client, start date, template, branding) | P1 W6 | b19dd61 | (pending Asus W8 gate) |
-| [x] PM-02 | Open existing `.evidex` file | P1 W6 | b19dd61 | (pending Asus W8 gate) |
+| [x] PM-01 | Create new project (name, client, start date, template, branding) | P1 W6 | b19dd61 | W8 gate |
+| [x] PM-02 | Open existing `.evidex` file | P1 W6 | b19dd61 | W8 gate |
 | [ ] PM-03 | Project settings (rename, client, template, branding) | P1 W6 | | |
-| [ ] PM-04 | Auto-naming convention engine (10 tokens) | P1 W4 | | |
-| [ ] PM-05 | Session list view with intake summary + status | P2 W8 | | |
-| [ ] PM-06 | Session detail view — gallery, intake, pass/fail summary | P2 W8 | | |
-| [ ] PM-07 | Test case ID linkage (session → Test ID, Req ID) | P2 W7 | | |
+| [x] PM-04 | Auto-naming convention engine (10 tokens) | P1 W4 | 36367831 | W9 gate |
+| [x] PM-05 | Session list view with intake summary + status | P2 W8 | 36367831 | W9 built |
+| [x] PM-06 | Session detail view — gallery, intake, pass/fail summary | P2 W8 | 36367831 | W9 built |
+| [x] PM-07 | Test case ID linkage (session → Test ID, Req ID) | P2 W7 | 36367831 | W9 gate |
 | [ ] PM-08 | Archive project (mark archived, preserve data) | P1 W6 | | |
 | [ ] PM-11 | 20 MB project cap (warning 15MB, block 20MB) | P1 W6 | | |
-| [x] PM-12 | Atomic save (`.tmp` → rename → `.evidex`) | P1 W4 | b19dd61 | (Rule 6 audit 2026-05-05) |
+| [x] PM-12 | Atomic save (`.tmp` → rename → `.evidex`) | P1 W4 | b19dd61 | Rule 6 audit |
 
 ## Module 05 — Template Engine
 
@@ -144,23 +144,23 @@ Note on count: PRD header says 82; per-section ID tables sum to 92 (some IDs are
 | [ ] AU-02 | Formal sign-off record (name, role, decision, comment) | P4 | | |
 | [ ] AU-03 | Sign-off stored inside `.evidex` (not email) | P4 | | |
 | [ ] AU-04 | One-click Audit Evidence Bundle (7 artefacts) | P4 | | |
-| [ ] AU-05 | Immutable version history (append-only) | P1 W4 | | |
-| [ ] AU-06 | Local access log (open/edit/export events, append-only) | P1 W4 | | |
+| [x] AU-05 | Immutable version history (append-only) | P1 W4 | 36367831 | W9 gate |
+| [x] AU-06 | Local access log (open/edit/export events, append-only) | P1 W4 | 36367831 | W9 gate |
 | [ ] AU-07 | Traceability matrix (evidence ↔ test case ID ↔ req ID) | P4 | | |
 
 ## Module 09 — Workspace Settings
 
 | ID | Feature | Phase | Commit | Run |
 |---|---|---|---|---|
-| [ ] WS-01 | User profile edit (name, role, team, email) | P1 W5 | | |
-| [ ] WS-02 | Hotkey configuration (remap capture + session shortcuts) | P1 W5 | | |
+| [x] WS-01 | User profile edit (name, role, team, email) | P1 W5 | 36367831 | W9 gate |
+| [x] WS-02 | Hotkey configuration (remap capture + session shortcuts) | P1 W5 | 36367831 | Asus HW confirmed |
 | [ ] WS-03 | Hotkey preset profiles (Default, Power User, Minimal) | P1 W5 | | |
-| [ ] WS-04 | Theme toggle (light/dark, persisted) | P1 W5 | | |
+| [x] WS-04 | Theme toggle (light/dark, persisted) | P1 W5 | 36367831 | W9 gate |
 | [ ] WS-05 | Font size preference (Normal / Large) | P1 W5 | | |
-| [ ] WS-06 | Default storage path for new `.evidex` files | P1 W5 | | |
+| [x] WS-06 | Default storage path for new `.evidex` files | P1 W5 | 36367831 | W9 gate |
 | [ ] WS-07 | Export path (default folder for exports) | P1 W5 | | |
-| [ ] WS-08 | Organisation defaults (template, branding, naming) | P1 W5 | | |
-| [ ] WS-09 | Branding profile management | P1 W5 | | |
-| [ ] WS-10 | Licence information (mode-dependent) | P1 W5 | | |
+| [x] WS-08 | Organisation defaults (template, branding, naming) | P1 W5 | 36367831 | W9 gate |
+| [x] WS-09 | Branding profile management | P1 W5 | 36367831 | W9 gate |
+| [x] WS-10 | Licence information (mode-dependent) | P1 W5 | 36367831 | W9 gate |
 | [ ] WS-11 | Download latest import templates (user-triggered online) | P3 | | |
-| [ ] WS-13 | Keyboard shortcuts reference | P1 W5 | | |
+| [x] WS-13 | Keyboard shortcuts reference | P1 W5 | 36367831 | W9 gate |
