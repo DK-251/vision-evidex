@@ -115,7 +115,8 @@ describe('ipc-router (Phase 1 Wk3 security gate)', () => {
   });
 
   it('registers every IPC invoke channel', () => {
-    // W10: ANNOTATION_LOAD moved to IPC_EVENTS (one-way push), so 40 invoke channels remain
+    // 41 invoke channels as of W10 — count assertion is dynamic so it
+    // stays correct when channels are added or removed.
     expect(handlers.size).toBe(Object.values(IPC).length);
     for (const channel of Object.values(IPC)) {
       expect(handlers.has(channel)).toBe(true);
@@ -192,5 +193,42 @@ describe('ipc-router (Phase 1 Wk3 security gate)', () => {
     expect(result.ok).toBe(false);
     expect(result.error.code).toBe(EvidexErrorCode.VALIDATION_FAILED);
     expect(result.error.fields?.['region']).toBeDefined();
+  });
+
+  it('capture:annotate:save is wired to a real handler — refuses with PROJECT_NOT_FOUND when no project is open', async () => {
+    // The W10 raw build wired this channel to a `stub` (returns null
+    // regardless of input). A regression test that asserts the handler
+    // actually probes `container.getProjectDb()` is the cheapest gate
+    // against this class of "feature looks done but doesn't persist".
+    const fn = handlers.get(IPC.CAPTURE_ANNOTATE_SAVE)!;
+    const result = (await fn(
+      {},
+      {
+        captureId: 'cap_test',
+        fabricCanvasJson: { version: '5.3.0', objects: [] },
+        compositeBuffer: 'data:image/png;base64,AA==',
+        blurRegions: [],
+      }
+    )) as { ok: false; error: { code: string } };
+    // The mock services in this file return null for getProjectDb/handle,
+    // so a real handler MUST surface PROJECT_NOT_FOUND — the stub would
+    // have returned `{ ok: true, data: null }` and slipped through.
+    expect(result.ok).toBe(false);
+    expect(result.error.code).toBe(EvidexErrorCode.PROJECT_NOT_FOUND);
+  });
+
+  it('annotation:save shares the same real handler as capture:annotate:save', async () => {
+    const fn = handlers.get(IPC.ANNOTATION_SAVE)!;
+    const result = (await fn(
+      {},
+      {
+        captureId: 'cap_test',
+        fabricCanvasJson: { version: '5.3.0', objects: [] },
+        compositeBuffer: 'data:image/png;base64,AA==',
+        blurRegions: [],
+      }
+    )) as { ok: false; error: { code: string } };
+    expect(result.ok).toBe(false);
+    expect(result.error.code).toBe(EvidexErrorCode.PROJECT_NOT_FOUND);
   });
 });

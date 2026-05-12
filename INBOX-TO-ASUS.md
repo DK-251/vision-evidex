@@ -9,6 +9,117 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 ---
 
+## 2026-05-12 — W10-polish gate request (UX redesign + critical wiring fixes)
+
+**From:** CTS via filesystem connector
+**Context:** Asus's 2026-05-12 automated gate at `0b586a9` passed (537/537), but a deep file-by-file audit caught a load-bearing stub bug plus a cluster of UX gaps. This run lands the full polish: 6 batches, ~25 files, mostly UX + a few critical wiring fixes. **No new features** — strictly fixes and design-system alignment.
+
+### Critical bugs fixed (would have shipped silent regressions)
+
+1. **`CAPTURE_ANNOTATE_SAVE` was a stub** — `ipc-router.ts:240` registered the channel against `stub` (`async () => null`). The annotation editor drew, Save "succeeded", **nothing persisted**. Now a real handler upserts to `annotation_layers`, writes the composite PNG to `images/annotated/<basename>.annotated.png`, stamps `captures.annotated_path`, and calls `container.save()`. `ANNOTATION_SAVE` (the W10 annotation-window channel) shares the same handler.
+2. **"Open in annotation editor" button was hard-disabled** — `SessionGalleryPage.tsx:473` had `<Button disabled>` with a stale "Phase 2 Wk 9" comment. Editor was unreachable from the gallery. Same dead button + comment also in `SessionDetailPage`.
+3. **`before-quit` didn't flush** — pre-fix, red-X / OS shutdown bypassed `projectService.close()`, breaking Architectural Rule 8 (container.save on every session/project teardown). Now intercepted with an async-safe re-quit pattern.
+4. **`pendingRegionCapture` leak** — region-capture exceptions silently left a dangling Promise; now wrapped in try/catch + logger.warn.
+5. **`.env.example` had `KEYGEN_*`** but `app.ts` reads `EVIDEX_KEYGEN_*`. Caused silent licence-config misses for new devs in keygen mode. Renamed.
+
+### UX redesigns
+
+- **Snipping-Tool-style toolbar** (`window-manager.ts` + `toolbar/App.tsx` + new `.capture-toolbar` CSS family):
+  - Window now `movable: false`, `focusable: false`, `show: false` + `showInactive()` so it doesn't steal focus.
+  - `positionToolbarTopCenter()` re-snaps to the primary display's top-centre on every show.
+  - Pill design: 48px Mica/acrylic pill, red recording-dot pulse, status counters (pass/fail/blocked), Fluent icons (`ScreenshotRegular`/`WindowRegular`/`CropRegular`/`RecordStopRegular`), red "End" button, collapse chevron. Zero inline styles.
+  - Slide-down entrance via framer-motion.
+- **Gallery + capture-card redesign** (`SessionGalleryPage` + `SessionDetailPage` + `CaptureThumbnail` + new gallery CSS family):
+  - Thin summary row → **4 Fluent stat tiles** (Pass/Fail/Blocked/Total).
+  - 16:9 thumbnail cards with hover lift, `:focus-visible` parity, sequence/check badges via tokens, captured-at time footer.
+  - Wider 400px detail panel: hero image + status badge, structured metadata grid, **segmented `.tag-picker`** (replaced outline-ring badges), accent **"Annotate"** button (now functional thanks to fix #1+#2).
+  - Same classes used by both pages so live + historical views are visually identical.
+- **Fluent Tooltip component** (`Tooltip.tsx`, custom, no new deps) — replaces bare `title=` across NavItem, TitleBar caption buttons, Dashboard Phase-3-locked buttons.
+- **Theme system hardening** (`ThemeProvider`):
+  - Gated `data-theme` application on **both** `settingsLoaded` AND first `theme:systemThemeChange` broadcast → kills flash-of-wrong-theme (Asus #1/#3).
+  - `ThemeStorageStep` calls `setPreference()` so theme survives Back/Next inside onboarding (Asus #2).
+- **Modal focus trap + scoped Escape** — Tab/Shift+Tab cycles inside the dialog, Esc handler with `stopPropagation` so nested confirm modals close only themselves, focus restored on close.
+
+### Doc + test hygiene
+
+- **CLAUDE.md** §1/§2/§3 refreshed — channel counts corrected (35→**41 invoke**, 7-8→**11 events**), Export/Tray/MetricsImport/SignOff marked as Phase 3/4 (not yet implemented).
+- **BACKLOG.md** — explicit PM-11 deferral entry with Risk R-14 reference.
+- **`seed-defaults.ts`** — now seeds all 5 builtin templates (added DSR/UAT/BUG/AUDIT).
+- **New regression tests** (`__tests__/ipc-router.spec.ts` +2 cases, `__tests__/templates-schema.spec.ts` new): annotation save handler PROJECT_NOT_FOUND smoke catches the stub-handler bug class; template JSONs are guarded against Zod schema drift.
+
+### Files changed (summary)
+
+**Main process** — `app.ts` (before-quit + region try/catch), `ipc-router.ts` (real annotation save), `window-manager.ts` (toolbar positioning), `services/capture.service.ts` (auto-backup logger), `services/evidex-container.service.ts` (close error logging, dead integrityCheck removed), `services/metrics.service.ts` (rename `opts` → `_opts`), `services/seed-defaults.ts` (4 new templates).
+
+**Renderer pages** — `SessionGalleryPage.tsx`, `SessionDetailPage.tsx`, `DashboardPage.tsx`, `CreateProjectPage.tsx`, `ProjectOverviewPage.tsx`, `SessionListPage.tsx`.
+
+**Renderer components** — `Tooltip.tsx` (new), `Modal.tsx` (focus trap), `Input.tsx`, `CaptureThumbnail.tsx`, `shell/NavItem.tsx`, `shell/TitleBar.tsx`, `modals/SessionIntakeModal.tsx`.
+
+**Renderer providers/lib/onboarding** — `ThemeProvider.tsx`, `lib/accent-scale.ts`, `onboarding/ThemeStorageStep.tsx`.
+
+**Sub-windows** — `toolbar/App.tsx` (full rewrite), `toolbar/index.html` (transparent body).
+
+**Styles** — `tokens.css` (overlay tokens), `components.css` (.capture-toolbar, .tooltip, .gallery-*, .capture-thumbnail__*, .detail-panel__*, .tag-picker, .row-button, .session-list-row).
+
+**Config + tests** — `.env.example`, `CLAUDE.md`, `BACKLOG.md`, `__tests__/ipc-router.spec.ts`, `__tests__/templates-schema.spec.ts` (new).
+
+**UI primitives barrel** — `components/ui/index.ts` (exports Tooltip).
+
+### One-shot Asus action
+
+```
+git pull --ff-only
+npm run report
+git add run-reports/latest.{json,md} run-reports/history/ STATUS.md INBOX-TO-ASUS.md
+git commit -m "[INBOX] W10-polish gate"
+git push
+```
+
+### Expected PASS criteria
+
+- **typecheck**: 0 errors
+- **tests**: 537 baseline + 3 new (2 ipc-router + 5 templates-schema = 542 minimum target; could be 545 depending on how vitest counts the `it.each`)
+- **PBKDF2**: mean <800ms
+- **dep-audit**: 0 critical (5 high baseline unchanged)
+- **handler count** (ipc-router.spec.ts): dynamic — adapts to `Object.values(IPC).length`
+
+### Manual UX verification (do this AFTER automated gate green)
+
+1. `npm run dev:keep` to launch without state reset.
+2. **Theme detection on launch:** Switch Windows to Dark mode in Settings, kill the app, relaunch. App should boot in dark immediately — no white flash. Then switch to Light mid-app, app should follow.
+3. **Onboarding theme persistence:** Reset state (`npm run dev`), in the Theme step pick Dark, click Back, click Next — Dark should stick. Click Finish — main app should still be Dark.
+4. **Toolbar slide-in:** Open a project, start a session. Toolbar should slide DOWN from the **top-center** of the primary display. Verify:
+   - Cannot be dragged anywhere.
+   - Doesn't steal focus from the main window.
+   - Recording dot pulses red.
+   - Three capture buttons show Fluent icons (camera/window/crop), not emoji.
+   - Hover over each button → Fluent tooltip appears after ~200ms with hotkey hint.
+   - End button is red.
+   - Collapse chevron shrinks the bar; expand restores it.
+5. **Capture round-trip:** `Ctrl+Shift+1` × 3 (fullscreen), `Ctrl+Shift+2` × 2 (active window), `Ctrl+Shift+3` × 1 (region — drag a rect). Gallery should show 6 thumbnails with hover lift, sequence badges (#1, #2, …), and a clock time at the bottom of each card.
+6. **Stat tiles update live:** Tag a few captures pass/fail/blocked in the detail panel — the 4 stat tiles update immediately.
+7. **Tag picker:** Open a thumbnail → the new segmented Fluent tag-picker is visible at the bottom. Click each option — selection stick + colour matches the status.
+8. **Annotation editor (THE BIG ONE):** Click **Annotate** (accent button with edit icon). Editor opens. Draw an arrow + text + blur. Click Save. Editor closes. **Reopen the same capture** from the gallery → click Annotate again → the previous strokes are still there. This was the stub bug — if it round-trips, the fix is good.
+9. **Modal focus trap:** Open the SessionIntakeModal (New session). Tab through it — focus should cycle inside, not escape to the page below. Press Esc — modal closes, focus returns to the trigger button.
+10. **Quit-while-active:** With a session active, close the main window via the red ✕. App should NOT log an error. On next launch, the previously-captured session should reload from the .evidex container (or be marked ended cleanly). The earlier behavior would have lost the last few captures.
+
+### If typecheck fails
+
+Most likely failure points (in order):
+1. Fluent icon names — I used `ScreenshotRegular`, `WindowRegular`, `CropRegular`, `RecordStopRegular`, `ChevronUpRegular`, `ChevronDownRegular`, `EditRegular`. If any aren't in the installed `@fluentui/react-icons` version, swap to a sibling (e.g. `CameraRegular` instead of `ScreenshotRegular`).
+2. Modal `KeyboardEvent` typing — uses React's synthetic event, imported as `type ReactKeyboardEvent`. If TS complains, ensure no name clash with the global DOM `KeyboardEvent`.
+3. `EvidexErrorCode.CAPTURE_NOT_FOUND` — used in the new annotation handler; should exist (verified during the audit) but flag if not.
+
+Paste exact `tsc --noEmit` output into INBOX-TO-CTS.md if any of these fire.
+
+### Mark resolved after
+
+- All automated gate steps green AND
+- Manual step 8 confirms annotation persists across reopen AND
+- Manual step 4 confirms toolbar lands at top-center without focus theft.
+
+---
+
 ## [RESOLVED 2026-05-12] 2026-05-12 — W10 gate request (Fixed 7 typecheck errors + 1 missing handler)
 
 **From:** CTS | **Commit:** `c846d83` | **Status:** typecheck PASS, tests 537/537 PASS, pbkdf2 158.9ms

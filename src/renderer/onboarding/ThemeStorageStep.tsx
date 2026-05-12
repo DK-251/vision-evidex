@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   PaintBrushRegular,
   WeatherSunnyRegular,
@@ -9,6 +9,7 @@ import {
 import type { FluentIconsProps } from '@fluentui/react-icons';
 import type { ComponentType } from 'react';
 import { useOnboardingStore } from '../stores/onboarding-store';
+import { useThemeContext } from '../providers/ThemeProvider';
 import { StepLayout } from './StepLayout';
 import { Button } from '../components/ui';
 
@@ -43,28 +44,21 @@ export function ThemeStorageStep(): JSX.Element {
   const current =
     useOnboardingStore((s) => s.data['themeStorage'] as ThemeStorageData | undefined) ?? {};
   const setStepData = useOnboardingStore((s) => s.setStepData);
+  const { setPreference } = useThemeContext();
   const [pickError, setPickError] = useState<string | null>(null);
 
   const theme = current.theme ?? 'system';
   const storagePath = current.storagePath ?? '';
 
-  // Apply theme live for the preview — ThemeProvider normally owns
-  // data-theme but the wizard is the only place we preview an
-  // unpersisted choice. Restore the original value on unmount so
-  // an abandoned wizard doesn't leave the wrong theme active.
-  useEffect(() => {
-    const original = document.documentElement.getAttribute('data-theme');
-    if (theme !== 'system') {
-      document.documentElement.setAttribute('data-theme', theme);
-    }
-    return () => {
-      if (original) document.documentElement.setAttribute('data-theme', original);
-      else document.documentElement.removeAttribute('data-theme');
-    };
-  }, [theme]);
-
+  // Selecting a theme persists into the onboarding store AND immediately
+  // tells ThemeProvider to re-resolve. That way the choice survives
+  // Back/Next navigation in the wizard, and matches what eventually
+  // lands in settings.json on Summary.complete().
   function patch(update: ThemeStorageData): void {
     setStepData('themeStorage', { ...current, ...update });
+    if (update.theme !== undefined) {
+      setPreference(update.theme);
+    }
   }
 
   async function pickFolder(): Promise<void> {

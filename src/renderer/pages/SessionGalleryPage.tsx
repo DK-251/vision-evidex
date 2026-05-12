@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeftRegular } from '@fluentui/react-icons';
+import { ChevronLeftRegular, EditRegular } from '@fluentui/react-icons';
 import type {
   Session,
   SessionStatus,
@@ -10,7 +10,7 @@ import type {
 import { useNavStore } from '../stores/nav-store';
 import { useSessionStore } from '../stores/session.store';
 import { Button } from '../components/ui/Button';
-import { StatusBadge } from '../components/ui/StatusBadge';
+import { StatusBadge, type StatusTagKind } from '../components/ui/StatusBadge';
 import { CaptureThumbnail } from '../components/ui/CaptureThumbnail';
 import { GallerySkeleton } from '../components/ui/GallerySkeleton';
 import { useReducedMotion } from '../hooks/useReducedMotion';
@@ -18,13 +18,9 @@ import { pageForward, fadeIn } from '../components/animations';
 
 /**
  * S-06 Session Gallery (Docs §15). Header + summary bar + thumbnail grid
- * + slide-in detail panel.
- *
- * Capture-arrival path is intentionally unwired this sprint. Captures
- * shown here come from the in-memory `useSessionStore().captures` array,
- * populated when a renderer-driven capture call resolves. Hotkey-driven
- * captures (main → globalShortcut → CaptureService) wire up in Phase 2
- * Wk 8 alongside Project-open. Empty state is the expected D34 result.
+ * + slide-in detail panel. Captures are sourced from
+ * `useSessionStore().captures`; hotkey-driven captures arrive through
+ * the `capture:arrived` IPC event and are appended live.
  */
 
 export function SessionGalleryPage(): JSX.Element | null {
@@ -133,18 +129,19 @@ export function SessionGalleryPage(): JSX.Element | null {
     }
   }
 
-  if (!projectId || !sessionId) return null;
-
-  const isActive = session !== null && session.endedAt === undefined;
-  const detailVariants = reducedMotion ? fadeIn : pageForward;
-
+  // Rules-of-hooks: keep ALL hooks above the early-return guard below.
   const openedCapture = useMemo(
     () => captures.find((c) => c.captureId === openCaptureId) ?? null,
     [captures, openCaptureId]
   );
 
+  if (!projectId || !sessionId) return null;
+
+  const isActive = session !== null && session.endedAt === undefined;
+  const detailVariants = reducedMotion ? fadeIn : pageForward;
+
   return (
-    <div style={{ position: 'relative', display: 'flex', gap: 'var(--space-4)' }}>
+    <div className="gallery-shell">
       {flashOn && (
         <div
           aria-hidden="true"
@@ -159,47 +156,25 @@ export function SessionGalleryPage(): JSX.Element | null {
         />
       )}
 
-      <main style={{ flex: 1, minWidth: 0 }}>
-        {/* Header */}
-        <header
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-2)',
-            marginBottom: 'var(--space-4)',
-          }}
-        >
+      <main className="gallery-main">
+        <header className="gallery-header">
           <button
             type="button"
             onClick={goBack}
             aria-label="Back to sessions"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 'var(--space-1)',
-              background: 'transparent',
-              border: 'none',
-              padding: 0,
-              color: 'var(--color-text-secondary)',
-              cursor: 'pointer',
-              fontSize: 'var(--type-body-size)',
-            }}
+            className="gallery-header__crumb"
           >
             <ChevronLeftRegular fontSize={20} />
             <span>Sessions</span>
           </button>
-          <h1
-            style={{
-              fontFamily: 'var(--font-family-display)',
-              fontSize: 'var(--type-subtitle-size)',
-              fontWeight: 'var(--type-subtitle-weight)',
-              color: 'var(--color-text-primary)',
-              margin: 0,
-              flex: 1,
-            }}
-          >
+          <h1 className="gallery-header__title">
             {session?.testId ?? sessionId}
           </h1>
+          {isActive && (
+            <span className="gallery-header__live-pill" aria-live="polite">
+              Live
+            </span>
+          )}
           {isActive ? (
             <Button variant="standard" onClick={handleEndSession} disabled={endingSession}>
               {endingSession ? 'Ending…' : 'End session'}
@@ -211,43 +186,22 @@ export function SessionGalleryPage(): JSX.Element | null {
           ) : null}
         </header>
 
-        {/* Summary bar */}
-        <div
-          style={{
-            height: 36,
-            background: 'var(--color-fill-subtle)',
-            borderRadius: 'var(--radius-card)',
-            padding: '0 var(--space-4)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-2)',
-            marginBottom: 'var(--space-4)',
-            fontSize: 'var(--type-caption-size)',
-            color: 'var(--color-text-secondary)',
-          }}
-        >
-          <StatusBadge tag="pass">{counts.passCount} pass</StatusBadge>
-          <Dot />
-          <StatusBadge tag="fail">{counts.failCount} fail</StatusBadge>
-          <Dot />
-          <StatusBadge tag="blocked">{counts.blockedCount} blocked</StatusBadge>
-          <Dot />
-          <span style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)' }}>
-            {counts.captureCount} total
-          </span>
-          {selectedIds.size > 0 && (
-            <>
-              <span style={{ marginLeft: 'auto', color: 'var(--color-text-primary)' }}>
-                {selectedIds.size} selected
-              </span>
-              <Button variant="subtle" size="compact" onClick={() => setSelectedIds(new Set())}>
-                Clear
-              </Button>
-            </>
-          )}
+        <div className="gallery-summary" role="group" aria-label="Capture counts">
+          <SummaryTile kind="pass"    label="Pass"    value={counts.passCount} />
+          <SummaryTile kind="fail"    label="Fail"    value={counts.failCount} />
+          <SummaryTile kind="blocked" label="Blocked" value={counts.blockedCount} />
+          <SummaryTile kind="total"   label="Total"   value={counts.captureCount} />
         </div>
 
-        {/* Thumbnail grid */}
+        {selectedIds.size > 0 && (
+          <div className="gallery-selection-bar" role="region" aria-label="Selection">
+            <span>{selectedIds.size} selected</span>
+            <Button variant="subtle" size="compact" onClick={() => setSelectedIds(new Set())}>
+              Clear
+            </Button>
+          </div>
+        )}
+
         {loading ? (
           <GallerySkeleton count={8} />
         ) : captures.length === 0 ? (
@@ -264,7 +218,6 @@ export function SessionGalleryPage(): JSX.Element | null {
         )}
       </main>
 
-      {/* Detail panel */}
       <AnimatePresence>
         {openCaptureId && openedCapture && (
           <motion.aside
@@ -273,15 +226,7 @@ export function SessionGalleryPage(): JSX.Element | null {
             initial="initial"
             animate="animate"
             exit="exit"
-            style={{
-              width: 320,
-              flexShrink: 0,
-              background: 'var(--color-layer-1)',
-              border: '1px solid var(--color-stroke-default)',
-              borderRadius: 'var(--radius-card)',
-              padding: 'var(--space-4)',
-              alignSelf: 'flex-start',
-            }}
+            className="detail-panel"
           >
             <DetailPanel
               capture={openedCapture}
@@ -290,6 +235,21 @@ export function SessionGalleryPage(): JSX.Element | null {
           </motion.aside>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+interface SummaryTileProps {
+  kind:  'pass' | 'fail' | 'blocked' | 'total';
+  label: string;
+  value: number;
+}
+
+function SummaryTile({ kind, label, value }: SummaryTileProps): JSX.Element {
+  return (
+    <div className={`gallery-summary-tile gallery-summary-tile--${kind}`}>
+      <span className="gallery-summary-tile__label">{label}</span>
+      <span className="gallery-summary-tile__value">{value}</span>
     </div>
   );
 }
@@ -309,24 +269,16 @@ function derivedCounts(captures: CaptureResult[]): {
   };
 }
 
-function Dot(): JSX.Element {
-  return <span aria-hidden="true">·</span>;
-}
-
 function EmptyState(): JSX.Element {
   return (
-    <div
-      style={{
-        padding: 'var(--space-6)',
-        border: '1px dashed var(--color-stroke-default)',
-        borderRadius: 'var(--radius-card)',
-        textAlign: 'center',
-        color: 'var(--color-text-secondary)',
-        fontSize: 'var(--type-body-size)',
-      }}
-    >
-      No captures yet. Press the capture hotkey or use the toolbar to take the
-      first screenshot of this session.
+    <div className="gallery-empty">
+      <div className="gallery-empty__title">No captures yet</div>
+      <div className="gallery-empty__hint">
+        Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>1</kbd> for fullscreen,{' '}
+        <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>2</kbd> for the active window, or{' '}
+        <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>3</kbd> to draw a region. The
+        capture toolbar at the top of the screen does the same.
+      </div>
     </div>
   );
 }
@@ -344,7 +296,7 @@ function ThumbnailGrid({
   captures, selectedIds, openCaptureId, onClick, onShiftClick, reducedMotion,
 }: ThumbnailGridProps): JSX.Element {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+    <div className="gallery-grid">
       {captures.map((c, i) => (
         <motion.div
           key={c.captureId}
@@ -384,6 +336,14 @@ function useThumbnailUrl(thumbnail: CaptureResult['thumbnail']): string {
   return src;
 }
 
+const TAG_OPTIONS: { tag: StatusTag; label: string }[] = [
+  { tag: 'pass',     label: 'Pass' },
+  { tag: 'fail',     label: 'Fail' },
+  { tag: 'blocked',  label: 'Blocked' },
+  { tag: 'skip',     label: 'Skip' },
+  { tag: 'untagged', label: 'Clear' },
+];
+
 function DetailPanel({
   capture,
   onClose,
@@ -396,87 +356,80 @@ function DetailPanel({
   const imgSrc = useThumbnailUrl(capture.thumbnail);
 
   const currentTag: StatusTag = capture.statusTag ?? 'untagged';
-  const tags: StatusTag[] = ['pass', 'fail', 'blocked', 'skip', 'untagged'];
 
   async function setTag(tag: StatusTag): Promise<void> {
-    if (saving) return;
+    if (saving || tag === currentTag) return;
     setSaving(true);
     try {
       await updateCaptureTag(capture.captureId, tag);
     } catch {
-      // Optimistic revert handled inside the store; just stop the spinner.
+      /* Store handles optimistic revert. */
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
-        <h2 style={{ fontSize: 'var(--type-subtitle-size)', margin: 0 }}>Capture detail</h2>
+    <>
+      <div className="detail-panel__header">
+        <h2 className="detail-panel__title">Capture detail</h2>
         <Button variant="subtle" size="compact" onClick={onClose}>Close</Button>
       </div>
 
-      {imgSrc && (
-        <img
-          src={imgSrc}
-          alt=""
-          style={{
-            width: '100%',
-            aspectRatio: '16/9',
-            objectFit: 'cover',
-            borderRadius: 'var(--radius-card)',
-            marginBottom: 'var(--space-3)',
+      <div className="detail-panel__hero">
+        {imgSrc && <img src={imgSrc} alt="" />}
+        <div className="detail-panel__hero-status">
+          <StatusBadge tag={currentTag as StatusTagKind} />
+        </div>
+      </div>
+
+      <div className="detail-panel__body">
+        <dl className="detail-panel__meta">
+          <dt>Filename</dt>
+          <dd>{capture.filename}</dd>
+          <dt>Captured</dt>
+          <dd className="normal">{new Date(capture.capturedAt).toLocaleString()}</dd>
+          <dt>Hash</dt>
+          <dd title={capture.sha256Hash}>…{capture.sha256Hash.slice(-12)}</dd>
+          <dt>Size</dt>
+          <dd className="normal">{(capture.fileSizeBytes / 1024).toFixed(1)} KB</dd>
+        </dl>
+
+        <div>
+          <div className="detail-panel__section-label">Status</div>
+          <div className="tag-picker" role="radiogroup" aria-label="Capture status">
+            {TAG_OPTIONS.map(({ tag, label }) => {
+              const selected = tag === currentTag;
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  disabled={saving}
+                  onClick={() => void setTag(tag)}
+                  className={`tag-picker__option tag-picker__option--${tag} ${selected ? 'selected' : ''}`.trim()}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="detail-panel__actions">
+        <Button
+          variant="accent"
+          startIcon={<EditRegular />}
+          onClick={() => {
+            void window.evidexAPI.capture.openAnnotation(capture.captureId);
           }}
-        />
-      )}
-
-      <dl style={{ fontSize: 'var(--type-caption-size)', display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 'var(--space-2)', rowGap: 4, margin: 0, marginBottom: 'var(--space-3)' }}>
-        <dt style={{ color: 'var(--color-text-secondary)' }}>Filename</dt>
-        <dd style={{ margin: 0 }}>{capture.filename}</dd>
-        <dt style={{ color: 'var(--color-text-secondary)' }}>Captured</dt>
-        <dd style={{ margin: 0 }}>{new Date(capture.capturedAt).toLocaleString()}</dd>
-        <dt style={{ color: 'var(--color-text-secondary)' }}>Hash</dt>
-        <dd style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 'var(--type-caption-size)' }}>…{capture.sha256Hash.slice(-8)}</dd>
-        <dt style={{ color: 'var(--color-text-secondary)' }}>Size</dt>
-        <dd style={{ margin: 0 }}>{(capture.fileSizeBytes / 1024).toFixed(1)} KB</dd>
-      </dl>
-
-      <div style={{ marginBottom: 'var(--space-3)' }}>
-        <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-1)' }}>
-          Status
-        </div>
-        <div style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}>
-          {tags.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => void setTag(tag)}
-              disabled={saving}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: 2,
-                cursor: 'pointer',
-                borderRadius: 'var(--radius-pill)',
-                outline: tag === currentTag ? '2px solid var(--color-accent-default)' : 'none',
-                outlineOffset: 2,
-              }}
-            >
-              <StatusBadge tag={tag} />
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ marginTop: 'var(--space-3)' }}>
-        <Button variant="standard" disabled>
-          Open in annotation editor
+        >
+          Annotate
         </Button>
-        <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)', marginTop: 4 }}>
-          Notes and annotation editing land in Phase 2 Wk 9 — SessionDetailPage.
-        </div>
+        <Button variant="subtle" onClick={onClose}>Close</Button>
       </div>
-    </div>
+    </>
   );
 }

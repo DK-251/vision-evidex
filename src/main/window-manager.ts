@@ -1,9 +1,18 @@
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, screen } from 'electron';
 import path from 'node:path';
 import { baseWindowConfig } from './window-config';
 import { IPC_EVENTS } from '@shared/ipc-channels';
 import type { Session } from '@shared/types/entities';
 import { logger } from './logger';
+
+/**
+ * Snipping-Tool-style toolbar dimensions. The window itself is slightly
+ * taller than the visible pill so the React-side slide-in animation has
+ * room to play (the pill starts at translateY(-100%) and animates in).
+ */
+const TOOLBAR_WIDTH = 560;
+const TOOLBAR_HEIGHT = 88;
+const TOOLBAR_TOP_OFFSET = 8;
 
 /**
  * Main-window creation. The title bar is fully owned by the renderer
@@ -79,21 +88,40 @@ export function createMainWindow(): BrowserWindow {
 export function createToolbarWindow(): BrowserWindow {
   toolbarWindow = new BrowserWindow({
     ...baseWindowConfig(),
-    width: 480,
-    height: 72,
+    width: TOOLBAR_WIDTH,
+    height: TOOLBAR_HEIGHT,
     frame: false,
     alwaysOnTop: true,
     skipTaskbar: true,
     resizable: false,
+    movable: false,
     transparent: true,
+    hasShadow: false,
+    show: false,         // showToolbarWindow positions then shows
+    focusable: false,    // capture toolbar must not steal focus
   });
   toolbarWindow.setContentProtection(true);
-  toolbarWindow.once('ready-to-show', () => toolbarWindow?.show());
   toolbarWindow.on('closed', () => {
     toolbarWindow = undefined;
   });
   loadRendererEntry(toolbarWindow, 'toolbar');
   return toolbarWindow;
+}
+
+/** Snap the toolbar to the horizontal centre of the primary display, just
+ *  below the system title bar. Re-runs on every show in case the user
+ *  swapped monitors or changed resolution while a session was active. */
+function positionToolbarTopCenter(win: BrowserWindow): void {
+  try {
+    const { workArea } = screen.getPrimaryDisplay();
+    const x = workArea.x + Math.round((workArea.width - TOOLBAR_WIDTH) / 2);
+    const y = workArea.y + TOOLBAR_TOP_OFFSET;
+    win.setBounds({ x, y, width: TOOLBAR_WIDTH, height: TOOLBAR_HEIGHT });
+  } catch (err) {
+    logger.warn('positionToolbarTopCenter failed — using default bounds', {
+      err: String(err),
+    });
+  }
 }
 
 export function createAnnotationWindow(): BrowserWindow {
@@ -172,7 +200,10 @@ export function showToolbarWindow(session: Session): void {
     pushInitial();
   }
 
-  if (!win.isVisible()) win.show();
+  // Re-snap to top-centre on every show — handles monitor changes
+  // between sessions without needing a window reload.
+  positionToolbarTopCenter(win);
+  if (!win.isVisible()) win.showInactive(); // non-focus-stealing
 }
 
 export function hideToolbarWindow(): void {

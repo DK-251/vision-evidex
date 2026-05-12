@@ -288,7 +288,7 @@ export function SessionIntakeModal({
                   options={dropdownOptions}
                   value={form.environment}
                   onChange={(e) => setField('environment', e.target.value)}
-                  aria-invalid={!!errors.environment || undefined}
+                  {...(errors.environment ? { 'aria-invalid': 'true' as const } : {})}
                 />
               ) : (
                 <Input

@@ -12,17 +12,16 @@ import {
   SparkleRegular,
   PlayCircleRegular,
 } from '@fluentui/react-icons';
-import { Button, Card, FluentSkeleton } from '../components/ui';
+import { Button, Card, FluentSkeleton, Tooltip } from '../components/ui';
 import { useNavStore } from '../stores/nav-store';
 import { useProjectStore } from '../stores/project.store';
 import { useSessionStore } from '../stores/session.store';
 import { useToast } from '../providers/ToastProvider';
 
 /**
- * S-03 — Dashboard. Port of the D25 page to doc §15 S-03.
- * Three zones: metric cards, quick actions, recent projects.
- * Session-active side card is gated on real SessionService which lands
- * in Phase 2 Wk7 — omitted here rather than rendered as a stub.
+ * S-03 — Dashboard. Three zones: metric cards, quick actions, recent
+ * projects. DB-05 session-active indicator drives off
+ * `useSessionStore().activeSession`.
  */
 
 export function DashboardPage(): JSX.Element {
@@ -180,22 +179,25 @@ export function DashboardPage(): JSX.Element {
           style={{ justifyContent: 'flex-start' }}
           onClick={() => navigate('create-project')}
         >New project</Button>
-        <Button variant="standard" startIcon={<ArrowUploadRegular />}
-          style={{ justifyContent: 'flex-start' }}
-          disabled
-          title="Available in Phase 3 — Metrics Import"
-        >Import metrics</Button>
-        <Button variant="standard" startIcon={<DocumentTextRegular />}
-          style={{ justifyContent: 'flex-start' }}
-          disabled
-          title="Available in Phase 3 — Report Builder"
-        >Recent reports</Button>
+        <Tooltip content="Available in Phase 3 — Metrics Import" placement="bottom">
+          <Button variant="standard" startIcon={<ArrowUploadRegular />}
+            style={{ justifyContent: 'flex-start' }}
+            disabled
+          >Import metrics</Button>
+        </Tooltip>
+        <Tooltip content="Available in Phase 3 — Report Builder" placement="bottom">
+          <Button variant="standard" startIcon={<DocumentTextRegular />}
+            style={{ justifyContent: 'flex-start' }}
+            disabled
+          >Recent reports</Button>
+        </Tooltip>
         {/* DB-04 — Quick Tour replays onboarding walkthrough */}
-        <Button variant="standard" startIcon={<PlayCircleRegular />}
-          style={{ justifyContent: 'flex-start' }}
-          onClick={() => navigate('settings')}
-          title="Replay the onboarding walkthrough"
-        >Quick Tour</Button>
+        <Tooltip content="Replay the onboarding walkthrough" placement="bottom">
+          <Button variant="standard" startIcon={<PlayCircleRegular />}
+            style={{ justifyContent: 'flex-start' }}
+            onClick={() => navigate('settings')}
+          >Quick Tour</Button>
+        </Tooltip>
       </section>
 
       <RecentProjectsSection

@@ -30,6 +30,13 @@ import { useToast } from '../providers/ToastProvider';
  */
 
 const TAG_OPTIONS: StatusTag[] = ['pass', 'fail', 'blocked', 'skip', 'untagged'];
+const TAG_LABEL: Record<StatusTag, string> = {
+  pass:     'Pass',
+  fail:     'Fail',
+  blocked:  'Blocked',
+  skip:     'Skip',
+  untagged: 'Clear',
+};
 
 export function SessionDetailPage(): JSX.Element | null {
   const projectId = useNavStore((s) => s.currentProjectId);
@@ -202,26 +209,21 @@ export function SessionDetailPage(): JSX.Element | null {
             </div>
           )}
 
-          {/* Capture grid */}
           {loadingCaptures ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+            <div className="gallery-grid">
               {Array.from({ length: 6 }).map((_, i) => (
-                <FluentSkeleton key={i} width={160} height={110} borderRadius="var(--radius-card)" />
+                <FluentSkeleton key={i} width="100%" height={140} borderRadius="var(--radius-card)" />
               ))}
             </div>
           ) : captures.length === 0 ? (
-            <div style={{
-              padding: 'var(--space-8)',
-              border: '1px dashed var(--color-stroke-default)',
-              borderRadius: 'var(--radius-card)',
-              textAlign: 'center',
-              color: 'var(--color-text-secondary)',
-              fontSize: 'var(--type-body-size)',
-            }}>
-              No captures in this session.
+            <div className="gallery-empty">
+              <div className="gallery-empty__title">No captures in this session</div>
+              <div className="gallery-empty__hint">
+                Open an active session and use the capture hotkeys to add evidence.
+              </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+            <div className="gallery-grid">
               {captures.map((capture, i) => (
                 <motion.div
                   key={capture.id}
@@ -251,17 +253,8 @@ export function SessionDetailPage(): JSX.Element | null {
               initial="initial"
               animate="animate"
               exit="exit"
-              style={{
-                width: 320,
-                flexShrink: 0,
-                background: 'var(--color-layer-1)',
-                border: '1px solid var(--color-stroke-default)',
-                borderRadius: 'var(--radius-card)',
-                padding: 'var(--space-4)',
-                alignSelf: 'flex-start',
-                position: 'sticky',
-                top: 'var(--space-4)',
-              }}
+              className="detail-panel"
+              style={{ position: 'sticky', top: 'var(--space-4)' }}
             >
               <CaptureDetailPanel
                 capture={openCapture}
@@ -334,98 +327,65 @@ function HistoricalCaptureTile({
 }): JSX.Element {
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [thumbLoading, setThumbLoading] = useState(false);
-  const [thumbError, setThumbError] = useState(false);
 
-  // Load thumbnail lazily on first render
+  // Load thumbnail lazily on first render. A null result (no payload OR
+  // !ok) falls through to the `ImageRegular` placeholder in the render —
+  // the user sees "missing thumb" without a separate error UI.
   useEffect(() => {
     let cancelled = false;
     setThumbLoading(true);
     void window.evidexAPI.capture.getThumbnail(capture.id).then((res) => {
       if (cancelled) return;
       if (res.ok && res.data) setThumbnail(res.data);
-      else setThumbError(true);
       setThumbLoading(false);
     });
     return () => { cancelled = true; };
   }, [capture.id]);
 
+  // Same visual contract as `CaptureThumbnail` — uses the shared
+  // `.capture-thumbnail` family so light/dark and high-contrast inherit
+  // from the design system. The lazy thumbnail load is the only thing
+  // unique to this tile (the gallery's variant gets a pre-baked
+  // data-URL on capture; historical sessions fetch via IPC on demand).
   return (
     <button
       type="button"
       onClick={onClick}
-      style={{
-        width: 160,
-        flexShrink: 0,
-        borderRadius: 'var(--radius-card)',
-        border: isSelected
-          ? '2px solid var(--color-accent-default)'
-          : '1px solid var(--color-stroke-default)',
-        overflow: 'hidden',
-        cursor: 'pointer',
-        background: 'var(--color-layer-1)',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: 0,
-        transition: 'border-color var(--duration-ultra-fast) var(--easing-standard)',
-        boxShadow: isSelected ? '0 0 0 2px var(--color-fill-accent-subtle)' : 'none',
-      }}
+      className={`capture-thumbnail ${isSelected ? 'selected' : ''}`.trim()}
+      aria-pressed={isSelected}
+      aria-label={`Capture #${sequenceNum} — ${capture.statusTag}`}
     >
-      {/* Thumbnail area */}
-      <div style={{
-        width: '100%',
-        aspectRatio: '16 / 9',
-        background: 'var(--color-fill-subtle)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {thumbnail ? (
-          <img src={thumbnail} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        ) : thumbLoading ? (
-          <FluentSkeleton width="100%" height="100%" />
-        ) : (
-          <ImageRegular fontSize={24} style={{ color: 'var(--color-text-tertiary)' }} />
-        )}
-        {/* Sequence badge */}
-        <div style={{
-          position: 'absolute',
-          top: 4,
-          left: 4,
-          background: 'rgba(0,0,0,0.55)',
-          color: '#fff',
-          fontSize: 10,
-          fontWeight: 600,
-          padding: '1px 5px',
-          borderRadius: 3,
-          fontFamily: 'var(--font-mono)',
-        }}>
-          #{sequenceNum}
-        </div>
-        {/* Selected checkmark */}
-        {isSelected && (
-          <div style={{
-            position: 'absolute',
-            top: 4,
-            right: 4,
-            background: 'var(--color-accent-default)',
-            borderRadius: '50%',
-            width: 18,
-            height: 18,
+      {thumbnail ? (
+        <img className="capture-thumbnail-img" src={thumbnail} alt="" />
+      ) : thumbLoading ? (
+        <FluentSkeleton width="100%" height="100%" />
+      ) : (
+        <div
+          className="capture-thumbnail-img"
+          style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-          }}>
-            <CheckmarkFilled fontSize={12} style={{ color: '#fff' }} />
-          </div>
-        )}
-      </div>
+            color: 'var(--color-text-tertiary)',
+          }}
+        >
+          <ImageRegular fontSize={24} />
+        </div>
+      )}
 
-      {/* Footer */}
-      <div style={{ padding: '4px 8px', display: 'flex', alignItems: 'center' }}>
+      <span className="capture-thumbnail__seq-badge" aria-hidden="true">
+        #{sequenceNum}
+      </span>
+
+      {isSelected && (
+        <span className="capture-thumbnail__check-badge" aria-hidden="true">
+          <CheckmarkFilled fontSize={14} />
+        </span>
+      )}
+
+      <span className="capture-thumbnail-footer">
         <StatusBadge tag={capture.statusTag as StatusTagKind} />
-      </div>
+      </span>
     </button>
   );
 }
@@ -444,78 +404,61 @@ function CaptureDetailPanel({
   onClose: () => void;
 }): JSX.Element {
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
-        <h2 style={{ fontSize: 'var(--type-subtitle-size)', fontWeight: 600, margin: 0 }}>
-          Capture #{capture.sequenceNum}
-        </h2>
+    <>
+      <div className="detail-panel__header">
+        <h2 className="detail-panel__title">Capture #{capture.sequenceNum}</h2>
         <Button variant="subtle" size="compact" onClick={onClose}>Close</Button>
       </div>
 
-      {/* Metadata */}
-      <dl style={{
-        fontSize: 'var(--type-caption-size)',
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr',
-        columnGap: 'var(--space-3)',
-        rowGap: 4,
-        margin: '0 0 var(--space-3)',
-      }}>
-        <dt style={{ color: 'var(--color-text-secondary)' }}>Filename</dt>
-        <dd style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
-          {capture.originalFilename}
-        </dd>
-        <dt style={{ color: 'var(--color-text-secondary)' }}>Captured</dt>
-        <dd style={{ margin: 0 }}>{capture.capturedAt.slice(0, 16).replace('T', ' ')}</dd>
-        <dt style={{ color: 'var(--color-text-secondary)' }}>Hash</dt>
-        <dd style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11 }}>…{capture.sha256Hash.slice(-8)}</dd>
-        <dt style={{ color: 'var(--color-text-secondary)' }}>Size</dt>
-        <dd style={{ margin: 0 }}>{(capture.fileSizeBytes / 1024).toFixed(1)} KB</dd>
-        <dt style={{ color: 'var(--color-text-secondary)' }}>Mode</dt>
-        <dd style={{ margin: 0 }}>{capture.captureMode}</dd>
-      </dl>
+      <div className="detail-panel__body">
+        <dl className="detail-panel__meta">
+          <dt>Filename</dt>
+          <dd>{capture.originalFilename}</dd>
+          <dt>Captured</dt>
+          <dd className="normal">{capture.capturedAt.slice(0, 16).replace('T', ' ')}</dd>
+          <dt>Hash</dt>
+          <dd title={capture.sha256Hash}>…{capture.sha256Hash.slice(-12)}</dd>
+          <dt>Size</dt>
+          <dd className="normal">{(capture.fileSizeBytes / 1024).toFixed(1)} KB</dd>
+          <dt>Mode</dt>
+          <dd className="normal">{capture.captureMode}</dd>
+        </dl>
 
-      {/* Tag picker */}
-      <div style={{ marginBottom: 'var(--space-3)' }}>
-        <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-1)' }}>
-          Status tag
-        </div>
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {TAG_OPTIONS.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              disabled={saving}
-              onClick={() => onTagChange(tag)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: 2,
-                cursor: saving ? 'not-allowed' : 'pointer',
-                borderRadius: 'var(--radius-pill)',
-                outline: tag === capture.statusTag ? '2px solid var(--color-accent-default)' : 'none',
-                outlineOffset: 2,
-                opacity: saving ? 0.6 : 1,
-              }}
-            >
-              <StatusBadge tag={tag as StatusTagKind} />
-            </button>
-          ))}
+        <div>
+          <div className="detail-panel__section-label">Status</div>
+          <div className="tag-picker" role="radiogroup" aria-label="Capture status">
+            {TAG_OPTIONS.map((tag) => {
+              const selected = tag === capture.statusTag;
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  disabled={saving}
+                  onClick={() => onTagChange(tag)}
+                  className={`tag-picker__option tag-picker__option--${tag} ${selected ? 'selected' : ''}`.trim()}
+                >
+                  {TAG_LABEL[tag]}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Notes placeholder */}
-      <div style={{
-        padding: 'var(--space-3)',
-        background: 'var(--color-fill-subtle)',
-        borderRadius: 'var(--radius-card)',
-        fontSize: 'var(--type-caption-size)',
-        color: 'var(--color-text-secondary)',
-        textAlign: 'center',
-      }}>
-        Notes editing \u2014 coming in Phase 2 Wk 10
+      <div className="detail-panel__actions">
+        <Button
+          variant="accent"
+          onClick={() => {
+            void window.evidexAPI.capture.openAnnotation(capture.id);
+          }}
+        >
+          Annotate
+        </Button>
+        <Button variant="subtle" onClick={onClose}>Close</Button>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -18,7 +18,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <input
       ref={ref}
       className={`input ${className ?? ''}`.trim()}
-      aria-invalid={invalid || undefined}
+      // Boolean `false` renders as the literal string "false" in HTML —
+      // omit the attribute entirely when not invalid via conditional spread.
+      {...(invalid ? { 'aria-invalid': 'true' as const } : {})}
       {...rest}
     />
   );
@@ -36,7 +38,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
     <textarea
       ref={ref}
       className={`input input-multiline ${className ?? ''}`.trim()}
-      aria-invalid={invalid || undefined}
+      {...(invalid ? { 'aria-invalid': 'true' as const } : {})}
       {...rest}
     />
   );

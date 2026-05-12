@@ -34,7 +34,15 @@ function darken(hex: string, amount: number): string {
 }
 
 export function applyAccentScale(accent: string): void {
-  if (!/^#[0-9a-fA-F]{6}$/.test(accent)) return;
+  // Strict #rrggbb — main process drops alpha before broadcasting so an
+  // 8-digit value is a contract violation, not user input. Surface as a
+  // console.warn so DevTools shows it during dev; production stays
+  // silent because the early-return keeps the previous accent intact.
+  if (!/^#[0-9a-fA-F]{6}$/.test(accent)) {
+    // eslint-disable-next-line no-console
+    console.warn('applyAccentScale: ignoring non-hex accent value', accent);
+    return;
+  }
   const root = document.documentElement;
   const { r, g, b } = hexToRgb(accent);
 

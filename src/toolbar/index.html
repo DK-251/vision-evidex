@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EviDex Toolbar</title>
+    <style>
+      /* Snipping-Tool-style overlay — the Electron window is transparent
+         and the pill itself is what the user sees. Center it horizontally
+         so the React slide-down animation lands cleanly. */
+      html, body, #root {
+        background: transparent !important;
+        overflow: hidden;
+      }
+      body { display: flex; justify-content: center; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

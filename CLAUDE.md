@@ -5,14 +5,17 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Phase 2 Week 10 — ✅ COMPLETE. All Phase 2 gaps closed. Phase 3 (Report Engine) is next.
+- **SPRINT:** Phase 2 Week 10 — ✅ COMPLETE + UX polish pass. Phase 3 (Report Engine) is next.
 - **BRANCH:** `main`
-- **STATUS:** W10 build complete (2026-05-12). Awaiting Asus gate run.
-- **GOAL:** Close every Phase 2 gap: toolbar UI, region capture, annotation editor, project settings, archive, dashboard completion.
-- **W10 DELIVERED:**
-  - ✓ D36 `toolbar/App.tsx` — full toolbar UI with live counter, capture mode buttons, end session
+- **STATUS:** W10 build + UX polish landed (2026-05-12). Awaiting Asus gate run.
+- **GOAL:** Close Phase 2 gaps AND ship the UX polish: real annotation save wiring, Snipping-style toolbar, redesigned session gallery + capture cards, Fluent Tooltip, theme system hardening, Modal focus trap.
+- **W10 DELIVERED + UX polish:**
+  - ✓ D36 `toolbar/App.tsx` — Snipping-Tool-style pill (top-center, slide-down, Fluent icons, status pills, drag-disabled, focus-non-stealing)
   - ✓ D34 `region/App.tsx` — rubber-band region selector with IPC result
   - ✓ D41–D44 `annotation/App.tsx` — Fabric.js editor: arrow, text, highlight, blur, undo/redo 20 steps
+  - ✓ **`CAPTURE_ANNOTATE_SAVE` + `ANNOTATION_SAVE` handlers** — real persistence into `annotation_layers` + `images/annotated/` (was stub in raw W10)
+  - ✓ **"Open in annotation editor" button enabled** in `SessionGalleryPage` + `SessionDetailPage` (was hard-`disabled`)
+  - ✓ **`before-quit` awaits `projectService.close()`** — Architectural Rule 8 holds on red-X / OS shutdown
   - ✓ PM-03 `ProjectSettingsPage.tsx` — rename + re-client form
   - ✓ PM-08 archive project via `project.update({ status: 'archived' })`
   - ✓ `ProjectService.update()` — PM-03/PM-08 backend
@@ -20,17 +23,22 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
   - ✓ DB-04 Quick Tour button on dashboard
   - ✓ DB-05 session active indicator (reactive, store-driven)
   - ✓ `CAPTURE_OPEN_ANNOTATION`, `PROJECT_UPDATE`, `REGION_SELECTED/CANCEL`, `ANNOTATION_LOAD/SAVE` IPC channels
+  - ✓ **Fluent `Tooltip` component** (custom, no new deps) replacing bare `title=` across NavItem / TitleBar / Dashboard
+  - ✓ **Theme system hardening** — ThemeProvider gates `data-theme` on settings-loaded + system-theme-broadcast (Asus #1/#3), onboarding `setPreference()` (Asus #2)
+  - ✓ **Modal focus trap + scoped Escape** (Tab/Shift+Tab cycle, no propagation to parent modals)
+  - ✓ **Gallery redesign** — 4 stat tiles, 16:9 thumbnail cards with hover lift + sequence/check badges + time footer, segmented Fluent `tag-picker`, accent "Annotate" button, structured detail panel
   - ✓ `w10-coverage.spec.ts` — 20 new test assertions
   - ✓ FEATURES.md: 41 → 51/92. DB (5/5), EC (17/17), PM (10/10) all complete.
 - **NEXT SPRINT:** Phase 3 Week 11 — Template Engine. `[PH2-ROUTING]` HashRouter migration before Phase 3 starts.
 
 ## 2. IPC channels (`src/shared/ipc-channels.ts`)
 
-Invoke (renderer → main, 35 channels — Wk 8 added 7):
-- session: `session:create`, `session:end`, `session:get`
-- capture: `capture:screenshot`, `capture:annotate:save`, `capture:tag:update`
-- project: `project:create`, `project:open`, `project:close`, `project:get`, `project:list`, `project:recent`
-- export: `export:word`, `export:pdf`, `export:html`, `export:auditBundle`
+Invoke (renderer → main, **41 channels** as of W10):
+- session: `session:create`, `session:end`, `session:get`, `session:list`
+- capture: `capture:screenshot`, `capture:list`, `capture:thumbnail`, `capture:annotate:save`, `capture:tag:update`, `capture:openAnnotation`
+- annotation: `annotation:save` (annotation-window → main composite)
+- project: `project:create`, `project:open`, `project:close`, `project:get`, `project:list`, `project:recent`, `project:update`
+- export (Phase 3 stubs): `export:word`, `export:pdf`, `export:html`, `export:auditBundle`
 - metrics + template + signoff: `metrics:import`, `metrics:summary`, `template:save`, `template:list`, `signoff:submit`
 - licence: `licence:activate`, `licence:validate`
 - settings + branding: `settings:get`, `settings:update`, `branding:save`, `branding:list`
@@ -39,8 +47,8 @@ Invoke (renderer → main, 35 channels — Wk 8 added 7):
 - dialogs: `dialog:selectDirectory`, `dialog:openFolder`
 - title bar: `window:minimize`, `window:maximizeToggle`, `window:close`, `window:isMaximized`
 
-Events (main → renderer, 7):
-- `capture:flash`, `capture:arrived`, `session:statusUpdate`, `storage:warning`, `app:updateAvailable`, `theme:accentColourUpdate`, `theme:systemThemeChange`, `window:maximizedChange`
+Events (main → renderer, **11 channels** as of W10):
+`capture:flash`, `capture:arrived`, `session:statusUpdate`, `storage:warning`, `app:updateAvailable`, `theme:accentColourUpdate`, `theme:systemThemeChange`, `window:maximizedChange`, `region:selected`, `region:cancel`, `annotation:load`
 
 ## 3. Service map (`src/main/services/`)
 
@@ -49,15 +57,15 @@ Events (main → renderer, 7):
 - `SessionService` → **`getDb: () => DatabaseService | null`** (per-container project DB), EvidexContainerService, ShortcutService, SettingsService (hotkey lookup), WindowManager
 - `EvidexContainerService` → node:crypto (AES-256-GCM), JSZip, **owns the per-container project DB lifecycle** (spawns at `<tmp>/evidex-work/<containerId>/project.db`, WAL-checkpoints + slurps on save, removes on close)
 - `DatabaseService` → better-sqlite3 (sync, main-process only). **Two file-backed instances at runtime:** `app.db` (templates / branding_profiles / recent_projects / metrics_data) + the per-container `project.db` (projects / sessions / captures / annotation_layers / sign_offs / import_history / access_log / version_history) extracted from the open `.evidex`.
-- `ExportService` → DatabaseService, EvidexContainerService, docx, printToPDF, archiver, TemplateRenderer
-- `MetricsImportService` → xlsx (SheetJS), DatabaseService, Zod (z.coerce for LibreOffice compat)
+- `ExportService` **(Phase 3 — not yet implemented)** → will own DatabaseService, EvidexContainerService, docx, printToPDF, archiver, TemplateRenderer
+- `MetricsImportService` **(Phase 3 — not yet implemented)** → will own xlsx (SheetJS), DatabaseService, Zod (z.coerce for LibreOffice compat). Filename today is `metrics.service.ts` (dashboard-only); rename to `metrics-import.service.ts` when the import path lands.
 - `LicenceService` → node:crypto, node-machine-id. `LICENCE_MODE==='none'` → no-op; `keygen` real path wired Phase 1 Week 4.
 - `NamingService` → stateless. `preview()` is exposed via `naming:preview` IPC for live filename preview on `CreateProjectPage`.
 - `ManifestService` → node:crypto (SHA-256), EvidexContainerService
-- `SignOffService` → DatabaseService, EvidexContainerService, SettingsService
+- `SignOffService` **(Phase 4 — not yet implemented)** → will own DatabaseService, EvidexContainerService, SettingsService
 - `SettingsService` → fs (%APPDATA%/VisionEviDex/settings.json), atomic .tmp+rename writes
 - `ShortcutService` → electron.globalShortcut
-- `TrayService` → electron.Tray
+- `TrayService` **(Phase 4 — not yet implemented)** → will own electron.Tray
 - `seedBuiltinDefaults` (Wk 8) → idempotent first-run seed for `tpl-default-tsr` + `brand-default` in app.db. **TODO Phase 3:** seed remaining 4 builtin templates (DSR, UAT, BUG, AUDIT).
 
 No service calls another service directly. All communication is via IPC or constructor injection.

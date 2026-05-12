@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AppMark } from '../brand/BrandIcons';
+import { Tooltip } from '../ui/Tooltip';
 
 /**
  * Fully custom Fluent title bar (Docs §8.1). Rendered by the renderer
@@ -87,15 +88,16 @@ function CaptionButton({
   variant?: 'close';
 }): JSX.Element {
   return (
-    <button
-      type="button"
-      className={`caption-button${variant === 'close' ? ' caption-button--close' : ''}`}
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-    >
-      {icon}
-    </button>
+    <Tooltip content={label} placement="bottom">
+      <button
+        type="button"
+        className={`caption-button${variant === 'close' ? ' caption-button--close' : ''}`}
+        aria-label={label}
+        onClick={onClick}
+      >
+        {icon}
+      </button>
+    </Tooltip>
   );
 }
 

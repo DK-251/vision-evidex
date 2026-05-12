@@ -372,21 +372,7 @@ function SessionRow({ session, onClick }: { session: Session; onClick: () => voi
     <button
       type="button"
       onClick={onClick}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 'var(--space-3)',
-        width: '100%',
-        background: 'none',
-        border: 'none',
-        padding: `var(--space-2) var(--space-3)`,
-        cursor: 'pointer',
-        borderRadius: 'var(--radius-control)',
-        textAlign: 'left',
-        transition: 'background var(--duration-ultra-fast) var(--easing-standard)',
-      }}
-      onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--color-fill-secondary)')}
-      onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
+      className="row-button"
     >
       {/* Active indicator dot */}
       <div

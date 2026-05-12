@@ -146,6 +146,86 @@ export function registerHandler<TSchema extends z.ZodTypeAny, TOutput>(
 export function registerAllHandlers(services: ServiceRegistry): void {
   const stub = async (): Promise<null> => null;
 
+  /**
+   * Annotation save — used by both `CAPTURE_ANNOTATE_SAVE` (legacy preload
+   * surface) and `ANNOTATION_SAVE` (the W10 annotation-window channel).
+   * Both channels carry the same `AnnotationSaveInput` shape, so they
+   * share one handler. Pipeline:
+   *
+   *   1. Validate a project is open and the capture exists.
+   *   2. Upsert the Fabric canvas JSON into `annotation_layers`.
+   *   3. Decode the composite (base64 data URL → Buffer) and write it
+   *      into the .evidex at `images/annotated/<basename>.annotated.png`.
+   *      The ORIGINAL JPEG under `images/original/` is never touched —
+   *      EC-14 (original-immutable) holds.
+   *   4. Stamp `captures.annotated_path` + `has_annotation = 1`.
+   *   5. Persist with `container.save()` (atomic + auto-backup chain).
+   */
+  const saveAnnotation = async (
+    input: z.infer<typeof AnnotationSaveSchema>
+  ): Promise<{ captureId: string; annotatedPath: string }> => {
+    const db = services.container.getProjectDb();
+    const handle = services.container.getCurrentHandle();
+    if (!db || !handle) {
+      throw new EvidexError(
+        EvidexErrorCode.PROJECT_NOT_FOUND,
+        'No project is currently open.',
+        { captureId: input.captureId }
+      );
+    }
+    const capture = db.getCapture(input.captureId);
+    if (!capture) {
+      throw new EvidexError(
+        EvidexErrorCode.CAPTURE_NOT_FOUND,
+        'Capture not found in the open project.',
+        { captureId: input.captureId }
+      );
+    }
+
+    // (2) annotation_layers upsert.
+    const layerJson = JSON.stringify(input.fabricCanvasJson);
+    const now = new Date().toISOString();
+    const existing = db.getAnnotationLayer(input.captureId);
+    if (existing) {
+      db.updateAnnotationLayer(input.captureId, layerJson);
+    } else {
+      db.insertAnnotationLayer({
+        id: `lay_${ulid()}`,
+        captureId: input.captureId,
+        layerJson,
+        fabricVersion: input.fabricCanvasJson.version,
+        blurRegions: input.blurRegions,
+        savedAt: now,
+      });
+    }
+
+    // (3) composite PNG → container.
+    const compositeBuffer =
+      typeof input.compositeBuffer === 'string'
+        ? Buffer.from(
+            input.compositeBuffer.replace(/^data:image\/png;base64,/, ''),
+            'base64'
+          )
+        : input.compositeBuffer;
+    const baseName = capture.originalFilename.replace(/\.(jpe?g|png)$/i, '');
+    const annotatedFilename = `${baseName}.annotated.png`;
+    const annotatedPath = await services.container.addImage(
+      handle.containerId,
+      annotatedFilename,
+      compositeBuffer,
+      'annotated'
+    );
+
+    // (4) Stamp the capture row.
+    db.updateCaptureAnnotation(input.captureId, annotatedPath);
+
+    // (5) Persist atomically. Save failures bubble up as
+    // CONTAINER_SAVE_FAILED via the registerHandler wrapper.
+    await services.container.save(handle.containerId);
+
+    return { captureId: input.captureId, annotatedPath };
+  };
+
   registerHandler(IPC.SESSION_CREATE, SessionIntakeSchema, async (intake) => {
     // Zod's optional() yields `T | undefined`; the service input type uses
     // `?:` semantics under exactOptionalPropertyTypes — strip undefined keys.
@@ -237,7 +317,7 @@ export function registerAllHandlers(services: ServiceRegistry): void {
 
     return result;
   });
-  registerHandler(IPC.CAPTURE_ANNOTATE_SAVE, AnnotationSaveSchema, stub);
+  registerHandler(IPC.CAPTURE_ANNOTATE_SAVE, AnnotationSaveSchema, saveAnnotation);
   registerHandler(IPC.CAPTURE_TAG_UPDATE, CaptureTagUpdateSchema, async (input) => {
     services.capture.updateTag(input.captureId, input.tag);
     return null;
@@ -294,7 +374,7 @@ export function registerAllHandlers(services: ServiceRegistry): void {
     else push();
     return null;
   });
-  registerHandler(IPC.ANNOTATION_SAVE, AnnotationSaveSchema, stub);
+  registerHandler(IPC.ANNOTATION_SAVE, AnnotationSaveSchema, saveAnnotation);
   registerHandler(IPC.EXPORT_WORD, ExportOptionsSchema, stub);
   registerHandler(IPC.EXPORT_PDF, ExportOptionsSchema, stub);
   registerHandler(IPC.EXPORT_HTML, ExportOptionsSchema, stub);

@@ -196,21 +196,7 @@ function SessionListRow({ session, onClick }: { session: Session; onClick: () =>
     <button
       type="button"
       onClick={onClick}
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '32px 1fr auto',
-        alignItems: 'center',
-        gap: 'var(--space-4)',
-        width: '100%',
-        background: 'none',
-        border: 'none',
-        padding: 'var(--space-3) var(--space-4)',
-        cursor: 'pointer',
-        textAlign: 'left',
-        transition: 'background var(--duration-ultra-fast) var(--easing-standard)',
-      }}
-      onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--color-fill-subtle)')}
-      onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
+      className="session-list-row"
     >
       {/* Status icon */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

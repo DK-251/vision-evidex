@@ -69,6 +69,19 @@ let shortcutService: ShortcutService | undefined;
 let sessionService: SessionService | undefined;
 let captureService: CaptureService | undefined;
 let projectService: ProjectService | undefined;
+/**
+ * Set to `true` once the async pre-quit save has finished and we are
+ * letting Electron tear down. The `before-quit` handler short-circuits
+ * on the second pass — otherwise it would prevent quit forever.
+ */
+let isQuitting = false;
+/**
+ * Set after the container service is constructed so the module-scope
+ * `before-quit` handler can ask "is a project open?" without holding
+ * a typed reference to the service itself (which lives inside
+ * `app.whenReady`). Returns null when nothing is open.
+ */
+let getOpenProjectIdForQuit: () => string | null = () => null;
 /** W10 D34 — resolve function waiting for region selection result. */
 let pendingRegionCapture: ((rect: ScreenRegion) => Promise<void>) | null = null;
 
@@ -150,6 +163,11 @@ function bootstrap(): void {
         'utf8'
       ),
     });
+    // Expose a thin probe to the module-scope before-quit handler so it
+    // can run the async close+save dance if the user quits with a
+    // project still open (Architectural Rule 8).
+    getOpenProjectIdForQuit = (): string | null =>
+      containerService.getCurrentHandle()?.projectId ?? null;
 
     const namingService = new NamingService();
 
@@ -283,14 +301,24 @@ function bootstrap(): void {
 
     // W10 D34 — Region capture IPC. The region renderer sends
     // 'region:selected' with { x, y, width, height } on mouseup, or
-    // 'region:cancel' on Esc. Both close the region window.
+    // 'region:cancel' on Esc. Both close the region window. Any
+    // failure inside the pending callback is logged but never thrown
+    // — the IPC channel has no surface to return errors on.
     ipcMain.on(IPC_EVENTS.REGION_SELECTED, (_e, rect: { x: number; y: number; width: number; height: number }) => {
       const rw = getRegionWindow();
       if (rw && !rw.isDestroyed()) rw.close();
-      // If there is a pending region capture callback, fire it now.
       const pending = pendingRegionCapture;
       pendingRegionCapture = null;
-      if (pending) void pending(rect);
+      if (!pending) return;
+      void (async (): Promise<void> => {
+        try {
+          await pending(rect);
+        } catch (err) {
+          logger.warn('region.capture failed', {
+            err: err instanceof Error ? err.message : String(err),
+          });
+        }
+      })();
     });
     ipcMain.on(IPC_EVENTS.REGION_CANCEL, () => {
       const rw = getRegionWindow();
@@ -330,6 +358,36 @@ function bootstrap(): void {
         createMainWindow();
       }
     });
+  });
+
+  /**
+   * Architectural Rule 8 — `EvidexContainerService.save()` must run on
+   * every session/project teardown. If the user quits with a project
+   * still open (red-X on the main window, OS shutdown, etc.) Electron's
+   * default flow tears the process down before our async save can flush.
+   *
+   * We intercept the FIRST `before-quit`, prevent the default, run
+   * `projectService.close(...)` (which ends the active session and
+   * writes the container atomically), then call `app.quit()` again.
+   * `isQuitting` short-circuits the second pass so we don't loop.
+   */
+  app.on('before-quit', (event) => {
+    if (isQuitting) return;
+    const projectId = getOpenProjectIdForQuit();
+    if (!projectId || !projectService) return; // nothing to flush
+    event.preventDefault();
+    void (async (): Promise<void> => {
+      try {
+        await projectService.close(projectId);
+      } catch (err) {
+        logger.error('before-quit: project.close failed — quitting anyway', {
+          projectId, err: err instanceof Error ? err.message : String(err),
+        });
+      } finally {
+        isQuitting = true;
+        app.quit();
+      }
+    })();
   });
 
   app.on('will-quit', () => {

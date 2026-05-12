@@ -17,3 +17,4 @@ export { StatusBadge, type StatusBadgeProps, type StatusTagKind } from './Status
 export { ProgressBar, type ProgressBarProps, type ProgressStatus } from './ProgressBar';
 export { ProgressRing, type ProgressRingProps, type ProgressRingSize } from './ProgressRing';
 export { Skeleton as FluentSkeleton, type SkeletonProps } from './Skeleton';
+export { Tooltip, type TooltipProps, type TooltipPlacement } from './Tooltip';

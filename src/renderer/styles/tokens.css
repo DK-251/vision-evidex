@@ -127,6 +127,11 @@
   /* ── Skeleton shimmer highlight ──────────────────────────────────── */
   --color-skeleton-highlight: rgba(0,0,0,0.07);
 
+  /* ── Overlay tokens (image-on-dark) ──────────────────────────────── */
+  --color-overlay-strong: rgba(0,0,0,0.55);
+  --color-overlay-soft:   rgba(0,0,0,0.25);
+  --color-accent-overlay: rgba(0,120,212,0.92);
+
   /* ═══════════════════════════════════════════════════════════════════
    * FUI-1 TEMPORARY ALIASES — remove in FUI-5.
    * Every line below maps a deprecated pre-Fluent token to its Fluent
@@ -227,6 +232,11 @@
 
   /* ── Skeleton highlight ──────────────────────────────────────────── */
   --color-skeleton-highlight: rgba(255,255,255,0.08);
+
+  /* ── Overlay tokens (image-on-dark) ──────────────────────────────── */
+  --color-overlay-strong: rgba(0,0,0,0.68);
+  --color-overlay-soft:   rgba(0,0,0,0.40);
+  --color-accent-overlay: rgba(96,205,255,0.92);
 }
 
 /* ── Density & font-size variants ──────────────────────────────────── */

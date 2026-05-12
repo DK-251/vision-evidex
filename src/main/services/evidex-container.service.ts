@@ -8,10 +8,10 @@ import type {
   CreateContainerConfig,
   ManifestEntry,
   ManifestFile,
-  IntegrityCheckResult,
 } from '@shared/types/entities';
 import { encryptContainer, decryptContainer } from './container-crypto';
 import { DatabaseService } from './database.service';
+import { logger } from '../logger';
 
 /**
  * EvidexContainerService — .evidex file I/O (AES-256-GCM-encrypted ZIP).
@@ -151,18 +151,26 @@ export class EvidexContainerService {
 
   async close(_containerId: string): Promise<void> {
     if (!this.state) return;
+    const containerId = this.state.handle.containerId;
     try {
       this.state.projectDb.close();
-    } catch {
-      // Closing twice or on a faulted DB shouldn't block container teardown.
+    } catch (err) {
+      // Closing twice or on a faulted DB shouldn't block container teardown,
+      // but losing the log line meant we never learned about real failures.
+      logger.warn('container.close: projectDb.close failed', {
+        containerId, err: err instanceof Error ? err.message : String(err),
+      });
     }
     const tmpDir = this.state.projectDbTmpDir;
     this.state = null;
     try {
       await fs.promises.rm(tmpDir, { recursive: true, force: true });
-    } catch {
-      // Best-effort cleanup — leaking a tmp dir is preferable to throwing
-      // on close (callers expect close to succeed).
+    } catch (err) {
+      // Leaking a tmp dir is preferable to throwing on close (callers
+      // expect close to succeed). Log so disk pressure shows up over time.
+      logger.warn('container.close: tmp dir cleanup failed', {
+        containerId, tmpDir, err: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 
@@ -252,11 +260,6 @@ export class EvidexContainerService {
     const buf = state.entries.get(MANIFEST_FILENAME);
     if (!buf) throw new Error(`container ${containerId} has no manifest`);
     return JSON.parse(buf.toString('utf8')) as ManifestFile;
-  }
-
-  async integrityCheck(_projectId: string): Promise<IntegrityCheckResult> {
-    // ManifestService (D19) owns hash-recompute-and-compare logic.
-    throw new Error('EvidexContainerService.integrityCheck — D19 (ManifestService)');
   }
 
   async getSizeBytes(containerId: string): Promise<number> {

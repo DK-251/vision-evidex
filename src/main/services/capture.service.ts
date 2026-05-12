@@ -15,6 +15,7 @@ import type { EvidexContainerService } from './evidex-container.service';
 import { NamingService, type NamingContext } from './naming.service';
 import { EvidexError } from '@shared/types/errors';
 import { EvidexErrorCode } from '@shared/types/ipc';
+import { logger } from '../logger';
 
 /**
  * CaptureService — Phase 2 Week 7 / D32.
@@ -173,8 +174,15 @@ export class CaptureService {
     if (ctx.nextSequenceNum % 10 === 0) {
       try {
         await this.deps.container.backup(ctx.containerId);
-      } catch {
-        // Auto-backup failure must never abort the capture pipeline.
+      } catch (err) {
+        // Auto-backup failure must never abort the capture pipeline,
+        // but losing the log line meant operators never learned about
+        // real failures — surface as warn for the run-report to pick up.
+        logger.warn('capture.autoBackup failed', {
+          containerId: ctx.containerId,
+          sequenceNum: ctx.nextSequenceNum,
+          err: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 

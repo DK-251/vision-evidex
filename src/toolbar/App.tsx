@@ -1,17 +1,34 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import {
+  ScreenshotRegular,
+  WindowRegular,
+  CropRegular,
+  RecordStopRegular,
+  ChevronUpRegular,
+  ChevronDownRegular,
+} from '@fluentui/react-icons';
 import type { SessionStatus } from '@shared/types/entities';
 
 /**
- * D36 — Capture toolbar (S-05).
+ * Snipping-Tool-style capture toolbar (S-05 / D36).
  *
- * Always-on-top frameless transparent window (480×72). Subscribes to
- * SESSION_STATUS_UPDATE push events from the main process so the counter
- * stays live without polling.
+ * Visual contract:
+ *  • The Electron window is pinned at the top-centre of the primary
+ *    display (`positionToolbarTopCenter` in window-manager.ts) with a
+ *    transparent background. The pill below is what the user actually
+ *    sees — it slides in from above on mount and lives at the top of
+ *    the window's content area.
+ *  • Pill height matches the Fluent default control row (40 px).
+ *  • Drag region is intentionally absent — the toolbar is fixed in
+ *    place, matching the Windows Snipping Tool toolbar UX. The Electron
+ *    window itself is created with `movable: false` for the same reason.
+ *  • All visual styling lives in `components.css` under the
+ *    `.capture-toolbar` family so dark theme + reduced motion + high
+ *    contrast inherit from the design system automatically.
  *
- * Uses only CSS custom properties from the shared token system — no
- * Tailwind dark: prefix (banned per CLAUDE.md Rule 10 replacement).
- * setContentProtection(true) is applied by window-manager.ts so this
- * window is excluded from desktopCapturer output.
+ * The counter subscribes to `SESSION_STATUS_UPDATE` from the main
+ * process — the toolbar never polls.
  */
 
 const IPC_SESSION_STATUS_UPDATE = 'session:statusUpdate';
@@ -25,15 +42,42 @@ interface ToolbarStatus {
   blockedCount: number;
 }
 
-export function App(): JSX.Element {
-  const [status, setStatus] = useState<ToolbarStatus | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
-  const [ending, setEnding] = useState(false);
-  const dragRef = useRef<HTMLDivElement>(null);
+type CaptureMode = 'fullscreen' | 'active-window' | 'region';
 
-  // Subscribe to live counter updates from the main process.
+interface CaptureButton {
+  mode:  CaptureMode;
+  label: string;
+  hint:  string;
+  Icon:  typeof ScreenshotRegular;
+}
+
+const CAPTURE_BUTTONS: CaptureButton[] = [
+  { mode: 'fullscreen',    label: 'Fullscreen',    hint: 'Ctrl+Shift+1', Icon: ScreenshotRegular },
+  { mode: 'active-window', label: 'Active window', hint: 'Ctrl+Shift+2', Icon: WindowRegular },
+  { mode: 'region',        label: 'Region',        hint: 'Ctrl+Shift+3', Icon: CropRegular },
+];
+
+/** Slide-down entrance — Snipping Tool style. */
+const slideDown = {
+  initial: { y: -56, opacity: 0 },
+  animate: { y:   0, opacity: 1 },
+  exit:    { y: -56, opacity: 0 },
+} as const;
+
+export function App(): JSX.Element {
+  const [status,    setStatus]    = useState<ToolbarStatus | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const [ending,    setEnding]    = useState(false);
+
+  // Counter subscription — works with either the typed `evidexAPI`
+  // events surface OR the raw `ipcRenderer` channel (sub-window preloads
+  // sometimes expose only the latter).
   useEffect(() => {
-    const handler = (_e: Electron.IpcRendererEvent, s: SessionStatus & { testId?: string }): void => {
+    const apiEvents =
+      (window as Window & { evidexAPI?: { events?: { onSessionStatusUpdate?: unknown } } })
+        .evidexAPI?.events?.onSessionStatusUpdate;
+
+    const apply = (s: SessionStatus & { testId?: string }): void => {
       setStatus({
         sessionId:    s.sessionId,
         ...(s.testId !== undefined ? { testId: s.testId } : {}),
@@ -43,209 +87,160 @@ export function App(): JSX.Element {
         blockedCount: s.blockedCount,
       });
     };
-    const ipcRenderer = (window as Window & { evidexAPI?: { events?: { onSessionStatusUpdate?: unknown } } }).evidexAPI;
-    if (ipcRenderer?.events?.onSessionStatusUpdate) {
-      const off = (ipcRenderer.events.onSessionStatusUpdate as (h: (status: SessionStatus) => void) => () => void)(
-        (s) => setStatus({
-          sessionId:    s.sessionId,
-          captureCount: s.captureCount,
-          passCount:    s.passCount,
-          failCount:    s.failCount,
-          blockedCount: s.blockedCount,
-        })
-      );
+
+    if (typeof apiEvents === 'function') {
+      const off = (apiEvents as (h: (status: SessionStatus) => void) => () => void)(apply);
       return off;
     }
-    // Fallback: direct ipcRenderer for toolbar window (preload may differ).
-    const w = window as unknown as { electron?: { ipcRenderer?: { on: (ch: string, fn: (e: unknown, v: unknown) => void) => void; removeListener: (ch: string, fn: (e: unknown, v: unknown) => void) => void } } };
-    if (w.electron?.ipcRenderer) {
-      const el = w.electron.ipcRenderer;
-      const fn = (_e: unknown, v: unknown): void => {
-        const s = v as SessionStatus;
-        handler({} as Electron.IpcRendererEvent, s);
+
+    const w = window as unknown as {
+      electron?: {
+        ipcRenderer?: {
+          on: (ch: string, fn: (e: unknown, v: unknown) => void) => void;
+          removeListener: (ch: string, fn: (e: unknown, v: unknown) => void) => void;
+        };
       };
-      el.on(IPC_SESSION_STATUS_UPDATE, fn);
-      return () => el.removeListener(IPC_SESSION_STATUS_UPDATE, fn);
-    }
-    return undefined;
+    };
+    const ipc = w.electron?.ipcRenderer;
+    if (!ipc) return undefined;
+    const listener = (_e: unknown, v: unknown): void => apply(v as SessionStatus);
+    ipc.on(IPC_SESSION_STATUS_UPDATE, listener);
+    return () => ipc.removeListener(IPC_SESSION_STATUS_UPDATE, listener);
   }, []);
 
-  async function handleCapture(mode: 'fullscreen' | 'active-window' | 'region'): Promise<void> {
+  async function handleCapture(mode: CaptureMode): Promise<void> {
     if (!status) return;
-    const api = (window as Window & { evidexAPI?: { capture?: { screenshot?: (r: { sessionId: string; mode: string; statusTag: string }) => Promise<unknown> } } }).evidexAPI;
+    const api =
+      (window as Window & {
+        evidexAPI?: { capture?: { screenshot?: (r: { sessionId: string; mode: string; statusTag: string }) => Promise<unknown> } };
+      }).evidexAPI;
     if (!api?.capture?.screenshot) return;
     try {
       await api.capture.screenshot({ sessionId: status.sessionId, mode, statusTag: 'untagged' });
-    } catch { /* swallow — main broadcasts CAPTURE_ARRIVED on success */ }
+    } catch {
+      /* main broadcasts CAPTURE_ARRIVED on success */
+    }
   }
 
   async function handleEndSession(): Promise<void> {
     if (ending || !status) return;
     setEnding(true);
-    const api = (window as Window & { evidexAPI?: { session?: { end?: (id: string) => Promise<unknown> } } }).evidexAPI;
+    const api = (window as Window & {
+      evidexAPI?: { session?: { end?: (id: string) => Promise<unknown> } };
+    }).evidexAPI;
     try {
       await api?.session?.end?.(status.sessionId);
-    } catch { /* main-side errors surface as toasts in the renderer */ }
+    } catch {
+      /* main-side errors surface as toasts in the renderer */
+    }
     setEnding(false);
   }
 
   if (collapsed) {
     return (
-      <div
-        ref={dragRef}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          height: '100%',
-          padding: '0 10px',
-          background: 'var(--color-layer-acrylic, rgba(32,32,32,0.85))',
-          backdropFilter: 'blur(20px)',
-          borderRadius: 8,
-          cursor: 'default',
-          WebkitAppRegion: 'drag',
-        } as React.CSSProperties}
+      <motion.div
+        className="capture-toolbar capture-toolbar--collapsed"
+        {...slideDown}
+        transition={{ duration: 0.22, ease: [0.10, 0.90, 0.20, 1] }}
       >
-        <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 13, color: 'var(--color-text-primary, #fff)', fontWeight: 600 }}>
+        <span className="capture-toolbar__counter-mono">
           {status?.captureCount ?? 0}
         </span>
         <button
           type="button"
+          className="capture-toolbar__btn"
+          aria-label="Expand toolbar"
           onClick={() => setCollapsed(false)}
-          style={btnStyle}
-          title="Expand toolbar"
         >
-          ↕
+          <ChevronDownRegular fontSize={16} />
         </button>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div
-      ref={dragRef}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        height: '100%',
-        padding: '0 10px',
-        background: 'var(--color-layer-acrylic, rgba(32,32,32,0.85))',
-        backdropFilter: 'blur(20px)',
-        borderRadius: 8,
-        WebkitAppRegion: 'drag',
-      } as React.CSSProperties}
+    <motion.div
+      className="capture-toolbar"
+      role="toolbar"
+      aria-label="Capture toolbar"
+      {...slideDown}
+      transition={{ duration: 0.22, ease: [0.10, 0.90, 0.20, 1] }}
     >
-      {/* Drag handle area — app-region drag */}
-      <span
-        style={{
-          fontSize: 11,
-          color: 'var(--color-text-secondary, rgba(255,255,255,0.6))',
-          fontFamily: 'var(--font-mono, monospace)',
-          whiteSpace: 'nowrap',
-          maxWidth: 90,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          flexShrink: 0,
-          WebkitAppRegion: 'drag',
-        } as React.CSSProperties}
-        title={status?.testId ?? 'No active session'}
-      >
-        {status?.testId ?? '—'}
-      </span>
+      {/* Session identity — left segment */}
+      <div className="capture-toolbar__identity" title={status?.testId ?? 'No active session'}>
+        <span className="capture-toolbar__dot" aria-hidden="true" />
+        <span className="capture-toolbar__test-id">
+          {status?.testId ?? '—'}
+        </span>
+      </div>
 
-      {/* Counter */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 4,
-          alignItems: 'center',
-          flexShrink: 0,
-          WebkitAppRegion: 'no-drag',
-        } as React.CSSProperties}
-      >
-        <CountPill color="#6CCB5F" value={status?.passCount ?? 0} />
-        <CountPill color="#FF99A4" value={status?.failCount ?? 0} />
-        <CountPill color="#FCE100" value={status?.blockedCount ?? 0} />
-        <span style={{ fontSize: 12, color: 'var(--color-text-secondary, rgba(255,255,255,0.6))' }}>
+      <span className="capture-toolbar__divider" aria-hidden="true" />
+
+      {/* Live counter */}
+      <div className="capture-toolbar__counters" aria-label="Capture counts">
+        <CounterPill kind="pass"    value={status?.passCount    ?? 0} />
+        <CounterPill kind="fail"    value={status?.failCount    ?? 0} />
+        <CounterPill kind="blocked" value={status?.blockedCount ?? 0} />
+        <span className="capture-toolbar__counter-total" aria-label="Total captures">
           {status?.captureCount ?? 0}
         </span>
       </div>
 
-      {/* Divider */}
-      <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.15)', flexShrink: 0 }} />
+      <span className="capture-toolbar__divider" aria-hidden="true" />
 
-      {/* Capture buttons */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 3,
-          WebkitAppRegion: 'no-drag',
-        } as React.CSSProperties}
-      >
-        <button type="button" onClick={() => void handleCapture('fullscreen')} style={btnStyle} title="Capture fullscreen (Ctrl+Shift+1)">⬛</button>
-        <button type="button" onClick={() => void handleCapture('active-window')} style={btnStyle} title="Capture active window (Ctrl+Shift+2)">⬜</button>
-        <button type="button" onClick={() => void handleCapture('region')} style={btnStyle} title="Capture region (Ctrl+Shift+3)">⬡</button>
+      {/* Capture mode buttons */}
+      <div className="capture-toolbar__captures" role="group" aria-label="Capture mode">
+        {CAPTURE_BUTTONS.map(({ mode, label, hint, Icon }) => (
+          <button
+            key={mode}
+            type="button"
+            className="capture-toolbar__btn capture-toolbar__btn--mode"
+            aria-label={`${label} (${hint})`}
+            title={`${label} · ${hint}`}
+            onClick={() => void handleCapture(mode)}
+          >
+            <Icon fontSize={18} />
+          </button>
+        ))}
       </div>
 
-      {/* Divider */}
-      <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.15)', flexShrink: 0 }} />
+      <span className="capture-toolbar__divider" aria-hidden="true" />
 
-      {/* End session + collapse */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 3,
-          WebkitAppRegion: 'no-drag',
-        } as React.CSSProperties}
-      >
+      {/* End + collapse */}
+      <div className="capture-toolbar__trailing">
         <button
           type="button"
-          onClick={() => void handleEndSession()}
+          className="capture-toolbar__btn capture-toolbar__btn--end"
           disabled={ending}
-          style={{
-            ...btnStyle,
-            background: ending ? 'rgba(255,255,255,0.05)' : 'rgba(220,38,38,0.25)',
-            color: '#FF99A4',
-            padding: '3px 8px',
-            fontSize: 11,
-            fontWeight: 600,
-          }}
+          onClick={() => void handleEndSession()}
           title="End session"
         >
-          {ending ? '…' : 'End'}
+          <RecordStopRegular fontSize={14} />
+          <span>{ending ? '…' : 'End'}</span>
         </button>
-        <button type="button" onClick={() => setCollapsed(true)} style={btnStyle} title="Collapse toolbar">↕</button>
+        <button
+          type="button"
+          className="capture-toolbar__btn"
+          aria-label="Collapse toolbar"
+          title="Collapse"
+          onClick={() => setCollapsed(true)}
+        >
+          <ChevronUpRegular fontSize={16} />
+        </button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-function CountPill({ color, value }: { color: string; value: number }): JSX.Element {
+interface CounterPillProps {
+  kind:  'pass' | 'fail' | 'blocked';
+  value: number;
+}
+
+function CounterPill({ kind, value }: CounterPillProps): JSX.Element {
   return (
-    <span style={{
-      fontSize: 11,
-      fontWeight: 600,
-      color,
-      fontFamily: 'var(--font-mono, monospace)',
-      minWidth: 16,
-      textAlign: 'center',
-    }}>
+    <span className={`capture-toolbar__pill capture-toolbar__pill--${kind}`}>
       {value}
     </span>
   );
 }
-
-const btnStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.08)',
-  border: '1px solid rgba(255,255,255,0.12)',
-  borderRadius: 4,
-  color: 'var(--color-text-primary, rgba(255,255,255,0.9))',
-  cursor: 'pointer',
-  fontSize: 14,
-  padding: '3px 6px',
-  lineHeight: 1,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};

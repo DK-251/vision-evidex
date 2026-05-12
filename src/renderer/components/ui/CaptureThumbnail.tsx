@@ -4,22 +4,33 @@ import type { CaptureResult } from '@shared/types/entities';
 import { StatusBadge, type StatusTagKind } from './StatusBadge';
 
 /**
- * Capture thumbnail (Docs §5.7). 160 px tile rendered in the gallery
- * grid. Single-click selects/opens; Shift+click adds to multi-select.
+ * Capture thumbnail (Docs §5.7) — Fluent card with hover lift, status
+ * badge in the footer, sequence number top-left, accent checkmark
+ * top-right on multi-select. All styling lives in the `.capture-thumbnail`
+ * family in components.css so dark/high-contrast themes inherit from
+ * the token system automatically.
  *
- * Image source: `CaptureResult.thumbnail` is already a `data:image/jpeg;
- * base64,...` URL produced by `CaptureService` (capture.service.ts:156).
- * If a future capture path returns a raw Buffer instead, we fall back
- * to `URL.createObjectURL()` and revoke on unmount.
+ * Image source: `CaptureResult.thumbnail` is a `data:image/jpeg;base64,…`
+ * URL produced by `CaptureService`. Buffer support is defensive — if a
+ * future capture path returns raw bytes we fall back to `createObjectURL`
+ * and revoke on unmount.
  */
 
 export interface CaptureThumbnailProps {
   capture:        CaptureResult;
   isSelected?:    boolean;
-  /** Display sequence number — pulled from the DB `Capture` row, not on `CaptureResult`. */
   sequenceNum?:   number;
   onClick?:       (captureId: string) => void;
   onShiftClick?:  (captureId: string) => void;
+}
+
+function formatClock(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '';
+  }
 }
 
 export function CaptureThumbnail({
@@ -32,17 +43,12 @@ export function CaptureThumbnail({
   const [imgSrc, setImgSrc] = useState<string>('');
 
   useEffect(() => {
-    // CaptureResult.thumbnail is a base64 data URL today. Buffer support is
-    // defensive — we never want a future tweak in CaptureService to break
-    // the gallery silently.
     const raw: unknown = capture.thumbnail;
     if (typeof raw === 'string') {
       setImgSrc(raw);
       return;
     }
     if (raw instanceof Uint8Array) {
-      // Cast to BlobPart — TS5.5 narrows Uint8Array<ArrayBufferLike> too tightly
-      // for the Blob ctor; runtime is fine.
       const blob = new Blob([raw as unknown as BlobPart], { type: 'image/jpeg' });
       const url = URL.createObjectURL(blob);
       setImgSrc(url);
@@ -67,52 +73,26 @@ export function CaptureThumbnail({
       className={`capture-thumbnail ${isSelected ? 'selected' : ''}`.trim()}
       aria-pressed={isSelected}
       aria-label={`Capture ${sequenceNum ?? capture.captureId} — ${capture.statusTag}`}
-      style={{ position: 'relative', padding: 0 }}
     >
       <img className="capture-thumbnail-img" src={imgSrc} alt="" />
 
       {sequenceNum !== undefined && (
-        <span
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: 4,
-            left: 4,
-            padding: '2px 6px',
-            borderRadius: 'var(--radius-pill)',
-            background: 'rgba(0,0,0,0.5)',
-            color: '#FFFFFF',
-            fontSize: 'var(--type-caption-size)',
-            lineHeight: 1,
-          }}
-        >
+        <span className="capture-thumbnail__seq-badge" aria-hidden="true">
           #{sequenceNum}
         </span>
       )}
 
       {isSelected && (
-        <span
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: 4,
-            right: 4,
-            width: 20,
-            height: 20,
-            borderRadius: '50%',
-            background: 'rgba(0,120,212,0.85)',
-            color: '#FFFFFF',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <CheckmarkFilled fontSize={16} />
+        <span className="capture-thumbnail__check-badge" aria-hidden="true">
+          <CheckmarkFilled fontSize={14} />
         </span>
       )}
 
       <span className="capture-thumbnail-footer">
         <StatusBadge tag={capture.statusTag as StatusTagKind} />
+        <span className="capture-thumbnail__time">
+          {formatClock(capture.capturedAt)}
+        </span>
       </span>
     </button>
   );

@@ -262,7 +262,7 @@ export function CreateProjectPage(): JSX.Element {
               options={tplOptions}
               value={form.templateId}
               onChange={(e) => setField('templateId', e.target.value)}
-              aria-invalid={!!errors.templateId || undefined}
+              {...(errors.templateId ? { 'aria-invalid': 'true' as const } : {})}
             />
           </Field>
           <Field label="Branding" required error={errors.brandingProfileId}>
@@ -270,7 +270,7 @@ export function CreateProjectPage(): JSX.Element {
               options={brandOptions}
               value={form.brandingProfileId}
               onChange={(e) => setField('brandingProfileId', e.target.value)}
-              aria-invalid={!!errors.brandingProfileId || undefined}
+              {...(errors.brandingProfileId ? { 'aria-invalid': 'true' as const } : {})}
             />
           </Field>
           <Field
