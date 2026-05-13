@@ -204,8 +204,8 @@ const evidexAPI = {
       ipcRenderer.on(IPC_EVENTS.WINDOW_MAXIMIZED_CHANGE, listener);
       return () => ipcRenderer.removeListener(IPC_EVENTS.WINDOW_MAXIMIZED_CHANGE, listener);
     },
-    onAnnotationLoad: (handler: (payload: { captureId: string; imageBase64: string; width: number; height: number }) => void): (() => void) => {
-      const listener = (_e: unknown, payload: { captureId: string; imageBase64: string; width: number; height: number }): void => handler(payload);
+    onAnnotationLoad: (handler: (payload: { captureId: string; imageBase64: string; width: number; height: number; existingLayerJson?: object }) => void): (() => void) => {
+      const listener = (_e: unknown, payload: { captureId: string; imageBase64: string; width: number; height: number; existingLayerJson?: object }): void => handler(payload);
       ipcRenderer.on(IPC_EVENTS.ANNOTATION_LOAD, listener);
       return () => ipcRenderer.removeListener(IPC_EVENTS.ANNOTATION_LOAD, listener);
     },

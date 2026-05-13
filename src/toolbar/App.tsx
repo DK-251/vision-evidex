@@ -7,28 +7,26 @@ import {
   RecordStopRegular,
   ChevronUpRegular,
   ChevronDownRegular,
+  ReOrderDotsVerticalRegular,
 } from '@fluentui/react-icons';
 import type { SessionStatus } from '@shared/types/entities';
 
 /**
  * Snipping-Tool-style capture toolbar (S-05 / D36).
  *
- * Visual contract:
- *  • The Electron window is pinned at the top-centre of the primary
- *    display (`positionToolbarTopCenter` in window-manager.ts) with a
- *    transparent background. The pill below is what the user actually
- *    sees — it slides in from above on mount and lives at the top of
- *    the window's content area.
- *  • Pill height matches the Fluent default control row (40 px).
- *  • Drag region is intentionally absent — the toolbar is fixed in
- *    place, matching the Windows Snipping Tool toolbar UX. The Electron
- *    window itself is created with `movable: false` for the same reason.
- *  • All visual styling lives in `components.css` under the
- *    `.capture-toolbar` family so dark theme + reduced motion + high
- *    contrast inherit from the design system automatically.
- *
- * The counter subscribes to `SESSION_STATUS_UPDATE` from the main
- * process — the toolbar never polls.
+ * Layout change (W10-drag update):
+ *  \u2022 The Electron window is NOW full-display-width, transparent.
+ *    Only the pill is visible; the surrounding area is see-through.
+ *  \u2022 The pill is absolutely positioned via `left` state so the user
+ *    can drag it anywhere along the top of the screen. It starts
+ *    centred on first mount.
+ *  \u2022 A dedicated gripper icon (\u2261 dots) at the left edge of the pill
+ *    carries `-webkit-app-region: drag` so only intentional grabs
+ *    move the window. All buttons remain `no-drag`.
+ *  \u2022 The Electron window has `movable: true` + a `move` event handler
+ *    in window-manager.ts that clamps Y to the top edge.
+ *  \u2022 backdrop-filter has been removed from the pill so it renders
+ *    as a solid opaque surface without the blurry halo artefact.
  */
 
 const IPC_SESSION_STATUS_UPDATE = 'session:statusUpdate';
@@ -57,21 +55,31 @@ const CAPTURE_BUTTONS: CaptureButton[] = [
   { mode: 'region',        label: 'Region',        hint: 'Ctrl+Shift+3', Icon: CropRegular },
 ];
 
-/** Slide-down entrance — Snipping Tool style. */
+/** Slide-down entrance \u2014 Snipping Tool style. */
 const slideDown = {
   initial: { y: -56, opacity: 0 },
   animate: { y:   0, opacity: 1 },
   exit:    { y: -56, opacity: 0 },
 } as const;
 
+// ── Pill width (content only, not the Electron window width) ──────────────
+const PILL_WIDTH = 560;
+
 export function App(): JSX.Element {
   const [status,    setStatus]    = useState<ToolbarStatus | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [ending,    setEnding]    = useState(false);
+  // Pill horizontal offset within the full-width window.
+  // Initialised to -1 so we can detect "not yet measured" and snap to centre.
+  const [pillLeft,  setPillLeft]  = useState(-1);
 
-  // Counter subscription — works with either the typed `evidexAPI`
-  // events surface OR the raw `ipcRenderer` channel (sub-window preloads
-  // sometimes expose only the latter).
+  // On mount, centre the pill within whatever the window width is.
+  useEffect(() => {
+    const w = window.innerWidth || 1920;
+    setPillLeft(Math.round((w - PILL_WIDTH) / 2));
+  }, []);
+
+  // Counter subscription.
   useEffect(() => {
     const apiEvents =
       (window as Window & { evidexAPI?: { events?: { onSessionStatusUpdate?: unknown } } })
@@ -136,99 +144,139 @@ export function App(): JSX.Element {
     setEnding(false);
   }
 
+  // Don\u2019t render until we know the window width (avoids flash at x:0).
+  if (pillLeft < 0) return <></>;
+
+  // ── Outer wrapper: full viewport, transparent, pointer-events:none
+  // so clicks on the transparent region fall through to windows below.
+  // The pill re-enables pointer events for itself.
+  const outerStyle: React.CSSProperties = {
+    position:      'fixed',
+    inset:         0,
+    pointerEvents: 'none',
+    userSelect:    'none',
+    overflow:      'hidden',
+  };
+
   if (collapsed) {
     return (
-      <motion.div
-        className="capture-toolbar capture-toolbar--collapsed"
-        {...slideDown}
-        transition={{ duration: 0.22, ease: [0.10, 0.90, 0.20, 1] }}
-      >
-        <span className="capture-toolbar__counter-mono">
-          {status?.captureCount ?? 0}
-        </span>
-        <button
-          type="button"
-          className="capture-toolbar__btn"
-          aria-label="Expand toolbar"
-          onClick={() => setCollapsed(false)}
+      <div style={outerStyle}>
+        <motion.div
+          className="capture-toolbar capture-toolbar--collapsed"
+          style={{ position: 'absolute', top: 12, left: pillLeft, pointerEvents: 'auto' }}
+          {...slideDown}
+          transition={{ duration: 0.22, ease: [0.10, 0.90, 0.20, 1] }}
         >
-          <ChevronDownRegular fontSize={16} />
-        </button>
-      </motion.div>
+          {/* Drag handle */}
+          <span
+            className="capture-toolbar__drag-handle"
+            aria-hidden="true"
+            title="Drag to reposition"
+          >
+            <ReOrderDotsVerticalRegular fontSize={14} />
+          </span>
+          <span className="capture-toolbar__counter-mono">
+            {status?.captureCount ?? 0}
+          </span>
+          <button
+            type="button"
+            className="capture-toolbar__btn"
+            aria-label="Expand toolbar"
+            onClick={() => setCollapsed(false)}
+          >
+            <ChevronDownRegular fontSize={16} />
+          </button>
+        </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div
-      className="capture-toolbar"
-      role="toolbar"
-      aria-label="Capture toolbar"
-      {...slideDown}
-      transition={{ duration: 0.22, ease: [0.10, 0.90, 0.20, 1] }}
-    >
-      {/* Session identity — left segment */}
-      <div className="capture-toolbar__identity" title={status?.testId ?? 'No active session'}>
-        <span className="capture-toolbar__dot" aria-hidden="true" />
-        <span className="capture-toolbar__test-id">
-          {status?.testId ?? '—'}
+    <div style={outerStyle}>
+      <motion.div
+        className="capture-toolbar"
+        role="toolbar"
+        aria-label="Capture toolbar"
+        style={{ position: 'absolute', top: 12, left: pillLeft, pointerEvents: 'auto', width: PILL_WIDTH }}
+        {...slideDown}
+        transition={{ duration: 0.22, ease: [0.10, 0.90, 0.20, 1] }}
+      >
+        {/* ── Drag handle — ONLY this region triggers window drag ──── */}
+        <span
+          className="capture-toolbar__drag-handle"
+          aria-label="Drag to reposition toolbar"
+          title="Drag to reposition"
+          role="presentation"
+        >
+          <ReOrderDotsVerticalRegular fontSize={16} />
         </span>
-      </div>
 
-      <span className="capture-toolbar__divider" aria-hidden="true" />
+        <span className="capture-toolbar__divider" aria-hidden="true" />
 
-      {/* Live counter */}
-      <div className="capture-toolbar__counters" aria-label="Capture counts">
-        <CounterPill kind="pass"    value={status?.passCount    ?? 0} />
-        <CounterPill kind="fail"    value={status?.failCount    ?? 0} />
-        <CounterPill kind="blocked" value={status?.blockedCount ?? 0} />
-        <span className="capture-toolbar__counter-total" aria-label="Total captures">
-          {status?.captureCount ?? 0}
-        </span>
-      </div>
+        {/* Session identity */}
+        <div className="capture-toolbar__identity" title={status?.testId ?? 'No active session'}>
+          <span className="capture-toolbar__dot" aria-hidden="true" />
+          <span className="capture-toolbar__test-id">
+            {status?.testId ?? '\u2014'}
+          </span>
+        </div>
 
-      <span className="capture-toolbar__divider" aria-hidden="true" />
+        <span className="capture-toolbar__divider" aria-hidden="true" />
 
-      {/* Capture mode buttons */}
-      <div className="capture-toolbar__captures" role="group" aria-label="Capture mode">
-        {CAPTURE_BUTTONS.map(({ mode, label, hint, Icon }) => (
+        {/* Live counter */}
+        <div className="capture-toolbar__counters" aria-label="Capture counts">
+          <CounterPill kind="pass"    value={status?.passCount    ?? 0} />
+          <CounterPill kind="fail"    value={status?.failCount    ?? 0} />
+          <CounterPill kind="blocked" value={status?.blockedCount ?? 0} />
+          <span className="capture-toolbar__counter-total" aria-label="Total captures">
+            {status?.captureCount ?? 0}
+          </span>
+        </div>
+
+        <span className="capture-toolbar__divider" aria-hidden="true" />
+
+        {/* Capture mode buttons */}
+        <div className="capture-toolbar__captures" role="group" aria-label="Capture mode">
+          {CAPTURE_BUTTONS.map(({ mode, label, hint, Icon }) => (
+            <button
+              key={mode}
+              type="button"
+              className="capture-toolbar__btn capture-toolbar__btn--mode"
+              aria-label={`${label} (${hint})`}
+              title={`${label} \u00b7 ${hint}`}
+              onClick={() => void handleCapture(mode)}
+            >
+              <Icon fontSize={18} />
+            </button>
+          ))}
+        </div>
+
+        <span className="capture-toolbar__divider" aria-hidden="true" />
+
+        {/* End + collapse */}
+        <div className="capture-toolbar__trailing">
           <button
-            key={mode}
             type="button"
-            className="capture-toolbar__btn capture-toolbar__btn--mode"
-            aria-label={`${label} (${hint})`}
-            title={`${label} · ${hint}`}
-            onClick={() => void handleCapture(mode)}
+            className="capture-toolbar__btn capture-toolbar__btn--end"
+            disabled={ending}
+            onClick={() => void handleEndSession()}
+            title="End session"
           >
-            <Icon fontSize={18} />
+            <RecordStopRegular fontSize={14} />
+            <span>{ending ? '\u2026' : 'End'}</span>
           </button>
-        ))}
-      </div>
-
-      <span className="capture-toolbar__divider" aria-hidden="true" />
-
-      {/* End + collapse */}
-      <div className="capture-toolbar__trailing">
-        <button
-          type="button"
-          className="capture-toolbar__btn capture-toolbar__btn--end"
-          disabled={ending}
-          onClick={() => void handleEndSession()}
-          title="End session"
-        >
-          <RecordStopRegular fontSize={14} />
-          <span>{ending ? '…' : 'End'}</span>
-        </button>
-        <button
-          type="button"
-          className="capture-toolbar__btn"
-          aria-label="Collapse toolbar"
-          title="Collapse"
-          onClick={() => setCollapsed(true)}
-        >
-          <ChevronUpRegular fontSize={16} />
-        </button>
-      </div>
-    </motion.div>
+          <button
+            type="button"
+            className="capture-toolbar__btn"
+            aria-label="Collapse toolbar"
+            title="Collapse"
+            onClick={() => setCollapsed(true)}
+          >
+            <ChevronUpRegular fontSize={16} />
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 

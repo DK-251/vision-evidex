@@ -1678,34 +1678,62 @@ body:fullscreen .caption-buttons {
 }
 
 /* ─── Capture toolbar (S-05 / D36) — Snipping-Tool style pill ──────────
- * Lives in its own transparent Electron window pinned at the top-centre
- * of the primary display. The pill itself is what the user sees; the
- * window's transparent slack accommodates the slide-in animation.
+ * Lives in its own full-display-width transparent Electron window pinned
+ * at the top of the screen. Only the pill is visible; surrounding area is
+ * see-through (pointer-events:none on the outer wrapper).
+ *
+ * backdrop-filter intentionally REMOVED: it created a visible blurry halo
+ * around the pill due to how transparent Electron windows composite. The
+ * pill now uses a solid, semi-opaque dark fill so it looks sharp against
+ * any background colour.
  */
 .capture-toolbar {
   display:         inline-flex;
   align-items:     center;
   gap:             var(--space-2);
   height:          48px;
-  padding:         0 10px 0 14px;
-  margin:          12px auto 0;
-  width:           fit-content;
-  background:      var(--color-layer-acrylic);
-  -webkit-backdrop-filter: blur(var(--color-layer-acrylic-blur));
-          backdrop-filter: blur(var(--color-layer-acrylic-blur));
-  border:          1px solid var(--color-stroke-surface);
+  padding:         0 10px 0 6px;
+  /* solid fill — no backdrop-filter (causes shadow artefact on transparent win) */
+  background:      rgba(28, 28, 30, 0.96);
+  border:          1px solid rgba(255, 255, 255, 0.14);
   border-radius:   24px;
-  box-shadow:      var(--shadow-layer-3);
-  color:           var(--color-text-primary);
+  box-shadow:      0 4px 20px rgba(0, 0, 0, 0.55),
+                   0 1px 3px  rgba(0, 0, 0, 0.40);
+  color:           rgba(255, 255, 255, 0.92);
   font-family:     var(--font-family);
   font-size:       var(--type-caption-size);
   user-select:     none;
+  /* No -webkit-app-region here — only the drag-handle gets it */
 }
 .capture-toolbar--collapsed {
   height:          32px;
-  padding:         0 10px;
+  padding:         0 10px 0 6px;
   border-radius:   16px;
   gap:             6px;
+}
+
+/* ── Drag handle — the ONLY draggable region ─────────────────────── */
+.capture-toolbar__drag-handle {
+  display:        inline-flex;
+  align-items:    center;
+  justify-content: center;
+  width:          24px;
+  height:         32px;
+  color:          rgba(255, 255, 255, 0.35);
+  cursor:         grab;
+  flex-shrink:    0;
+  border-radius:  6px;
+  transition:     color var(--duration-ultra-fast) var(--easing-standard),
+                  background var(--duration-ultra-fast) var(--easing-standard);
+  /* THIS is the only element with app-region drag */
+  -webkit-app-region: drag;
+}
+.capture-toolbar__drag-handle:hover {
+  color:      rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.06);
+}
+.capture-toolbar__drag-handle:active {
+  cursor: grabbing;
 }
 
 .capture-toolbar__identity {
@@ -1799,11 +1827,12 @@ body:fullscreen .caption-buttons {
   border: 1px solid transparent;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--color-text-primary);
+  color: rgba(255, 255, 255, 0.88);
   font-family: var(--font-family);
   font-size: var(--type-caption-size);
   font-weight: 500;
   cursor: pointer;
+  -webkit-app-region: no-drag;   /* must never trigger window drag */
   transition: background var(--duration-ultra-fast) var(--easing-standard),
               border-color var(--duration-ultra-fast) var(--easing-standard);
 }

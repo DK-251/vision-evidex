@@ -6,13 +6,20 @@ import type { Session } from '@shared/types/entities';
 import { logger } from './logger';
 
 /**
- * Snipping-Tool-style toolbar dimensions. The window itself is slightly
- * taller than the visible pill so the React-side slide-in animation has
- * room to play (the pill starts at translateY(-100%) and animates in).
+ * Snipping-Tool-style toolbar dimensions.
+ *
+ * The window is made FULL-DISPLAY-WIDTH so the user can drag the pill
+ * left and right across the top of the screen. Only the pill is visible
+ * (the rest is transparent). The Electron window has `movable: true` but
+ * we clamp vertical position via the 'move' event so the toolbar always
+ * hugs the top edge.
+ *
+ * The pill itself contains a dedicated drag-handle region (marked
+ * -webkit-app-region:drag in CSS) so only intentional drags on the
+ * handle move the window, not accidental drags on buttons.
  */
-const TOOLBAR_WIDTH = 560;
-const TOOLBAR_HEIGHT = 88;
-const TOOLBAR_TOP_OFFSET = 8;
+const TOOLBAR_HEIGHT     = 88;
+const TOOLBAR_TOP_OFFSET =  8;
 
 /**
  * Main-window creation. The title bar is fully owned by the renderer
@@ -86,21 +93,37 @@ export function createMainWindow(): BrowserWindow {
 }
 
 export function createToolbarWindow(): BrowserWindow {
+  // Use full display width so the pill can be dragged anywhere left/right.
+  const { workArea } = screen.getPrimaryDisplay();
+  const toolbarWidth  = workArea.width;
+
   toolbarWindow = new BrowserWindow({
     ...baseWindowConfig(),
-    width: TOOLBAR_WIDTH,
-    height: TOOLBAR_HEIGHT,
-    frame: false,
+    width:       toolbarWidth,
+    height:      TOOLBAR_HEIGHT,
+    frame:       false,
     alwaysOnTop: true,
     skipTaskbar: true,
-    resizable: false,
-    movable: false,
+    resizable:   false,
+    movable:     true,          // allow horizontal drag via the handle
     transparent: true,
-    hasShadow: false,
-    show: false,         // showToolbarWindow positions then shows
-    focusable: false,    // capture toolbar must not steal focus
+    hasShadow:   false,
+    show:        false,         // showToolbarWindow positions then shows
+    focusable:   false,         // capture toolbar must not steal focus
   });
   toolbarWindow.setContentProtection(true);
+
+  // Clamp vertical position — toolbar must always hug the top edge.
+  // The user can only drag left/right; any vertical drift is corrected.
+  toolbarWindow.on('move', () => {
+    if (!toolbarWindow || toolbarWindow.isDestroyed()) return;
+    const [cx, ] = toolbarWindow.getPosition();
+    const { workArea: wa } = screen.getPrimaryDisplay();
+    const clampedY = wa.y + TOOLBAR_TOP_OFFSET;
+    // Only write back when Y has drifted — avoids a tight event loop.
+    toolbarWindow.setPosition(cx, clampedY, false);
+  });
+
   toolbarWindow.on('closed', () => {
     toolbarWindow = undefined;
   });
@@ -108,15 +131,23 @@ export function createToolbarWindow(): BrowserWindow {
   return toolbarWindow;
 }
 
-/** Snap the toolbar to the horizontal centre of the primary display, just
- *  below the system title bar. Re-runs on every show in case the user
- *  swapped monitors or changed resolution while a session was active. */
+/** Position the toolbar window at the top of the primary display.
+ *  X defaults to the horizontal centre on first show; subsequent shows
+ *  preserve the user's chosen X position (they may have dragged it).
+ *  Y is always clamped to TOOLBAR_TOP_OFFSET so it hugs the top edge. */
 function positionToolbarTopCenter(win: BrowserWindow): void {
   try {
     const { workArea } = screen.getPrimaryDisplay();
-    const x = workArea.x + Math.round((workArea.width - TOOLBAR_WIDTH) / 2);
+    const toolbarWidth = workArea.width;
+    // If the window has never been shown, its X is 0. Snap to centre.
+    // If it has been shown before, preserve the current X.
+    const [currentX, ] = win.getPosition();
+    const isFirstShow   = !win.isVisible();
+    const x = isFirstShow
+      ? workArea.x  // full-width window starts at left edge of workArea
+      : Math.max(workArea.x, Math.min(currentX, workArea.x + workArea.width - toolbarWidth));
     const y = workArea.y + TOOLBAR_TOP_OFFSET;
-    win.setBounds({ x, y, width: TOOLBAR_WIDTH, height: TOOLBAR_HEIGHT });
+    win.setBounds({ x, y, width: toolbarWidth, height: TOOLBAR_HEIGHT });
   } catch (err) {
     logger.warn('positionToolbarTopCenter failed — using default bounds', {
       err: String(err),
