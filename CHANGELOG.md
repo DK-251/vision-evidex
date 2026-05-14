@@ -4,6 +4,16 @@ All notable changes are documented here. Versions follow [SemVer](https://semver
 
 ## [Unreleased]
 
+### W10 toolbar drag + solid pill (2026-05-13)
+
+- **Toolbar draggable left/right** — `window-manager.ts` toolbar window is now full `workArea.width`, `movable:true`. A `'move'` event listener clamps `y` to `workArea.y + 8` so the user can only drag horizontally. `positionToolbarTopCenter` preserves the user's chosen X on subsequent `showToolbarWindow` calls; only snaps on first show.
+- **`ReOrderDotsVerticalRegular` gripper icon** — added at left edge of the pill. This is the **only** element with `-webkit-app-region:drag`. All buttons have `-webkit-app-region:no-drag`.
+- **Transparent outer wrapper** — pill is `position:absolute` inside a `position:fixed; inset:0; pointer-events:none` full-viewport container, so click-through works on the empty areas.
+- **backdrop-filter removed** — `.capture-toolbar` no longer uses `backdrop-filter` / `-webkit-backdrop-filter`. Replaced with `rgba(28,28,30,0.96)` solid fill + layered `box-shadow`. Eliminates the blurry halo artefact caused by the OS compositing the blur over the full window rectangle.
+- **W10 annotation round-trip** — `CAPTURE_OPEN_ANNOTATION` now fetches `annotation_layers` row and includes `existingLayerJson` in `ANNOTATION_LOAD` payload; `canvas.loadFromJSON()` restores prior strokes on re-open.
+- **Annotation editor full rebuild** — RAF-throttled mouse, GPU `will-change:transform`, `PencilBrush` freehand, arrow/highlight/blur drag-to-draw, zoom Ctrl+scroll, 20-step undo/redo ring buffer, keyboard shortcuts V/A/T/H/B/P/1–6/Del/Ctrl+Z/Y/S.
+- **`w10-coverage.spec.ts`** — rewritten with Steps 4/8/10 coverage.
+
 ### Phase 2 Week 10 polish — UX redesign + critical wiring fixes (2026-05-12)
 
 - **[CRITICAL] Annotation save handlers wired for real** — `CAPTURE_ANNOTATE_SAVE` and `ANNOTATION_SAVE` were both registered against `stub` (returns null) in the W10 raw build. Editor drew, Save returned OK, nothing persisted. Now a real `saveAnnotation` handler in `ipc-router.ts` upserts the Fabric canvas JSON into `annotation_layers`, writes the composite PNG to `images/annotated/<basename>.annotated.png` via `container.addImage()`, stamps `captures.annotated_path` + `has_annotation = 1`, and calls `container.save()`. EC-14 (original-immutable) holds — the source JPEG under `images/original/` is never touched.

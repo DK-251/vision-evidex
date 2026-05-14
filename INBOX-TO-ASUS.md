@@ -9,6 +9,61 @@ Append-only messages from the CTS laptop to the Asus TUF. CTS writes here when i
 
 ---
 
+## 2026-05-13 — W10 design + functional gate (Steps 4, 8, 10)
+
+**From:** CTS  
+**Commit:** push main after this message  
+**Action needed:** `git pull && npm run report` then manual steps below
+
+### What landed in this push
+
+- **Annotation editor full rebuild** — Snipping-Tool quality: RAF-throttled mouse, GPU `will-change:transform`, freehand `PencilBrush` with smoothing, arrow/highlight/blur drag-to-draw, zoom (Ctrl+scroll + toolbar), full keyboard shortcuts (V/A/T/H/B/P/[ ]/1–6/Del/Ctrl+Z/Y/S)
+- **Annotation round-trip fixed** — `CAPTURE_OPEN_ANNOTATION` now fetches `annotation_layers` row and includes `existingLayerJson` in the `ANNOTATION_LOAD` payload; `canvas.loadFromJSON()` restores strokes on re-open
+- **ipc-router `saveAnnotation`** — full pipeline: annotation_layers upsert → composite PNG → `images/annotated/` → `updateCaptureAnnotation` → `container.save()`
+- **Toolbar** — Snipping-Tool pill: `movable:false`, `focusable:false`, `showInactive()`, slides in from top via Framer Motion, Fluent icons, CSS counter pills
+- **before-quit Rule 8** — `before-quit` intercepts red-X quit, awaits `projectService.close()` (ends session + saves container), then re-calls `app.quit()`
+- **w10-coverage.spec.ts** — rewritten with Steps 4/8/10 assertions
+
+### Step 4 — Toolbar position + focus (manual)
+
+1. `npm run dev` — go through onboarding if needed, open a project
+2. Start a session via session intake form
+3. **Toolbar should slide DOWN from top-centre of primary display** — pill appears with test ID, 0/0/0 counters, Fullscreen/Window/Region buttons, End button
+4. **Try to drag the toolbar** — it must NOT move (window `movable:false`)
+5. **Click anywhere in the main window** — toolbar must NOT take focus (recording dot keeps pulsing, no focus ring on toolbar)
+6. **Hover each capture button** — Fluent tooltip text should appear after ~200ms showing the hotkey hint (e.g. "Fullscreen · Ctrl+Shift+1")
+7. Take 2-3 captures via toolbar buttons — counter updates live
+
+### Step 8 — Annotation round-trip (manual)
+
+1. With captures in the gallery, click a thumbnail — detail panel opens
+2. Click **Annotate** — annotation window opens with capture image
+3. **Draw**: click Arrow (A), drag to draw an arrow. Press T, click to place text, type "DEFECT". Press H, drag a yellow highlight. Press B, drag a blur region.
+4. Press Ctrl+Z twice — last two strokes should undo
+5. Click **Save annotation** — should say "Saved ✓"
+6. **Close the annotation window**
+7. **Click Annotate again on the same capture**
+8. **Previous strokes must still be there** (arrow + text + remaining highlights after undo)
+9. If strokes vanish, round-trip is broken — write back to INBOX-TO-CTS with exact symptoms
+
+### Step 10 — Quit-with-active-session (manual)
+
+1. With a session running, take 2-3 captures (so data is in-memory)
+2. **Close the main window via the red ✕ button**
+3. Confirm any close dialog if shown
+4. **Relaunch** `npm run dev`
+5. Open the same project
+6. Navigate to session history — the session's captures **should still be there**
+7. If captures are missing, `before-quit` Rule 8 save didn’t fire — write back with exact steps
+
+### Expected automated gate results
+
+- typecheck: PASS
+- tests: all pass (target ~540+)
+- PBKDF2: <800ms
+
+---
+
 ## 2026-05-12 — W10-polish gate request (UX redesign + critical wiring fixes)
 
 **From:** CTS via filesystem connector

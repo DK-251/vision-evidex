@@ -357,19 +357,34 @@ export function registerAllHandlers(services: ServiceRegistry): void {
   registerHandler(IPC.CAPTURE_OPEN_ANNOTATION, CaptureOpenAnnotationSchema, async (input) => {
     const db = services.container.getProjectDb();
     const capture = db?.getCapture(input.captureId) ?? null;
-    if (!capture) throw new EvidexError(EvidexErrorCode.PROJECT_NOT_FOUND, 'Capture not found', { captureId: input.captureId });
+    if (!capture) throw new EvidexError(EvidexErrorCode.CAPTURE_NOT_FOUND, 'Capture not found', { captureId: input.captureId });
     const handle = services.container.getCurrentHandle();
     if (!handle) throw new EvidexError(EvidexErrorCode.PROJECT_NOT_FOUND, 'No project open');
     const imageData = await services.container.extractImage(handle.containerId, `images/original/${capture.originalFilename}`);
-    if (!imageData) throw new EvidexError(EvidexErrorCode.PROJECT_NOT_FOUND, 'Image not found in container', { captureId: input.captureId });
+    if (!imageData) throw new EvidexError(EvidexErrorCode.CAPTURE_NOT_FOUND, 'Image not found in container', { captureId: input.captureId });
+
+    // Round-trip: fetch existing annotation layer so strokes are restored on re-open.
+    const existingLayer = db?.getAnnotationLayer(input.captureId) ?? null;
+
     const win = getAnnotationWindow()?.isDestroyed() === false ? getAnnotationWindow()! : createAnnotationWindow();
-    const payload = {
+    const annotationPayload: {
+      captureId: string;
+      imageBase64: string;
+      width: number;
+      height: number;
+      existingLayerJson?: object;
+    } = {
       captureId:   capture.id,
       imageBase64: `data:image/jpeg;base64,${imageData.toString('base64')}`,
       width: 1920,
       height: 1080,
     };
-    const push = (): void => { if (!win.isDestroyed()) win.webContents.send(IPC_EVENTS.ANNOTATION_LOAD, payload); };
+    if (existingLayer?.layerJson) {
+      try {
+        annotationPayload.existingLayerJson = JSON.parse(existingLayer.layerJson) as object;
+      } catch { /* malformed JSON — open blank rather than crash */ }
+    }
+    const push = (): void => { if (!win.isDestroyed()) win.webContents.send(IPC_EVENTS.ANNOTATION_LOAD, annotationPayload); };
     if (win.webContents.isLoading()) win.webContents.once('did-finish-load', push);
     else push();
     return null;
