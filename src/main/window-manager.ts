@@ -117,7 +117,7 @@ export function createToolbarWindow(): BrowserWindow {
   // The user can only drag left/right; any vertical drift is corrected.
   toolbarWindow.on('move', () => {
     if (!toolbarWindow || toolbarWindow.isDestroyed()) return;
-    const [cx, ] = toolbarWindow.getPosition();
+    const [cx = 0] = toolbarWindow.getPosition();
     const { workArea: wa } = screen.getPrimaryDisplay();
     const clampedY = wa.y + TOOLBAR_TOP_OFFSET;
     // Only write back when Y has drifted — avoids a tight event loop.
@@ -141,7 +141,7 @@ function positionToolbarTopCenter(win: BrowserWindow): void {
     const toolbarWidth = workArea.width;
     // If the window has never been shown, its X is 0. Snap to centre.
     // If it has been shown before, preserve the current X.
-    const [currentX, ] = win.getPosition();
+    const [currentX = 0] = win.getPosition();
     const isFirstShow   = !win.isVisible();
     const x = isFirstShow
       ? workArea.x  // full-width window starts at left edge of workArea

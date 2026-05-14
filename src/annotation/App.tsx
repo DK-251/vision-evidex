@@ -98,7 +98,7 @@ export function App(): JSX.Element {
 
   const [payload,      setPayload]      = useState<AnnotationLoadPayload | null>(null);
   const [activeTool,   setActiveTool]   = useState<Tool>('select');
-  const [colour,       setColour]       = useState(PALETTE[0]!.hex);
+  const [colour,       setColour]       = useState<string>(PALETTE[0]!.hex);
   const [strokeWidth,  setStrokeWidth]  = useState(3);
   const [fabricReady,  setFabricReady]  = useState(false);
   const [canvasReady,  setCanvasReady]  = useState(false);
@@ -669,7 +669,7 @@ export function App(): JSX.Element {
             \u21aa
           </ToolButton>
           <ToolButton label="Delete selected (Del)" onClick={deleteSelected}>
-            \u{1F5D1}
+            {'\u{1F5D1}'}
           </ToolButton>
         </ToolGroup>
 
