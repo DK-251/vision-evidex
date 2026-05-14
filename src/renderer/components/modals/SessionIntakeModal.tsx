@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo, type FormEvent } from 'react';
 import type { Session, SessionIntakeInput } from '@shared/types/entities';
+import { EvidexErrorCode } from '@shared/types/ipc';
 import { Modal, ModalTitle, ModalActions } from '../ui/Modal';
 import { Input, Textarea } from '../ui/Input';
 import { Dropdown } from '../ui/Dropdown';
 import { Button } from '../ui/Button';
 import { ProgressRing } from '../ui/ProgressRing';
 import { useSessionStore } from '../../stores/session.store';
+import { useNavStore } from '../../stores/nav-store';
 
 /**
  * S-04 SessionIntakeModal (Docs §15). 560 px modal that creates a session
@@ -46,6 +48,7 @@ interface FieldErrors {
 }
 
 const TITLE_ID = 'session-intake-title';
+const DISCARD_TITLE_ID = 'session-intake-discard-title';  // SI-01
 
 export function SessionIntakeModal({
   projectId,
@@ -56,8 +59,10 @@ export function SessionIntakeModal({
   onCancel,
 }: SessionIntakeModalProps): JSX.Element {
   const startSession = useSessionStore((s) => s.startSession);
+  const navigate = useNavStore((s) => s.navigate);   // HK-05
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isShortcutConflict, setIsShortcutConflict] = useState(false); // HK-05
   const [showDataMatrix, setShowDataMatrix] = useState(false);
   const [discardPrompt, setDiscardPrompt] = useState(false);
 
@@ -131,6 +136,7 @@ export function SessionIntakeModal({
     }
     setSubmitting(true);
     setSubmitError(null);
+    setIsShortcutConflict(false);
     try {
       const intake: SessionIntakeInput = {
         projectId,
@@ -147,7 +153,14 @@ export function SessionIntakeModal({
       const session = await startSession(intake);
       onSuccess(session);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : String(err));
+      // HK-05: Detect shortcut conflict and show an actionable link to settings.
+      const code = (err as { code?: string }).code;
+      if (code === EvidexErrorCode.SHORTCUT_CONFLICT) {
+        setIsShortcutConflict(true);
+        setSubmitError('A global hotkey is already in use by another app. Open Settings → Hotkeys to remap it.');
+      } else {
+        setSubmitError(err instanceof Error ? err.message : String(err));
+      }
       setSubmitting(false);
     }
   }
@@ -340,6 +353,20 @@ export function SessionIntakeModal({
               }}
             >
               {submitError}
+              {/* HK-05: shortcut conflict gets a direct link to settings hotkeys tab */}
+              {isShortcutConflict && (
+                <>
+                  {' '}
+                  <button
+                    type="button"
+                    className="btn-link"
+                    style={{ fontSize: 'var(--type-caption-size)', verticalAlign: 'baseline' }}
+                    onClick={() => { onCancel(); navigate('settings'); }}
+                  >
+                    Open hotkey settings ↗
+                  </button>
+                </>
+              )}
             </div>
           )}
 
@@ -355,9 +382,9 @@ export function SessionIntakeModal({
         </form>
       </Modal>
 
-      {/* Discard-changes prompt — second modal, also from the Modal primitive */}
-      <Modal open={discardPrompt} onClose={() => setDiscardPrompt(false)}>
-        <ModalTitle>Discard changes?</ModalTitle>
+      {/* Discard-changes prompt — second modal. SI-01: ariaLabelledBy wired. */}
+      <Modal open={discardPrompt} onClose={() => setDiscardPrompt(false)} ariaLabelledBy={DISCARD_TITLE_ID}>
+        <ModalTitle id={DISCARD_TITLE_ID}>Discard changes?</ModalTitle>
         <div className="modal-body">
           You have unsaved changes in this session intake. Discard and close?
         </div>

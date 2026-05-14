@@ -36,16 +36,20 @@ describe('SettingsService', () => {
     expect(fs.existsSync(`${settingsPath}.tmp`)).toBe(false);
 
     const persisted = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    // Use toMatchObject so new fields (defaultExportPath, environments) don't break this.
     expect(persisted).toMatchObject({
       schemaVersion: SETTINGS_SCHEMA_VERSION,
       onboardingComplete: true,
       theme: 'light',
       defaultStoragePath: '',
       defaultTemplateId: '',
+      defaultExportPath: '',      // LO-03 addition
+      environments: [],            // SI-02 addition
     });
   });
 
   it('merges partial updates into existing settings', () => {
+    // Old-format JSON (no defaultExportPath/environments) — Zod fills defaults on load.
     fs.writeFileSync(
       settingsPath,
       JSON.stringify({
@@ -59,11 +63,14 @@ describe('SettingsService', () => {
     const svc = new SettingsService(settingsPath);
     svc.loadSettings();
     const next = svc.saveSettings({ defaultStoragePath: '/new/path' });
+    // toMatchObject — new fields (defaultExportPath, environments) will also be present.
     expect(next).toMatchObject({
       onboardingComplete: true,
       theme: 'dark',
       defaultStoragePath: '/new/path',
       defaultTemplateId: 'tpl_tsr_standard',
+      defaultExportPath: '',   // Zod default
+      environments: [],         // Zod default
     });
   });
 

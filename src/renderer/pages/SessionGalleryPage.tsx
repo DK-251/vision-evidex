@@ -33,13 +33,14 @@ export function SessionGalleryPage(): JSX.Element | null {
   const activeSession = useSessionStore((s) => s.activeSession);
   const endSession = useSessionStore((s) => s.endSession);
 
-  const [session, setSession] = useState<Session | null>(activeSession);
-  const [loading, setLoading] = useState<boolean>(activeSession === null);
-  const [status, setStatus] = useState<SessionStatus | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [session,       setSession]       = useState<Session | null>(activeSession);
+  const [loading,       setLoading]       = useState<boolean>(activeSession === null);
+  const [historicCaptures, setHistoricCaptures] = useState<CaptureResult[]>([]); // SG-NEW-01
+  const [status,        setStatus]        = useState<SessionStatus | null>(null);
+  const [selectedIds,   setSelectedIds]   = useState<Set<string>>(new Set());
   const [openCaptureId, setOpenCaptureId] = useState<string | null>(null);
   const [endingSession, setEndingSession] = useState(false);
-  const [flashOn, setFlashOn] = useState(false);
+  const [flashOn,       setFlashOn]       = useState(false);
 
   const reducedMotion = useReducedMotion();
 
@@ -48,25 +49,41 @@ export function SessionGalleryPage(): JSX.Element | null {
     if (!projectId || !sessionId) goBack();
   }, [projectId, sessionId, goBack]);
 
-  // Fetch the session row from the main process if the store didn't have
-  // it already (e.g. coming back to the gallery from settings).
+  // Fetch the session row + captures for non-active sessions (SG-NEW-01).
   useEffect(() => {
     let cancelled = false;
     if (!sessionId) return;
     if (activeSession && activeSession.id === sessionId) {
       setSession(activeSession);
+      setHistoricCaptures([]);
       setLoading(false);
       return;
     }
     setLoading(true);
-    void window.evidexAPI.session.get(sessionId).then((res) => {
+    // SG-NEW-01: load both session metadata AND its captures for ended sessions.
+    void Promise.all([
+      window.evidexAPI.session.get(sessionId),
+      window.evidexAPI.capture.list(sessionId),
+    ]).then(([sessionRes, captureRes]) => {
       if (cancelled) return;
-      if (res.ok) setSession(res.data);
+      if (sessionRes.ok) setSession(sessionRes.data);
+      if (captureRes.ok) {
+        // Convert Capture[] → CaptureResult[] shape that the gallery expects.
+        setHistoricCaptures(
+          captureRes.data.map((c) => ({
+            captureId:    c.id,
+            filename:     c.originalFilename,
+            sha256Hash:   c.sha256Hash,
+            fileSizeBytes: c.fileSizeBytes,
+            thumbnail:    '',   // will be lazy-loaded via getThumbnail
+            capturedAt:   c.capturedAt,
+            statusTag:    c.statusTag,
+          }))
+        );
+      }
       setLoading(false);
     });
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [sessionId, activeSession]);
 
   // Live counter — main pushes SESSION_STATUS_UPDATE on capture/end.
@@ -87,11 +104,7 @@ export function SessionGalleryPage(): JSX.Element | null {
   }, []);
 
   const counts = useMemo(() => {
-    // Always derive pass/fail/blocked from the live in-memory captures array
-    // so summary bar counts update immediately when a tag is changed.
-    // captureCount uses the status push when available (more authoritative
-    // for the total) but tag counts always come from the local array.
-    const derived = derivedCounts(captures);
+    const derived = derivedCounts(displayCaptures);
     const captureCount = status?.captureCount ?? session?.captureCount ?? derived.captureCount;
     return {
       sessionId:    sessionId ?? '',
@@ -100,7 +113,7 @@ export function SessionGalleryPage(): JSX.Element | null {
       failCount:    derived.failCount,
       blockedCount: derived.blockedCount,
     };
-  }, [status, session, captures, sessionId]);
+  }, [status, session, displayCaptures, sessionId]);
 
   function onThumbClick(id: string): void {
     setOpenCaptureId(id);
@@ -130,33 +143,37 @@ export function SessionGalleryPage(): JSX.Element | null {
   }
 
   // Rules-of-hooks: keep ALL hooks above the early-return guard below.
+  // SG-NEW-01: use live captures for active session, historic otherwise.
+  const isActive = session !== null && session.endedAt === undefined
+    && activeSession?.id === sessionId;
+  const displayCaptures = isActive ? captures : historicCaptures;
+
   const openedCapture = useMemo(
-    () => captures.find((c) => c.captureId === openCaptureId) ?? null,
-    [captures, openCaptureId]
+    () => displayCaptures.find((c) => c.captureId === openCaptureId) ?? null,
+    [displayCaptures, openCaptureId]
   );
 
   if (!projectId || !sessionId) return null;
 
-  const isActive = session !== null && session.endedAt === undefined;
   const detailVariants = reducedMotion ? fadeIn : pageForward;
 
   return (
     <div className="gallery-shell">
-      {flashOn && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: '#FFFFFF',
-            opacity: 0.6,
-            pointerEvents: 'none',
-            zIndex: 30,
-          }}
-        />
-      )}
-
-      <main className="gallery-main">
+      {/* GA-03: flash scoped to gallery-main (position:relative), not fixed viewport */}
+      <main className="gallery-main" style={{ position: 'relative' }}>
+        {flashOn && (
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: '#FFFFFF',
+              opacity: 0.6,
+              pointerEvents: 'none',
+              zIndex: 10,
+            }}
+          />
+        )}
         <header className="gallery-header">
           <button
             type="button"
@@ -204,11 +221,11 @@ export function SessionGalleryPage(): JSX.Element | null {
 
         {loading ? (
           <GallerySkeleton count={8} />
-        ) : captures.length === 0 ? (
+        ) : displayCaptures.length === 0 ? (
           <EmptyState />
         ) : (
           <ThumbnailGrid
-            captures={captures}
+            captures={displayCaptures}
             selectedIds={selectedIds}
             openCaptureId={openCaptureId}
             onClick={onThumbClick}

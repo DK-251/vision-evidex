@@ -37,7 +37,7 @@ import { EvidexError } from '@shared/types/errors';
 import { EvidexErrorCode } from '@shared/types/ipc';
 import type { CaptureMode, CaptureResult, ScreenRegion } from '@shared/types/entities';
 
-/** W10 — broadcast a capture result to all renderer windows. */
+/** TB-01: broadcast includes testId so toolbar can display it. */
 function broadcastCapture(sessionId: string, result: CaptureResult): void {
   const updated = sessionService?.get(sessionId);
   for (const win of BrowserWindow.getAllWindows()) {
@@ -45,6 +45,7 @@ function broadcastCapture(sessionId: string, result: CaptureResult): void {
     if (updated) {
       win.webContents.send(IPC_EVENTS.SESSION_STATUS_UPDATE, {
         sessionId:    updated.id,
+        testId:       updated.testId,   // TB-01
         captureCount: updated.captureCount,
         passCount:    updated.passCount,
         failCount:    updated.failCount,
@@ -240,27 +241,51 @@ function bootstrap(): void {
     });
 
     shortcutService = new ShortcutService({
-      onCapture: async (sessionId: string, mode: CaptureMode): Promise<void> => {
-        if (!sessionService || !captureService) return;
-        const sess = sessionService.get(sessionId);
-        if (!sess || sess.endedAt !== undefined) return;
-        try {
-          // W10 D34 — Region mode: open the overlay, wait for user selection.
-          if (mode === 'region') {
-            pendingRegionCapture = async (rect: ScreenRegion): Promise<void> => {
-              const result = await captureService!.screenshot({ sessionId, mode, region: rect });
-              broadcastCapture(sessionId, result);
-            };
-            createRegionWindow();
-            return; // resolve happens in ipcMain.on(REGION_SELECTED)
+      callbacks: {
+        onCapture: async (sessionId: string, mode: CaptureMode): Promise<void> => {
+          if (!sessionService || !captureService) return;
+          const sess = sessionService.get(sessionId);
+          if (!sess || sess.endedAt !== undefined) return;
+          try {
+            if (mode === 'region') {
+              pendingRegionCapture = async (rect: ScreenRegion): Promise<void> => {
+                const result = await captureService!.screenshot({ sessionId, mode, region: rect });
+                broadcastCapture(sessionId, result);
+              };
+              createRegionWindow();
+              return;
+            }
+            const result = await captureService.screenshot({ sessionId, mode });
+            broadcastCapture(sessionId, result);
+          } catch (err) {
+            logger.warn('hotkey.capture failed', {
+              sessionId, mode, err: err instanceof Error ? err.message : String(err),
+            });
           }
-          const result = await captureService.screenshot({ sessionId, mode });
-          broadcastCapture(sessionId, result);
-        } catch (err) {
-          logger.warn('hotkey.capture failed', {
-            sessionId, mode, err: err instanceof Error ? err.message : String(err),
-          });
-        }
+        },
+        // HK-02: tag last capture as pass or fail
+        onTagCapture: async (sessionId: string, tag): Promise<void> => {
+          if (!captureService) return;
+          const db = containerService.getProjectDb();
+          if (!db) return;
+          // Find the highest sequence-num capture for this session and tag it.
+          const captures = db.getCapturesForSession(sessionId);
+          const last = captures[captures.length - 1];
+          if (!last) return;
+          try {
+            captureService.updateTag(last.id, tag);
+            logger.info('hotkey.tagCapture', { captureId: last.id, tag });
+          } catch (err) {
+            logger.warn('hotkey.tagCapture failed', { err: String(err) });
+          }
+        },
+        // HK-02: toggle toolbar visibility
+        onToggleToolbar: (): void => {
+          const { getToolbarWindow } = require('./window-manager') as typeof import('./window-manager');
+          const tw = getToolbarWindow();
+          if (!tw || tw.isDestroyed()) return;
+          if (tw.isVisible()) tw.hide(); else tw.showInactive();
+        },
       },
     });
 

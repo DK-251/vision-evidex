@@ -8,17 +8,16 @@ import {
 import { EvidexErrorCode } from '../src/shared/types/ipc';
 
 /**
- * Phase 2 Week 7 / D32. ShortcutService owns the lifecycle of the three
- * session-scoped capture hotkeys. The brief Task 2 contract asserts:
+ * Phase 2 Week 7 / D32 — updated pre-Phase 3 audit pass.
  *
- *   - register-then-unregister clears the bindings + active sessionId
- *   - registering when an accelerator is already taken throws
- *     EvidexError(SHORTCUT_CONFLICT) BEFORE any partial registration
- *   - unregistering when nothing is registered is a silent no-op
+ * Changes from original:
+ *   - HotkeyBindings now has 6 fields (was 3). Added tagPass, tagFail, openToolbar.
+ *   - captureWindow renamed to captureActiveWindow (HK-01).
+ *   - ShortcutService constructor now takes { callbacks: { onCapture, onTagCapture?, onToggleToolbar? } }.
+ *   - All 6 accelerators register when callbacks are provided. Tests that count
+ *     registered size must reflect the new count (6, not 3).
  *
- * The service takes an injectable `GlobalShortcutLike` so we never have
- * to `vi.mock` an Electron module — matches the dep-injection pattern
- * already used in `capture-service.spec.ts`.
+ * The dep-injection pattern is unchanged; GlobalShortcutLike is still injectable.
  */
 
 interface FakeShortcuts extends GlobalShortcutLike {
@@ -29,7 +28,6 @@ interface FakeShortcuts extends GlobalShortcutLike {
 function makeFakeShortcuts(initiallyHeld: string[] = []): FakeShortcuts {
   const registered = new Map<string, () => void>();
   const forceRegisterFails = new Set<string>();
-  // "Externally held" accelerators are reported as registered without a callback.
   const externallyHeld = new Set(initiallyHeld);
 
   return {
@@ -53,22 +51,37 @@ function makeFakeShortcuts(initiallyHeld: string[] = []): FakeShortcuts {
   };
 }
 
+// How many accelerators should register when all callbacks are provided.
+// 3 capture + tagPass + tagFail + openToolbar = 6.
+const FULL_BINDING_COUNT = 6;
+
+// How many register when only onCapture is provided (no tag/toolbar callbacks).
+const CAPTURE_ONLY_COUNT = 3;
+
 describe('ShortcutService — session-scoped hotkey lifecycle (Phase 2 Wk7 / D32)', () => {
   let shortcuts: FakeShortcuts;
   let onCapture: ReturnType<typeof vi.fn>;
+  let onTagCapture: ReturnType<typeof vi.fn>;
+  let onToggleToolbar: ReturnType<typeof vi.fn>;
   let service: ShortcutService;
 
   beforeEach(() => {
     shortcuts = makeFakeShortcuts();
     onCapture = vi.fn();
-    service = new ShortcutService({ onCapture, shortcuts });
+    onTagCapture = vi.fn();
+    onToggleToolbar = vi.fn();
+    // Full callbacks — all 6 accelerators register.
+    service = new ShortcutService({
+      callbacks: { onCapture, onTagCapture, onToggleToolbar },
+      shortcuts,
+    });
   });
 
   it('register then unregister clears bindings and session', () => {
     service.registerSessionShortcuts('sess_01HX', DEFAULT_HOTKEY_BINDINGS);
 
     expect(service.getCurrentBindings()).toEqual(DEFAULT_HOTKEY_BINDINGS);
-    expect(shortcuts.registered.size).toBe(3);
+    expect(shortcuts.registered.size).toBe(FULL_BINDING_COUNT);
 
     service.unregisterSessionShortcuts();
 
@@ -77,10 +90,21 @@ describe('ShortcutService — session-scoped hotkey lifecycle (Phase 2 Wk7 / D32
     expect(shortcuts.registered.size).toBe(0);
   });
 
+  it('only 3 accelerators register when tagCapture/toggleToolbar callbacks are absent', () => {
+    const captureOnlyService = new ShortcutService({
+      callbacks: { onCapture },
+      shortcuts,
+    });
+    captureOnlyService.registerSessionShortcuts('sess_01HX', DEFAULT_HOTKEY_BINDINGS);
+    expect(shortcuts.registered.size).toBe(CAPTURE_ONLY_COUNT);
+  });
+
   it('throws SHORTCUT_CONFLICT when an accelerator is already held — and registers nothing', () => {
-    // External app holds Ctrl+Shift+1 before SessionService runs.
     shortcuts = makeFakeShortcuts([DEFAULT_HOTKEY_BINDINGS.captureFullscreen]);
-    service = new ShortcutService({ onCapture, shortcuts });
+    service = new ShortcutService({
+      callbacks: { onCapture, onTagCapture, onToggleToolbar },
+      shortcuts,
+    });
 
     expect(() =>
       service.registerSessionShortcuts('sess_01HX', DEFAULT_HOTKEY_BINDINGS)
@@ -91,14 +115,11 @@ describe('ShortcutService — session-scoped hotkey lifecycle (Phase 2 Wk7 / D32
       })
     );
 
-    // Nothing should have been registered through the service.
     expect(shortcuts.registered.size).toBe(0);
     expect(service.getCurrentBindings()).toBeNull();
   });
 
   it('rolls back partial registration if globalShortcut.register() returns false mid-flight', () => {
-    // The first two registrations succeed, the third (region) fails — the
-    // service must unregisterAll to avoid leaking the first two hotkeys.
     shortcuts.forceRegisterFails.add(DEFAULT_HOTKEY_BINDINGS.captureRegion);
 
     expect(() =>
@@ -130,31 +151,45 @@ describe('ShortcutService — session-scoped hotkey lifecycle (Phase 2 Wk7 / D32
 
   it('register on a different session clears the previous session before binding the new one', () => {
     service.registerSessionShortcuts('sess_01HX_OLD', DEFAULT_HOTKEY_BINDINGS);
+    // Custom bindings — use the new 6-field shape.
     const customBindings: HotkeyBindings = {
-      captureFullscreen: 'CmdOrCtrl+Alt+1',
-      captureWindow:     'CmdOrCtrl+Alt+2',
-      captureRegion:     'CmdOrCtrl+Alt+3',
+      captureFullscreen:   'CmdOrCtrl+Alt+1',
+      captureActiveWindow: 'CmdOrCtrl+Alt+2',  // HK-01: was captureWindow
+      captureRegion:       'CmdOrCtrl+Alt+3',
+      tagPass:             'CmdOrCtrl+Alt+P',
+      tagFail:             'CmdOrCtrl+Alt+F',
+      openToolbar:         'CmdOrCtrl+Alt+T',
     };
 
     service.registerSessionShortcuts('sess_01HX_NEW', customBindings);
 
     expect(shortcuts.unregisterAll).toHaveBeenCalled();
     expect(service.getCurrentBindings()).toEqual(customBindings);
-    expect(shortcuts.registered.size).toBe(3);
-    // None of the OLD bindings should still be registered.
+    expect(shortcuts.registered.size).toBe(FULL_BINDING_COUNT);
     expect(shortcuts.registered.has(DEFAULT_HOTKEY_BINDINGS.captureFullscreen)).toBe(false);
   });
 
-  it('hotkey callback fires onCapture(activeSessionId, mode)', () => {
+  it('hotkey callbacks fire with correct args', () => {
     service.registerSessionShortcuts('sess_01HX', DEFAULT_HOTKEY_BINDINGS);
 
+    // Capture shortcuts → onCapture
     shortcuts.registered.get(DEFAULT_HOTKEY_BINDINGS.captureFullscreen)!();
-    shortcuts.registered.get(DEFAULT_HOTKEY_BINDINGS.captureWindow)!();
+    shortcuts.registered.get(DEFAULT_HOTKEY_BINDINGS.captureActiveWindow)!();
     shortcuts.registered.get(DEFAULT_HOTKEY_BINDINGS.captureRegion)!();
 
     expect(onCapture).toHaveBeenNthCalledWith(1, 'sess_01HX', 'fullscreen');
     expect(onCapture).toHaveBeenNthCalledWith(2, 'sess_01HX', 'active-window');
     expect(onCapture).toHaveBeenNthCalledWith(3, 'sess_01HX', 'region');
+
+    // Tag shortcuts → onTagCapture
+    shortcuts.registered.get(DEFAULT_HOTKEY_BINDINGS.tagPass)!();
+    shortcuts.registered.get(DEFAULT_HOTKEY_BINDINGS.tagFail)!();
+    expect(onTagCapture).toHaveBeenNthCalledWith(1, 'sess_01HX', 'pass');
+    expect(onTagCapture).toHaveBeenNthCalledWith(2, 'sess_01HX', 'fail');
+
+    // Toolbar toggle → onToggleToolbar
+    shortcuts.registered.get(DEFAULT_HOTKEY_BINDINGS.openToolbar)!();
+    expect(onToggleToolbar).toHaveBeenCalledTimes(1);
   });
 
   it('callback after unregister does not invoke onCapture (sessionId is null)', () => {
@@ -162,17 +197,31 @@ describe('ShortcutService — session-scoped hotkey lifecycle (Phase 2 Wk7 / D32
     const fullscreenCb = shortcuts.registered.get(DEFAULT_HOTKEY_BINDINGS.captureFullscreen)!;
     service.unregisterSessionShortcuts();
 
-    // The callback closure may still be reachable in a TOCTOU window. It must
-    // bail out cleanly when activeSessionId has been cleared.
     fullscreenCb();
     expect(onCapture).not.toHaveBeenCalled();
   });
 
   it('isRegistered() reflects external holds even before the service binds anything', () => {
     shortcuts = makeFakeShortcuts(['CmdOrCtrl+Shift+9']);
-    service = new ShortcutService({ onCapture, shortcuts });
+    service = new ShortcutService({
+      callbacks: { onCapture },
+      shortcuts,
+    });
 
     expect(service.isRegistered('CmdOrCtrl+Shift+9')).toBe(true);
     expect(service.isRegistered('CmdOrCtrl+Shift+8')).toBe(false);
+  });
+
+  it('DEFAULT_HOTKEY_BINDINGS has all 6 required keys', () => {
+    expect(DEFAULT_HOTKEY_BINDINGS).toMatchObject({
+      captureFullscreen:   expect.any(String),
+      captureActiveWindow: expect.any(String),  // HK-01: was captureWindow
+      captureRegion:       expect.any(String),
+      tagPass:             expect.any(String),
+      tagFail:             expect.any(String),
+      openToolbar:         expect.any(String),
+    });
+    // Ensure the old key name is gone
+    expect((DEFAULT_HOTKEY_BINDINGS as Record<string, unknown>)['captureWindow']).toBeUndefined();
   });
 });

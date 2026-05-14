@@ -1,20 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * D34 \u2014 Region capture overlay (rubber-band selector).
+ * D34 — Region capture overlay (rubber-band selector).
  *
- * Fullscreen transparent BrowserWindow (createRegionWindow in window-manager).
- * User click-drags to select a rectangle. On mouseup the selected region
- * coordinates are sent back to the main process via IPC and the window closes.
- *
- * The overlay has a subtle dark tint and crosshair cursor so the user
- * can see it is active without occluding the screen content completely.
+ * RG-01 fix: use window.evidexAPI.region.sendSelected / sendCancel
+ *            (previously used window.ipcRenderer which doesn't exist in
+ *            the sandboxed preload — region capture was 100% broken).
+ * RG-02 fix: dimension label flips above the box when near the screen bottom.
+ * RG-04 fix: overlay tint increased from 10% to 25% opacity.
  */
 
-const IPC_REGION_SELECTED = 'region:selected';
-const IPC_REGION_CANCEL   = 'region:cancel';
-
 interface Rect { x: number; y: number; width: number; height: number }
+
+interface RegionAPI {
+  sendSelected: (rect: Rect) => void;
+  sendCancel: () => void;
+}
+
+function getRegionAPI(): RegionAPI | null {
+  // RG-01: use the preload bridge surface exposed via contextBridge.
+  const api = (window as Window & {
+    evidexAPI?: { region?: RegionAPI };
+  }).evidexAPI;
+  return api?.region ?? null;
+}
 
 export function App(): JSX.Element {
   const [start, setStart] = useState<{ x: number; y: number } | null>(null);
@@ -23,16 +32,13 @@ export function App(): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const sendResult = useCallback((rect: Rect) => {
-    const ipc = (window as Window & { ipcRenderer?: { send: (ch: string, v: unknown) => void } }).ipcRenderer;
-    ipc?.send(IPC_REGION_SELECTED, rect);
+    getRegionAPI()?.sendSelected(rect);
   }, []);
 
   const sendCancel = useCallback(() => {
-    const ipc = (window as Window & { ipcRenderer?: { send: (ch: string) => void } }).ipcRenderer;
-    ipc?.send(IPC_REGION_CANCEL);
+    getRegionAPI()?.sendCancel();
   }, []);
 
-  // Escape key cancels.
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') sendCancel();
@@ -59,7 +65,6 @@ export function App(): JSX.Element {
     const y = Math.min(start.y, e.clientY);
     const width  = Math.abs(e.clientX - start.x);
     const height = Math.abs(e.clientY - start.y);
-    // Discard tiny selections (accidental clicks).
     if (width < 8 || height < 8) {
       setStart(null);
       setCurrent(null);
@@ -68,7 +73,33 @@ export function App(): JSX.Element {
     sendResult({ x, y, width, height });
   }
 
-  // Compute selection rect for the visual overlay.
+  // Touch support — RG-05
+  function onTouchStart(e: React.TouchEvent): void {
+    const t = e.touches[0];
+    if (!t) return;
+    setStart({ x: t.clientX, y: t.clientY });
+    setCurrent({ x: t.clientX, y: t.clientY });
+    setSelecting(true);
+  }
+  function onTouchMove(e: React.TouchEvent): void {
+    if (!selecting) return;
+    const t = e.touches[0];
+    if (!t) return;
+    setCurrent({ x: t.clientX, y: t.clientY });
+  }
+  function onTouchEnd(e: React.TouchEvent): void {
+    if (!selecting || !start) return;
+    const t = e.changedTouches[0];
+    if (!t) return;
+    setSelecting(false);
+    const x = Math.min(start.x, t.clientX);
+    const y = Math.min(start.y, t.clientY);
+    const width  = Math.abs(t.clientX - start.x);
+    const height = Math.abs(t.clientY - start.y);
+    if (width < 8 || height < 8) { setStart(null); setCurrent(null); return; }
+    sendResult({ x, y, width, height });
+  }
+
   const selectionRect: Rect | null =
     selecting && start && current
       ? {
@@ -79,22 +110,29 @@ export function App(): JSX.Element {
         }
       : null;
 
+  // RG-02: flip dimension label above the box when near screen bottom.
+  const labelAbove = selectionRect
+    ? (selectionRect.y + selectionRect.height) > window.innerHeight - 40
+    : false;
+
   return (
     <div
       ref={containerRef}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
       style={{
         width: '100vw',
         height: '100vh',
         cursor: 'crosshair',
         position: 'relative',
-        background: 'rgba(0, 0, 0, 0.10)',
+        background: 'rgba(0, 0, 0, 0.25)',   // RG-04: was 0.10 — too transparent
         userSelect: 'none',
       }}
     >
-      {/* Instruction hint */}
       {!selecting && (
         <div
           style={{
@@ -102,7 +140,7 @@ export function App(): JSX.Element {
             top: 20,
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'rgba(0, 0, 0, 0.65)',
+            background: 'rgba(0, 0, 0, 0.70)',
             color: '#fff',
             fontSize: 13,
             fontFamily: 'Segoe UI Variable, Segoe UI, system-ui, sans-serif',
@@ -112,11 +150,10 @@ export function App(): JSX.Element {
             whiteSpace: 'nowrap',
           }}
         >
-          Drag to select region \u2014 Esc to cancel
+          Drag to select region — Esc to cancel
         </div>
       )}
 
-      {/* Selection rectangle */}
       {selectionRect && (
         <div
           style={{
@@ -131,13 +168,13 @@ export function App(): JSX.Element {
             pointerEvents: 'none',
           }}
         >
-          {/* Dimension label */}
+          {/* RG-02: flip label above box when near bottom of screen */}
           <div
             style={{
               position: 'absolute',
-              bottom: -22,
+              ...(labelAbove ? { top: -22 } : { bottom: -22 }),
               left: 0,
-              background: 'rgba(0,0,0,0.65)',
+              background: 'rgba(0,0,0,0.70)',
               color: '#fff',
               fontSize: 11,
               fontFamily: 'Cascadia Code, Consolas, monospace',
@@ -146,7 +183,7 @@ export function App(): JSX.Element {
               whiteSpace: 'nowrap',
             }}
           >
-            {selectionRect.width} \u00d7 {selectionRect.height}
+            {selectionRect.width} × {selectionRect.height}
           </div>
         </div>
       )}

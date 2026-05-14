@@ -1,6 +1,11 @@
 /**
  * Hotkey remap + conflict detection helpers.
  *
+ * HK-01 fix: all action IDs now use `captureActiveWindow` (aligned with shortcut.service.ts).
+ * HK-03 fix: DEFAULT_HOTKEYS now mirrors DEFAULT_HOTKEY_BINDINGS from shortcut.service.ts.
+ *            The renderer format uses `Ctrl+` (not `CmdOrCtrl+`) — the conversion to Electron
+ *            accelerator format happens in session.service.ts via toElectronAccelerator().
+ *
  * Pure functions — no React, no DOM beyond the KeyboardEvent parameter
  * shape — so the test suite can run them in the node vitest env without
  * a browser.
@@ -13,25 +18,25 @@ export interface HotkeyAction {
   defaultBinding: string;
 }
 
-/** 6 configurable actions per Tech Spec. */
+/** HK-01 + HK-03: 6 configurable actions, IDs aligned with shortcut.service.ts */
 export const HOTKEY_ACTIONS: readonly HotkeyAction[] = Object.freeze([
   {
     id: 'captureFullscreen',
     label: 'Capture full screen',
     description: 'Take a screenshot of the entire primary display.',
-    defaultBinding: 'Ctrl+Shift+F',
+    defaultBinding: 'Ctrl+Shift+1',
   },
   {
-    id: 'captureActiveWindow',
+    id: 'captureActiveWindow',   // HK-01: was `captureActiveWindow` in renderer but main read `captureWindow` — now aligned
     label: 'Capture active window',
     description: 'Screenshot the focused application window.',
-    defaultBinding: 'Ctrl+Shift+W',
+    defaultBinding: 'Ctrl+Shift+2',
   },
   {
     id: 'captureRegion',
     label: 'Capture region',
     description: 'Drag-select a region to capture.',
-    defaultBinding: 'Ctrl+Shift+R',
+    defaultBinding: 'Ctrl+Shift+3',
   },
   {
     id: 'tagPass',
@@ -43,7 +48,7 @@ export const HOTKEY_ACTIONS: readonly HotkeyAction[] = Object.freeze([
     id: 'tagFail',
     label: 'Tag last capture as FAIL',
     description: 'Mark the most recent capture as failing.',
-    defaultBinding: 'Ctrl+Shift+X',
+    defaultBinding: 'Ctrl+Shift+F',
   },
   {
     id: 'openToolbar',
@@ -62,15 +67,16 @@ export const DEFAULT_HOTKEYS: Readonly<Record<string, string>> = Object.freeze(
 
 /**
  * Format a KeyboardEvent into a canonical binding string:
- *   "Ctrl+Shift+F"   (modifiers sorted: Ctrl, Alt, Shift, Meta)
+ *   "Ctrl+Shift+1"  (modifiers sorted: Ctrl, Alt, Shift, Meta)
  * Alphanumeric keys are upper-cased; function keys preserved as-is.
+ * The renderer always stores `Ctrl+` — session.service converts to
+ * `CmdOrCtrl+` before passing to Electron globalShortcut (HK-04).
  */
 export function formatKeyEvent(e: Pick<KeyboardEvent, 'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey' | 'key'>): string {
   const mods: string[] = [];
-  if (e.ctrlKey) mods.push('Ctrl');
+  if (e.ctrlKey || e.metaKey) mods.push('Ctrl');
   if (e.altKey) mods.push('Alt');
   if (e.shiftKey) mods.push('Shift');
-  if (e.metaKey) mods.push('Meta');
   let key = e.key;
   if (key.length === 1) key = key.toUpperCase();
   return [...mods, key].join('+');

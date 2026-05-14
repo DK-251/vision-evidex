@@ -5,6 +5,7 @@ import {
   type IpcMainInvokeEvent,
   type OpenDialogOptions,
 } from 'electron';
+import sharp from 'sharp';
 import { ulid } from 'ulid';
 import type { z } from 'zod';
 import { IPC, IPC_EVENTS, type IpcChannel } from '@shared/ipc-channels';
@@ -283,13 +284,12 @@ export function registerAllHandlers(services: ServiceRegistry): void {
       ...(region !== undefined ? { region } : {}),
     });
 
-    // 3. Push the live counter update + flash to all windows. Plus
-    //    CAPTURE_ARRIVED with the full CaptureResult so the gallery
-    //    appends a real thumbnail without a refetch round trip.
+    // 3. Push the live counter update + flash to all windows. TB-01: include testId.
     const updated = services.session.get(input.sessionId);
     if (updated) {
       broadcast(IPC_EVENTS.SESSION_STATUS_UPDATE, {
         sessionId:    updated.id,
+        testId:       updated.testId,    // TB-01
         captureCount: updated.captureCount,
         passCount:    updated.passCount,
         failCount:    updated.failCount,
@@ -299,19 +299,26 @@ export function registerAllHandlers(services: ServiceRegistry): void {
     broadcast(IPC_EVENTS.CAPTURE_FLASH);
     broadcast(IPC_EVENTS.CAPTURE_ARRIVED, result);
 
-    // 4. Storage warning — getSizeBytes needs an open handle which is
-    //    guaranteed by the time we reach this point (capture.screenshot
-    //    above would have thrown otherwise).
+    // 4. Storage warning + LO-04: hard block at 100%.
     const handle = services.container.getCurrentHandle();
     if (handle && handle.projectId === session.projectId) {
       try {
         const sizeBytes = await services.container.getSizeBytes(handle.containerId);
         const pct = Math.round((sizeBytes / PROJECT_SIZE_BUDGET_BYTES) * 100);
+        if (pct >= 100) {
+          // LO-04: Hard cap reached — reject future captures.
+          throw new EvidexError(
+            EvidexErrorCode.STORAGE_LIMIT_EXCEEDED,
+            `Project container has reached the 20 MB limit (${pct}%). End the session to free space.`,
+            { pct: String(pct) }
+          );
+        }
         if (pct >= STORAGE_WARNING_THRESHOLD_PCT) {
           broadcast(IPC_EVENTS.STORAGE_WARNING, pct);
         }
-      } catch {
-        // size check failures must not poison the capture response
+      } catch (err) {
+        // Re-throw EvidexErrors (hard cap), swallow everything else.
+        if (isEvidexError(err)) throw err;
       }
     }
 
@@ -366,6 +373,20 @@ export function registerAllHandlers(services: ServiceRegistry): void {
     // Round-trip: fetch existing annotation layer so strokes are restored on re-open.
     const existingLayer = db?.getAnnotationLayer(input.captureId) ?? null;
 
+    // AN-NEW-01: Extract real image dimensions instead of hardcoding 1920x1080.
+    // Captures at non-1080p resolutions would be clipped or have dead canvas space.
+    let imgWidth = 1920;
+    let imgHeight = 1080;
+    try {
+      const meta = await sharp(imageData).metadata();
+      if (meta.width && meta.height) {
+        imgWidth = meta.width;
+        imgHeight = meta.height;
+      }
+    } catch {
+      /* fall back to 1920x1080 if metadata extraction fails */
+    }
+
     const win = getAnnotationWindow()?.isDestroyed() === false ? getAnnotationWindow()! : createAnnotationWindow();
     const annotationPayload: {
       captureId: string;
@@ -376,8 +397,8 @@ export function registerAllHandlers(services: ServiceRegistry): void {
     } = {
       captureId:   capture.id,
       imageBase64: `data:image/jpeg;base64,${imageData.toString('base64')}`,
-      width: 1920,
-      height: 1080,
+      width:  imgWidth,
+      height: imgHeight,
     };
     if (existingLayer?.layerJson) {
       try {
@@ -429,6 +450,12 @@ export function registerAllHandlers(services: ServiceRegistry): void {
       ...(partial.theme !== undefined ? { theme: partial.theme } : {}),
       ...(partial.defaultStoragePath !== undefined
         ? { defaultStoragePath: partial.defaultStoragePath }
+        : {}),
+      ...(partial.defaultExportPath !== undefined
+        ? { defaultExportPath: partial.defaultExportPath }    // LO-03
+        : {}),
+      ...(partial.environments !== undefined
+        ? { environments: partial.environments }              // SI-02
         : {}),
       ...(partial.defaultTemplateId !== undefined
         ? { defaultTemplateId: partial.defaultTemplateId }

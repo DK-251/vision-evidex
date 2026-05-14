@@ -310,11 +310,15 @@ export function makeSessionWindowControls(
   };
 }
 
+// HK-01: aligned to captureActiveWindow. HK-02: all 6 actions resolved.
 function resolveHotkeyBindings(settings: Settings): HotkeyBindings {
   const hotkeys = settings.hotkeys ?? {};
   return {
-    captureFullscreen: hotkeys['captureFullscreen'] ?? DEFAULT_HOTKEY_BINDINGS.captureFullscreen,
-    captureWindow:     hotkeys['captureWindow']     ?? DEFAULT_HOTKEY_BINDINGS.captureWindow,
-    captureRegion:     hotkeys['captureRegion']     ?? DEFAULT_HOTKEY_BINDINGS.captureRegion,
+    captureFullscreen:   hotkeys['captureFullscreen']   ?? DEFAULT_HOTKEY_BINDINGS.captureFullscreen,
+    captureActiveWindow: hotkeys['captureActiveWindow'] ?? DEFAULT_HOTKEY_BINDINGS.captureActiveWindow,
+    captureRegion:       hotkeys['captureRegion']       ?? DEFAULT_HOTKEY_BINDINGS.captureRegion,
+    tagPass:             hotkeys['tagPass']             ?? DEFAULT_HOTKEY_BINDINGS.tagPass,
+    tagFail:             hotkeys['tagFail']             ?? DEFAULT_HOTKEY_BINDINGS.tagFail,
+    openToolbar:         hotkeys['openToolbar']         ?? DEFAULT_HOTKEY_BINDINGS.openToolbar,
   };
 }

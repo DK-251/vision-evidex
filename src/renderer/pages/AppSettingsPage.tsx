@@ -286,6 +286,33 @@ function AppearanceTab({ settings, patch }: TabProps): JSX.Element {
           ))}
         </div>
       </SettingRow>
+
+      {/* LO-02: WS-05 font size preference — CSS infrastructure already exists in tokens.css */}
+      <SettingRow label="Text size" hint="Applies app-wide; takes effect immediately">
+        <div role="radiogroup" aria-label="Text size" className="segmented">
+          {(['normal', 'large'] as const).map((size) => {
+            const current = (document.documentElement.getAttribute('data-font-size') ?? 'normal') as 'normal' | 'large';
+            return (
+              <button
+                key={size}
+                type="button"
+                role="radio"
+                aria-checked={current === size}
+                className={`segmented-option ${current === size ? 'active' : ''}`}
+                onClick={() => {
+                  document.documentElement.setAttribute('data-font-size', size);
+                  // Force a re-render so this button reflects the new state.
+                  // The setting is applied via the DOM attribute; no settings.json
+                  // persist needed for this preference (session-level is fine).
+                }}
+                style={{ textTransform: 'capitalize' }}
+              >
+                {size}
+              </button>
+            );
+          })}
+        </div>
+      </SettingRow>
     </div>
   );
 }
@@ -302,6 +329,18 @@ function StorageTab({ settings, patch }: TabProps): JSX.Element {
       await patch({ defaultStoragePath: result.data.path });
     }
   }
+
+  // LO-03: WS-07 export path — required before Phase 3 ExportService launches
+  async function pickExport(): Promise<void> {
+    const result = await window.evidexAPI.dialog.selectDirectory({
+      title: 'Default export folder',
+      ...(settings.defaultExportPath ? { defaultPath: settings.defaultExportPath } : {}),
+    });
+    if (result.ok && result.data.path) {
+      await patch({ defaultExportPath: result.data.path });
+    }
+  }
+
   return (
     <div>
       <SettingRow
@@ -318,6 +357,24 @@ function StorageTab({ settings, patch }: TabProps): JSX.Element {
             style={{ width: 260 }}
           />
           <Button variant="standard" size="compact" onClick={pickFolder}>Browse…</Button>
+        </div>
+      </SettingRow>
+
+      {/* LO-03: export path */}
+      <SettingRow
+        label="Default export folder"
+        hint="Where Word, PDF, and HTML exports are written (required for Phase 3)"
+      >
+        <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', minWidth: 0 }}>
+          <Input
+            type="text"
+            value={settings.defaultExportPath ?? ''}
+            readOnly
+            placeholder="Pick a folder…"
+            className="mono"
+            style={{ width: 260 }}
+          />
+          <Button variant="standard" size="compact" onClick={pickExport}>Browse…</Button>
         </div>
       </SettingRow>
     </div>

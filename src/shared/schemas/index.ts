@@ -278,7 +278,9 @@ export const SettingsSchema = z.object({
   onboardingComplete: z.boolean(),
   theme: z.enum(['light', 'dark', 'system']),
   defaultStoragePath: z.string(),
+  defaultExportPath: z.string().default(''),         // LO-03
   defaultTemplateId: z.string(),
+  environments: z.array(z.string()).default([]),       // SI-02
   profile: UserProfileSettingsSchema.optional(),
   hotkeys: z.record(z.string()).optional(),
   brandingProfileId: z.string().optional(),

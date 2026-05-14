@@ -179,9 +179,11 @@ export function App(): JSX.Element {
 
         // Restore existing annotation layer if present (round-trip).
         if (payload.existingLayerJson) {
+          isRestoring = true;   // AN-01: suppress history entries during restore
           c.loadFromJSON(payload.existingLayerJson, () => {
+            isRestoring = false;
             c.renderAll();
-            snap(c);
+            snap(c);            // one clean baseline entry after restore
           });
         } else {
           snap(c);
@@ -192,7 +194,11 @@ export function App(): JSX.Element {
     );
 
     // Undo history snapshotting.
+    // AN-01: isRestoring flag prevents loadFromJSON's object:added events
+    // from creating spurious history entries on round-trip re-open.
+    let isRestoring = false;
     const snap = (cv: typeof c): void => {
+      if (isRestoring) return;   // AN-01: skip during JSON restore
       const json  = JSON.stringify(cv.toJSON(['data']));
       const stack = history.current.slice(0, historyIdx.current + 1);
       if (stack.length >= HISTORY_LIMIT) stack.shift();
@@ -438,9 +444,13 @@ export function App(): JSX.Element {
       if (ctrl && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
       if (ctrl && e.key === 's') { e.preventDefault(); void handleSave(); return; }
 
+      // AN-03: guard Delete/Backspace against firing inside IText editor.
       if (['Delete', 'Backspace'].includes(e.key) && !ctrl) {
         const c = canvas.current;
-        if (c && c.getActiveObject()) { deleteSelected(); }
+        const activeObj = c?.getActiveObject();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (activeObj && (activeObj as any).isEditing) return;
+        if (c && activeObj) { deleteSelected(); }
         return;
       }
 

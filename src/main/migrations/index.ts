@@ -1,4 +1,5 @@
 import { MIGRATION_001_INITIAL_SCHEMA_UP } from './001_initial_schema';
+import { MIGRATION_002_CAPTURES_TESTER_NAME_UP } from './002_captures_tester_name';
 
 /**
  * Project-DB migration registry. Applied in array order by
@@ -19,5 +20,9 @@ export const PROJECT_MIGRATIONS: readonly Migration[] = Object.freeze([
   {
     version: '001_initial_schema',
     up: MIGRATION_001_INITIAL_SCHEMA_UP,
+  },
+  {
+    version: '002_captures_tester_name',  // DB-NEW-01
+    up: MIGRATION_002_CAPTURES_TESTER_NAME_UP,
   },
 ]);

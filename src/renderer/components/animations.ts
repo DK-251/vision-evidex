@@ -61,11 +61,17 @@ export const captureFlash: Variants = {
 };
 
 export const sidebarCollapse: Variants = {
+  // LO-06: retained for documentation only — the sidebar currently uses
+  // pure CSS transitions. If this is wired to Framer Motion in future,
+  // use these variants with <motion.nav>.
   open:   { width: 220, transition: { duration: 0.167, ease: EASE_DECELERATE } },
   closed: { width: 48,  transition: { duration: 0.167, ease: EASE_ACCELERATE } },
 };
 
 export const navLabelFade: Variants = {
+  // LO-06: retained for future use — sidebar label currently uses
+  // display:none via CSS. Wire to <motion.span> on the label when
+  // the sidebar is migrated to Framer Motion.
   open:   { opacity: 1, transition: { duration: 0.083, delay: 0.083 } },
   closed: { opacity: 0, transition: { duration: 0.083 } },
 };

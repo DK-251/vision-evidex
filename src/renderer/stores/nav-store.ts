@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 
 /**
- * Page-dispatch nav store. The session-route values land in Phase 2 Wk 7
- * D34 alongside SessionIntakePage / SessionGalleryPage. URL-based routing
- * (HashRouter + react-router) is tracked in BACKLOG.md as PH2-ROUTING and
- * lands before Phase 3 — component contracts already take projectId /
- * sessionId as inputs, so the migration is mechanical.
+ * Page-dispatch nav store.
+ *
+ * NAV-02 fix: Sessions sidebar item is disabled (page=null) when no
+ *             project is open. Sidebar.tsx checks currentProjectId.
+ * NAV-NEW-01 fix: navigate to 'project-overview' no longer clears
+ *             currentSessionId — only truly top-level pages reset it.
  */
 
 export type Page =
@@ -15,12 +16,11 @@ export type Page =
   | 'session-gallery'
   | 'project-list'
   | 'create-project'
-  | 'project-overview'   // W9 — project detail with session cards
-  | 'session-list'       // W9 — full session history for a project
-  | 'session-detail'     // W9 — historical session with all captures
-  | 'project-settings';  // W10 — PM-03 rename / re-client / PM-08 archive
+  | 'project-overview'
+  | 'session-list'
+  | 'session-detail'
+  | 'project-settings';
 
-/** Back-compat alias — older imports may still reference this name. */
 export type ShellPage = Page;
 
 export interface NavParams {
@@ -43,10 +43,6 @@ interface NavState {
 }
 
 export const useNavStore = create<NavState>()((set) => ({
-  // Wk 8 (AQ5) — post-onboarding home is the project list, not the
-  // dashboard. Dashboard is still reachable via the sidebar but it's
-  // a metrics overview, not the right landing for "open / create a
-  // project to start capturing".
   page: 'project-list',
   currentProjectId: null,
   currentSessionId: null,
@@ -60,10 +56,26 @@ export const useNavStore = create<NavState>()((set) => ({
           ? [...s.history.slice(-(HISTORY_MAX - 1)), s.page]
           : [...s.history, s.page];
 
-      // Clear session context when navigating away from session pages.
-      // Clear project context when navigating to top-level pages.
-      const isSessionPage = page === 'session-intake' || page === 'session-gallery' || page === 'session-detail';
-      const isProjectPage = isSessionPage || page === 'create-project' || page === 'project-list' || page === 'project-overview' || page === 'session-list' || page === 'project-settings';
+      // Pages that carry session context.
+      const isSessionPage =
+        page === 'session-intake' ||
+        page === 'session-gallery' ||
+        page === 'session-detail';
+
+      // Pages that carry project context (session pages implicitly do too).
+      const isProjectPage =
+        isSessionPage ||
+        page === 'create-project' ||
+        page === 'project-list' ||
+        page === 'project-overview' ||
+        page === 'session-list' ||
+        page === 'project-settings';
+
+      // NAV-NEW-01: 'project-overview' is a project page but NOT a session-
+      // clearing page. Only pages completely outside the project context
+      // (dashboard, settings, project-list without a projectId param) should
+      // clear currentSessionId.
+      const clearsSession = !isProjectPage;
 
       return {
         page,
@@ -71,17 +83,18 @@ export const useNavStore = create<NavState>()((set) => ({
         currentProjectId: isProjectPage
           ? (params?.projectId !== undefined ? params.projectId : s.currentProjectId)
           : null,
-        currentSessionId: isSessionPage
-          ? (params?.sessionId !== undefined ? params.sessionId : s.currentSessionId)
-          : null,
+        // NAV-NEW-01: keep currentSessionId when navigating within the project
+        // tree so gallery → project-overview → gallery back still works.
+        currentSessionId: clearsSession
+          ? null
+          : isSessionPage
+            ? (params?.sessionId !== undefined ? params.sessionId : s.currentSessionId)
+            : s.currentSessionId,   // project-level pages preserve the session ID
       };
     }),
 
   goBack: () =>
     set((s) => {
-      // TODO PH2-ROUTING: history doesn't restore params (projectId/sessionId).
-      // Navigating back from a top-level page to a session page will lose context.
-      // Fix requires storing params in the history stack — deferred to HashRouter migration.
       if (s.history.length === 0) {
         return { page: 'project-list', history: [] };
       }

@@ -86,17 +86,26 @@ const FOOTER_ITEMS: NavDestination[] = [
 ];
 
 export function Sidebar(): JSX.Element {
-  const page = useNavStore((s) => s.page);
-  const collapsed = useNavStore((s) => s.sidebarCollapsed);
-  const navigate = useNavStore((s) => s.navigate);
-  const toggleSidebar = useNavStore((s) => s.toggleSidebar);
+  const page              = useNavStore((s) => s.page);
+  const collapsed         = useNavStore((s) => s.sidebarCollapsed);
+  const currentProjectId  = useNavStore((s) => s.currentProjectId);
+  const navigate          = useNavStore((s) => s.navigate);
+  const toggleSidebar     = useNavStore((s) => s.toggleSidebar);
 
   function renderItem(item: NavDestination): JSX.Element {
-    const disabled = item.page === null;
+    // NAV-02: Sessions item is disabled when no project is open.
+    // page===null means the item was already declared disabled (e.g. Templates).
+    const noProject = item.label === 'Sessions' && !currentProjectId;
+    const disabled = item.page === null || noProject;
     const active =
+      !disabled &&
       item.page !== null &&
       (page === item.page || (item.alsoActiveFor ?? []).includes(page));
     const icon = active && item.filledIcon ? item.filledIcon : item.icon;
+    // Tooltip for Sessions when no project is open.
+    const title = noProject
+      ? 'Open a project to access sessions'
+      : item.title;
     return (
       <NavItem
         key={item.label}
@@ -105,7 +114,7 @@ export function Sidebar(): JSX.Element {
         active={active}
         collapsed={collapsed}
         disabled={disabled}
-        {...(item.title !== undefined && { title: item.title })}
+        {...(title !== undefined && { title })}
         {...(!disabled && { onClick: () => navigate(item.page!) })}
       />
     );

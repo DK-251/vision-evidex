@@ -572,7 +572,7 @@
   gap:         6px;
   padding:     4px 12px;
   border-radius: var(--radius-pill);
-  background:  var(--color-fill-danger);
+  background:  var(--color-status-fail-bg);   /* DS-03: was --color-fill-danger (undefined) */
   color:       var(--color-status-fail);
   font-size:   var(--type-caption-size);
   font-weight: 600;
@@ -624,7 +624,9 @@
 .gallery-summary-tile--blocked { border-top: 3px solid var(--color-status-blocked); }
 .gallery-summary-tile--blocked .gallery-summary-tile__value { color: var(--color-status-blocked); }
 .gallery-summary-tile--total   { border-top: 3px solid var(--color-accent-default); }
-.gallery-summary-tile--total .gallery-summary-tile__value   { color: var(--color-accent-default); }
+/* CSS-NEW-02: total tile value uses --color-text-primary so it doesn't
+   look like a clickable link (accent-default is used for interactive elements). */
+.gallery-summary-tile--total .gallery-summary-tile__value   { color: var(--color-text-primary); }
 
 .gallery-selection-bar {
   display:       flex;
@@ -1793,17 +1795,18 @@ body:fullscreen .caption-buttons {
   font-size: 11px;
   font-weight: 600;
 }
+/* CSS-NEW-01: stronger opacity backgrounds for legibility on the dark toolbar */
 .capture-toolbar__pill--pass    {
-  background: var(--color-status-pass-bg);
-  color:      var(--color-status-pass);
+  background: rgba(108, 203, 95, 0.25);
+  color:      #6CCB5F;
 }
 .capture-toolbar__pill--fail    {
-  background: var(--color-status-fail-bg);
-  color:      var(--color-status-fail);
+  background: rgba(255, 153, 164, 0.25);
+  color:      #FF99A4;
 }
 .capture-toolbar__pill--blocked {
-  background: var(--color-status-blocked-bg);
-  color:      var(--color-status-blocked);
+  background: rgba(252, 225, 0, 0.20);
+  color:      #FCE100;
 }
 .capture-toolbar__counter-total,
 .capture-toolbar__counter-mono {

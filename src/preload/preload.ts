@@ -163,6 +163,14 @@ const evidexAPI = {
       ipcRenderer.invoke(IPC.RECENT_PROJECTS_LIST, {}),
   },
 
+  region: {
+    /** RG-01: send selected rectangle back to main process. */
+    sendSelected: (rect: { x: number; y: number; width: number; height: number }): void =>
+      ipcRenderer.send(IPC_EVENTS.REGION_SELECTED, rect),
+    sendCancel: (): void =>
+      ipcRenderer.send(IPC_EVENTS.REGION_CANCEL),
+  },
+
   events: {
     onCaptureFlash: (handler: () => void): (() => void) => {
       const listener = (): void => handler();

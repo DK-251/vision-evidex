@@ -2,34 +2,14 @@
 
 READ THIS FIRST on every coding session. Keep under 2,000 tokens.
 Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
+**Workflow protocol:** [WORKFLOW.md](WORKFLOW.md) | **Gate status:** [GATE.md](GATE.md)
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Phase 2 Week 10 — ✅ COMPLETE + UX polish pass. Phase 3 (Report Engine) is next.
-- **BRANCH:** `main`
-- **STATUS:** W10 build + UX polish landed (2026-05-12). Awaiting Asus gate run.
-- **GOAL:** Close Phase 2 gaps AND ship the UX polish: real annotation save wiring, Snipping-style toolbar, redesigned session gallery + capture cards, Fluent Tooltip, theme system hardening, Modal focus trap.
-- **W10 DELIVERED + UX polish:**
-  - ✓ D36 `toolbar/App.tsx` — Snipping-Tool-style pill (top-center, slide-down, Fluent icons, status pills, drag-disabled, focus-non-stealing)
-  - ✓ D34 `region/App.tsx` — rubber-band region selector with IPC result
-  - ✓ D41–D44 `annotation/App.tsx` — Fabric.js editor: arrow, text, highlight, blur, undo/redo 20 steps
-  - ✓ **`CAPTURE_ANNOTATE_SAVE` + `ANNOTATION_SAVE` handlers** — real persistence into `annotation_layers` + `images/annotated/` (was stub in raw W10)
-  - ✓ **"Open in annotation editor" button enabled** in `SessionGalleryPage` + `SessionDetailPage` (was hard-`disabled`)
-  - ✓ **`before-quit` awaits `projectService.close()`** — Architectural Rule 8 holds on red-X / OS shutdown
-  - ✓ PM-03 `ProjectSettingsPage.tsx` — rename + re-client form
-  - ✓ PM-08 archive project via `project.update({ status: 'archived' })`
-  - ✓ `ProjectService.update()` — PM-03/PM-08 backend
-  - ✓ D28 `EvidexContainerService.backup()` — auto-backup every 10 captures
-  - ✓ DB-04 Quick Tour button on dashboard
-  - ✓ DB-05 session active indicator (reactive, store-driven)
-  - ✓ `CAPTURE_OPEN_ANNOTATION`, `PROJECT_UPDATE`, `REGION_SELECTED/CANCEL`, `ANNOTATION_LOAD/SAVE` IPC channels
-  - ✓ **Fluent `Tooltip` component** (custom, no new deps) replacing bare `title=` across NavItem / TitleBar / Dashboard
-  - ✓ **Theme system hardening** — ThemeProvider gates `data-theme` on settings-loaded + system-theme-broadcast (Asus #1/#3), onboarding `setPreference()` (Asus #2)
-  - ✓ **Modal focus trap + scoped Escape** (Tab/Shift+Tab cycle, no propagation to parent modals)
-  - ✓ **Gallery redesign** — 4 stat tiles, 16:9 thumbnail cards with hover lift + sequence/check badges + time footer, segmented Fluent `tag-picker`, accent "Annotate" button, structured detail panel
-  - ✓ `w10-coverage.spec.ts` — 20 new test assertions
-  - ✓ FEATURES.md: 41 → 51/92. DB (5/5), EC (17/17), PM (10/10) all complete.
-- **NEXT SPRINT:** Phase 3 Week 11 — Template Engine. `[PH2-ROUTING]` HashRouter migration before Phase 3 starts.
+- **SPRINT:** Pre-Phase 3 audit fix pass — COMPLETE. Phase 3 (Template Engine + Report Engine) is next.
+- **GATE:** PENDING — audit pass pushed 2026-05-14, Asus gate run needed. See [GATE.md](GATE.md).
+- **NOW WORKING ON:** Nothing until gate is GREEN.
+- **BLOCKED ON:** Asus `npm run report` on audit pass commit.
 
 ## 2. IPC channels (`src/shared/ipc-channels.ts`)
 
@@ -119,14 +99,14 @@ No service calls another service directly. All communication is via IPC or const
 - **Rule 4 PASS (2026-05-05):** all `db.prepare(...)` call sites in `database.service.ts` use `?`/`@key` bound parameters; the three `db.exec()` calls are DDL only (schema CREATE + static migration up-strings from `PROJECT_MIGRATIONS`). Zero string-interpolated SQL. Full audit log in [SETUP-NOTES.md](SETUP-NOTES.md#audits).
 - **Rule 6 PASS (2026-05-05):** all reachable file writers atomic — `EvidexContainerService.save()`, `LicenceService.writeLicenceFile()`, `SettingsService.saveSettings()` all use `.tmp` + rename. `ManifestService` does no direct disk I/O (delegates to container's atomic save). `logger.ts` uses `appendFileSync` for append-only logs (rule N/A). Branding logos live as `logoBase64` in DB per Rule 9 (no disk write). New writers must keep this pattern. Full audit log in [SETUP-NOTES.md](SETUP-NOTES.md#audits).
 
-## 8a. Two-machine comms layer (read these first in every session)
+## 8a. Two-machine comms layer
 
-1. [STATUS.md](STATUS.md) — live pulse (auto-rewritten by `npm run report`)
-2. [run-reports/latest.md](run-reports/latest.md) — detailed last-run report
-3. [INBOX-TO-CTS.md](INBOX-TO-CTS.md) — messages from Asus awaiting CTS action
-4. [FEATURES.md](FEATURES.md) — tick boxes as features land
-
-CTS (Claude via filesystem connector) writes directly to [INBOX-TO-ASUS.md](INBOX-TO-ASUS.md) when a gate run or investigation is needed. You commit and push; Asus pulls and executes.
+1. **[GATE.md](GATE.md)** — read this first. Asus overwrites after every `npm run report`. GREEN = advance. RED = fix listed files.
+2. **[ASUS-CHANGELOG.md](ASUS-CHANGELOG.md)** — every file Asus touched. Read after every gate to stay in sync.
+3. **[INBOX-TO-CTS.md](INBOX-TO-CTS.md)** — manual UI observations from Asus (not gate results).
+4. **[STATUS.md](STATUS.md)** — auto-written by `npm run report` (feature progress, module counts).
+5. **[FEATURES.md](FEATURES.md)** — tick boxes when feature merged + gate GREEN.
+6. **[WORKFLOW.md](WORKFLOW.md)** — full protocol, file formats, anti-patterns.
 
 ## 9. Locked decisions (do not re-litigate)
 

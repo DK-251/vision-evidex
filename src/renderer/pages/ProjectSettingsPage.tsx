@@ -6,7 +6,7 @@ import {
   ArchiveRegular,
   SaveRegular,
 } from '@fluentui/react-icons';
-import { Button, Card } from '../components/ui';
+import { Button, Card, Input } from '../components/ui';
 import { useNavStore } from '../stores/nav-store';
 import { useProjectStore } from '../stores/project.store';
 import { useToast } from '../providers/ToastProvider';
@@ -16,14 +16,20 @@ import { useToast } from '../providers/ToastProvider';
  *
  * PM-03: rename project + change client name.
  * PM-08: archive project (preserves .evidex on disk, removes from active list).
+ *
+ * FUNC-05: handleSave now calls patchActiveProject so the Zustand store
+ *          reflects the new name immediately — sidebar + header update
+ *          without a full page reload.
+ * UI-01:   raw <input> replaced with Fluent <Input> component.
  */
 
 export function ProjectSettingsPage(): JSX.Element | null {
-  const projectId     = useNavStore((s) => s.currentProjectId);
-  const navigate      = useNavStore((s) => s.navigate);
-  const goBack        = useNavStore((s) => s.goBack);
-  const activeProject = useProjectStore((s) => s.activeProject);
-  const { showToast } = useToast();
+  const projectId          = useNavStore((s) => s.currentProjectId);
+  const navigate           = useNavStore((s) => s.navigate);
+  const goBack             = useNavStore((s) => s.goBack);
+  const activeProject      = useProjectStore((s) => s.activeProject);
+  const patchActiveProject = useProjectStore((s) => s.patchActiveProject); // FUNC-05
+  const { showToast }      = useToast();
 
   const [name,       setName]       = useState(activeProject?.name ?? '');
   const [clientName, setClientName] = useState(activeProject?.clientName ?? '');
@@ -37,10 +43,12 @@ export function ProjectSettingsPage(): JSX.Element | null {
     setSaving(true);
     try {
       const res = await window.evidexAPI.project.update(projectId!, {
-        name: name.trim(),
+        name:       name.trim(),
         clientName: clientName.trim(),
       });
       if (res.ok) {
+        // FUNC-05: patch Zustand store so the rest of the UI reflects new values immediately.
+        patchActiveProject({ name: name.trim(), clientName: clientName.trim() });
         showToast('success', 'Project settings saved');
         goBack();
       } else {
@@ -52,8 +60,10 @@ export function ProjectSettingsPage(): JSX.Element | null {
   }
 
   async function handleArchive(): Promise<void> {
-    // Simple browser confirm — a proper modal (M-11) lands in Phase 4.
-    if (!window.confirm('Archive this project? It will no longer appear in your active list. The .evidex file is preserved on disk.')) return;
+    if (!window.confirm(
+      'Archive this project? It will no longer appear in your active list. ' +
+      'The .evidex file is preserved on disk.'
+    )) return;
     setArchiving(true);
     try {
       const res = await window.evidexAPI.project.update(projectId!, { status: 'archived' });
@@ -95,11 +105,11 @@ export function ProjectSettingsPage(): JSX.Element | null {
         </button>
         <h1
           style={{
-            fontFamily:  'var(--font-family-display)',
-            fontSize:    'var(--type-title-size)',
-            fontWeight:  'var(--type-title-weight)',
-            lineHeight:  'var(--type-title-height)',
-            color:       'var(--color-text-primary)',
+            fontFamily: 'var(--font-family-display)',
+            fontSize:   'var(--type-title-size)',
+            fontWeight: 'var(--type-title-weight)',
+            lineHeight: 'var(--type-title-height)',
+            color:      'var(--color-text-primary)',
             margin: 0,
           }}
         >
@@ -121,6 +131,7 @@ export function ProjectSettingsPage(): JSX.Element | null {
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          {/* UI-01: replaced raw <input> with Fluent <Input> component */}
           <div>
             <label
               htmlFor="proj-name"
@@ -133,21 +144,12 @@ export function ProjectSettingsPage(): JSX.Element | null {
             >
               Project name <span style={{ color: 'var(--color-text-danger)' }}>*</span>
             </label>
-            <input
+            <Input
               id="proj-name"
-              type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Project name"
-              style={{
-                width: '100%', padding: 'var(--space-2) var(--space-3)',
-                border: '1px solid var(--color-stroke-default)',
-                borderRadius: 'var(--radius-control)',
-                background: 'var(--color-layer-1)',
-                color: 'var(--color-text-primary)',
-                fontSize: 'var(--type-body-size)',
-                boxSizing: 'border-box',
-              }}
+              invalid={!name.trim()}
             />
           </div>
 
@@ -163,21 +165,11 @@ export function ProjectSettingsPage(): JSX.Element | null {
             >
               Client name
             </label>
-            <input
+            <Input
               id="proj-client"
-              type="text"
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Client name"
-              style={{
-                width: '100%', padding: 'var(--space-2) var(--space-3)',
-                border: '1px solid var(--color-stroke-default)',
-                borderRadius: 'var(--radius-control)',
-                background: 'var(--color-layer-1)',
-                color: 'var(--color-text-primary)',
-                fontSize: 'var(--type-body-size)',
-                boxSizing: 'border-box',
-              }}
             />
           </div>
         </div>
@@ -221,7 +213,9 @@ export function ProjectSettingsPage(): JSX.Element | null {
             margin:   '0 0 var(--space-4)',
           }}
         >
-          Archiving marks this project as inactive. The <code style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>.evidex</code> file is preserved on disk — it can be re-opened at any time.
+          Archiving marks this project as inactive. The{' '}
+          <code style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>.evidex</code>{' '}
+          file is preserved on disk — it can be re-opened at any time.
         </p>
         <Button
           variant="standard"

@@ -257,7 +257,9 @@ function Nav({
 }
 
 function CompletedCard(): JSX.Element {
-  const reset = useOnboardingStore((s) => s.reset);
+  // ON-NEW-01: Reset button removed — was a dev-only affordance with no
+  // production guard. In a real install this card is never reached because
+  // App.tsx checks settings.onboardingComplete, not the in-memory store.
   return (
     <div
       className="material-mica"
@@ -306,11 +308,9 @@ function CompletedCard(): JSX.Element {
         >
           Onboarding complete
         </h1>
-        <div style={{ marginTop: 'var(--space-4)' }}>
-          <Button variant="standard" onClick={reset}>
-            Reset
-          </Button>
-        </div>
+        <p style={{ fontSize: 'var(--type-body-size)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-3)' }}>
+          Vision-EviDex is ready. You can now create your first project.
+        </p>
       </div>
       </div>
     </div>

@@ -92,6 +92,7 @@ export interface SessionSummary {
 
 export interface SessionStatus {
   sessionId: string;
+  testId?: string;        // TB-01 — carried so toolbar can display the test ID
   captureCount: number;
   passCount: number;
   failCount: number;
@@ -465,10 +466,14 @@ export interface Settings {
   theme: ThemePreference;
   /** Default folder where new .evidex files are created. Empty until the user picks one. */
   defaultStoragePath: string;
+  /** Default folder where exported reports are written. Empty until the user picks one. */
+  defaultExportPath: string;   // LO-03 — required by Phase 3 ExportService
   /** FK to templates.id (app.db) — empty string = not yet selected. */
   defaultTemplateId: string;
+  /** Saved environment names shown in the Session Intake dropdown. */
+  environments: string[];       // SI-02 — avoids manual re-typing on every session
   profile?: UserProfileSettings;
-  /** Action id → key binding string (e.g. "captureFullscreen" → "Ctrl+Shift+F"). */
+  /** Action id → key binding string (e.g. “captureFullscreen” → “Ctrl+Shift+F”). */
   hotkeys?: Record<string, string>;
   /** FK to branding_profiles.id (app.db) — empty string = not yet created. */
   brandingProfileId?: string;

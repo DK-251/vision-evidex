@@ -318,11 +318,11 @@ export class DatabaseService {
          (id, session_id, project_id, sequence_num, filename,
           original_path, annotated_path, sha256_hash, file_size_bytes,
           capture_mode, status_tag, os_version, machine_name, app_version,
-          notes, captured_at, has_annotation)
+          notes, captured_at, has_annotation, tester_name)
          VALUES (@id, @sessionId, @projectId, @sequenceNum, @filename,
                  @originalPath, @annotatedPath, @sha256Hash, @fileSizeBytes,
                  @captureMode, @statusTag, @osVersion, @machineName, @appVersion,
-                 @notes, @capturedAt, @hasAnnotation)`
+                 @notes, @capturedAt, @hasAnnotation, @testerName)`
       )
       .run({
         id: capture.id,
@@ -344,6 +344,7 @@ export class DatabaseService {
         notes: capture.notes ?? null,
         capturedAt: capture.capturedAt,
         hasAnnotation: capture.annotatedFilename ? 1 : 0,
+        testerName: capture.testerName,   // DB-NEW-01
       });
   }
 
@@ -387,12 +388,20 @@ export class DatabaseService {
   // ─── annotation_layers ──────────────────────────────────────────────
 
   insertAnnotationLayer(layer: StoredAnnotationLayer & { id: string }): void {
+    // SCHEMA-NEW-01: embed fabricVersion + blurRegions into the stored JSON
+    // so they survive round-trips. getAnnotationLayer reads them back from
+    // _evidex_* keys so existing Fabric canvas data is unaffected.
+    const enrichedJson = JSON.stringify({
+      ...JSON.parse(layer.layerJson),
+      _evidex_fabricVersion: layer.fabricVersion,
+      _evidex_blurRegions: layer.blurRegions,
+    });
     this.db
       .prepare(
         `INSERT INTO annotation_layers (id, capture_id, layer_json, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?)`
       )
-      .run(layer.id, layer.captureId, layer.layerJson, layer.savedAt, layer.savedAt);
+      .run(layer.id, layer.captureId, enrichedJson, layer.savedAt, layer.savedAt);
   }
 
   getAnnotationLayer(captureId: string): StoredAnnotationLayer | null {
@@ -403,15 +412,24 @@ export class DatabaseService {
       )
       .get(captureId) as AnnotationLayerRow | undefined;
     if (!row) return null;
+    // SCHEMA-NEW-01: read back _evidex_* keys embedded by insertAnnotationLayer.
+    // Fabric canvas state is whatever remains after removing those keys.
     const parsed = JSON.parse(row.layer_json) as {
+      _evidex_fabricVersion?: string;
+      _evidex_blurRegions?: BlurRegion[];
       version?: string;
-      blurRegions?: BlurRegion[];
+      [key: string]: unknown;
     };
+    const fabricVersion = parsed._evidex_fabricVersion ?? parsed.version ?? 'unknown';
+    const blurRegions: BlurRegion[] = parsed._evidex_blurRegions ?? [];
+    // Strip _evidex_* keys from what we expose as layerJson
+    const { _evidex_fabricVersion: _fv, _evidex_blurRegions: _br, ...canvasState } = parsed;
+    void _fv; void _br;
     return {
       captureId: row.capture_id,
-      layerJson: row.layer_json,
-      fabricVersion: parsed.version ?? 'unknown',
-      blurRegions: parsed.blurRegions ?? [],
+      layerJson: JSON.stringify(canvasState),
+      fabricVersion,
+      blurRegions,
       savedAt: row.updated_at,
     };
   }
@@ -753,7 +771,7 @@ const CAPTURE_SELECT = `
   SELECT id, session_id, project_id, sequence_num, filename,
          original_path, annotated_path, sha256_hash, file_size_bytes,
          capture_mode, status_tag, os_version, machine_name, app_version,
-         notes, captured_at, has_annotation
+         notes, captured_at, has_annotation, tester_name
   FROM captures
 `;
 
@@ -862,6 +880,7 @@ interface CaptureRow {
   notes: string | null;
   captured_at: string;
   has_annotation: number;
+  tester_name: string;   // DB-NEW-01
 }
 
 function mapCapture(r: CaptureRow): Capture {
@@ -879,7 +898,7 @@ function mapCapture(r: CaptureRow): Capture {
     machineName: r.machine_name,
     osVersion: r.os_version,
     appVersion: r.app_version,
-    testerName: '',
+    testerName: r.tester_name ?? '',   // DB-NEW-01: read from column (default '' for old rows)
   };
   if (r.annotated_path !== null) {
     // annotated_path is "images/annotated/<filename>" — extract last segment

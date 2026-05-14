@@ -113,15 +113,21 @@ export function createToolbarWindow(): BrowserWindow {
   });
   toolbarWindow.setContentProtection(true);
 
-  // Clamp vertical position — toolbar must always hug the top edge.
-  // The user can only drag left/right; any vertical drift is corrected.
+  // Clamp BOTH axes — Y stays at top edge, X keeps the pill within
+  // the work area so the user cannot drag it completely off-screen.
+  // TB-NEW-01: previous code clamped Y but left X unclamped.
+  const MIN_VISIBLE_PX = 80; // at least 80px of pill always remains visible
   toolbarWindow.on('move', () => {
     if (!toolbarWindow || toolbarWindow.isDestroyed()) return;
     const [cx = 0] = toolbarWindow.getPosition();
     const { workArea: wa } = screen.getPrimaryDisplay();
+    // Clamp X: pill cannot be dragged further left/right than MIN_VISIBLE_PX.
+    const clampedX = Math.max(
+      wa.x - (toolbarWidth - MIN_VISIBLE_PX),
+      Math.min(cx, wa.x + wa.width - MIN_VISIBLE_PX)
+    );
     const clampedY = wa.y + TOOLBAR_TOP_OFFSET;
-    // Only write back when Y has drifted — avoids a tight event loop.
-    toolbarWindow.setPosition(cx, clampedY, false);
+    toolbarWindow.setPosition(clampedX, clampedY, false);
   });
 
   toolbarWindow.on('closed', () => {
@@ -131,10 +137,23 @@ export function createToolbarWindow(): BrowserWindow {
   return toolbarWindow;
 }
 
-/** Position the toolbar window at the top of the primary display.
- *  X defaults to the horizontal centre on first show; subsequent shows
- *  preserve the user's chosen X position (they may have dragged it).
- *  Y is always clamped to TOOLBAR_TOP_OFFSET so it hugs the top edge. */
+/**
+ * Position the toolbar window at the top of the primary display.
+ *
+ * The Electron window is FULL-DISPLAY-WIDTH (toolbarWidth = workArea.width).
+ * For a single-monitor setup workArea.x === 0, so placing at x = workArea.x
+ * is x = 0 — the full-width window fills the screen correctly.
+ * For multi-monitor setups workArea.x may be non-zero; same logic applies.
+ * The pill appears centred because toolbar/App.tsx uses pillLeft state
+ * (computed as Math.round((window.innerWidth - PILL_WIDTH) / 2)) — that
+ * is independent of the window position.
+ *
+ * TB-NEW-02 NOTE: DO NOT change workArea.x to a "centre" calculation —
+ * the window is full-width, so x must always be the left edge.
+ *
+ * Y is always clamped to TOOLBAR_TOP_OFFSET so it hugs the top edge.
+ * On subsequent shows the window X is preserved (user may have dragged).
+ */
 function positionToolbarTopCenter(win: BrowserWindow): void {
   try {
     const { workArea } = screen.getPrimaryDisplay();
@@ -163,6 +182,8 @@ export function createAnnotationWindow(): BrowserWindow {
     minWidth: 900,
     minHeight: 600,
     title: 'Annotate Evidence',
+    frame: false,          // AN-04: custom title bar rendered in annotation/App.tsx
+    backgroundColor: '#111111',
   });
   annotationWindow.once('ready-to-show', () => annotationWindow?.show());
   annotationWindow.on('closed', () => {
@@ -215,6 +236,7 @@ export function showToolbarWindow(session: Session): void {
 
   const initialStatus = {
     sessionId:    session.id,
+    testId:       session.testId,   // TB-01 — toolbar needs this to display the test ID
     captureCount: session.captureCount,
     passCount:    session.passCount,
     failCount:    session.failCount,

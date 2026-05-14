@@ -19,13 +19,11 @@ export const SETTINGS_SCHEMA_VERSION = 1;
 export const DEFAULT_SETTINGS: Settings = Object.freeze({
   schemaVersion: SETTINGS_SCHEMA_VERSION,
   onboardingComplete: false,
-  // First launch after install defaults to light so the title bar,
-  // Mica tint, and content surfaces are coherent before the user has
-  // picked a theme in onboarding. They can switch during
-  // ThemeStorageStep or later in AppSettings → Appearance.
   theme: 'light',
   defaultStoragePath: '',
+  defaultExportPath: '',   // LO-03
   defaultTemplateId: '',
+  environments: [],         // SI-02
 });
 
 export class SettingsService {

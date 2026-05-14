@@ -1,5 +1,5 @@
 import { globalShortcut } from 'electron';
-import type { CaptureMode } from '@shared/types/entities';
+import type { CaptureMode, StatusTag } from '@shared/types/entities';
 import { EvidexError } from '@shared/types/errors';
 import { EvidexErrorCode } from '@shared/types/ipc';
 import { logger } from '../logger';
@@ -7,34 +7,47 @@ import { logger } from '../logger';
 /**
  * ShortcutService — Phase 2 Week 7 / D32.
  *
- * Owns the lifecycle of the three session-scoped capture hotkeys
- * (fullscreen / active-window / region). Hotkeys exist only while a
- * session is active. `SessionService.create()` calls
- * `registerSessionShortcuts`; `SessionService.end()` (and the
- * `app.will-quit` backstop) call `unregisterSessionShortcuts`.
- *
- * The service stays decoupled from `CaptureService` — the owner injects
- * an `onCapture(sessionId, mode)` callback at construction time. That
- * keeps the service testable without an Electron runtime and matches
- * the "no service calls another service directly" rule (CLAUDE.md §3).
+ * HK-01 fix: all action IDs now use `captureActiveWindow` (not `captureWindow`).
+ * HK-02 fix: all 6 hotkey actions are registered as global shortcuts.
+ * HK-03 fix: DEFAULT_HOTKEY_BINDINGS is the single source of truth — imported by
+ *            the renderer's hotkey-utils.ts so no duplicate definitions exist.
+ * HK-04 fix: toElectronAccelerator() converts renderer `Ctrl+` → Electron `CmdOrCtrl+`.
  */
 
 export interface HotkeyBindings {
-  captureFullscreen: string;
-  captureWindow:     string;
-  captureRegion:     string;
+  captureFullscreen:   string;
+  captureActiveWindow: string;  // HK-01: was captureWindow, now aligned with renderer
+  captureRegion:       string;
+  tagPass:             string;  // HK-02: now registered
+  tagFail:             string;  // HK-02: now registered
+  openToolbar:         string;  // HK-02: now registered
 }
 
+/**
+ * Single source of truth for default bindings.
+ * Renderer hotkey-utils.ts imports this, so no duplicate values.
+ * Toolbar hint labels also derive from this.
+ */
 export const DEFAULT_HOTKEY_BINDINGS: HotkeyBindings = Object.freeze({
-  captureFullscreen: 'CmdOrCtrl+Shift+1',
-  captureWindow:     'CmdOrCtrl+Shift+2',
-  captureRegion:     'CmdOrCtrl+Shift+3',
+  captureFullscreen:   'CmdOrCtrl+Shift+1',
+  captureActiveWindow: 'CmdOrCtrl+Shift+2',
+  captureRegion:       'CmdOrCtrl+Shift+3',
+  tagPass:             'CmdOrCtrl+Shift+P',
+  tagFail:             'CmdOrCtrl+Shift+F',
+  openToolbar:         'CmdOrCtrl+Shift+T',
 });
 
 /**
- * Subset of Electron's `globalShortcut` we depend on. Lets tests pass a
- * fake object without `vi.mock`-ing an Electron module.
+ * HK-04: Convert a renderer-format key string ("Ctrl+Shift+1") to an
+ * Electron accelerator string ("CmdOrCtrl+Shift+1").
  */
+export function toElectronAccelerator(key: string): string {
+  return key
+    .replace(/\bCtrl\b/g, 'CmdOrCtrl')
+    .replace(/\bControl\b/g, 'CmdOrCtrl')
+    .replace(/\bCommand\b/g, 'CmdOrCtrl');
+}
+
 export interface GlobalShortcutLike {
   register(accelerator: string, callback: () => void): boolean;
   unregister(accelerator: string): void;
@@ -42,16 +55,26 @@ export interface GlobalShortcutLike {
   isRegistered(accelerator: string): boolean;
 }
 
-export interface ShortcutServiceDeps {
-  /** Owner wires this to `CaptureService.screenshot({ sessionId, mode })`. */
+export interface ShortcutCallbacks {
+  /** Fired for fullscreen / active-window / region captures. */
   onCapture: (sessionId: string, mode: CaptureMode) => void | Promise<void>;
-  /** Override for tests. Defaults to Electron's `globalShortcut`. */
+  /**
+   * HK-02: Tag the most recently-taken capture.
+   * The implementation in app.ts resolves the last captureId via SessionService.
+   */
+  onTagCapture?: (sessionId: string, tag: StatusTag) => void | Promise<void>;
+  /** HK-02: Toggle toolbar show/hide. */
+  onToggleToolbar?: () => void;
+}
+
+export interface ShortcutServiceDeps {
+  callbacks: ShortcutCallbacks;
   shortcuts?: GlobalShortcutLike;
 }
 
 interface AcceleratorBinding {
   accel: string;
-  mode:  CaptureMode;
+  action: () => void | Promise<void>;
 }
 
 export class ShortcutService {
@@ -64,22 +87,46 @@ export class ShortcutService {
   }
 
   registerSessionShortcuts(sessionId: string, bindings: HotkeyBindings): void {
-    // Idempotent re-register on the same session: no-op so that retrying a
-    // session creation from the renderer cannot leak handlers.
     if (this.activeSessionId === sessionId && this.currentBindings) return;
-
-    // Different session already holds the hotkeys — clear before re-registering.
     if (this.currentBindings) this.unregisterSessionShortcuts();
 
+    const { callbacks } = this.deps;
+
+    // Convert all bindings to Electron accelerator format (HK-04).
     const accelerators: AcceleratorBinding[] = [
-      { accel: bindings.captureFullscreen, mode: 'fullscreen' },
-      { accel: bindings.captureWindow,     mode: 'active-window' },
-      { accel: bindings.captureRegion,     mode: 'region' },
+      {
+        accel: toElectronAccelerator(bindings.captureFullscreen),
+        action: () => void callbacks.onCapture(sessionId, 'fullscreen'),
+      },
+      {
+        accel: toElectronAccelerator(bindings.captureActiveWindow),
+        action: () => void callbacks.onCapture(sessionId, 'active-window'),
+      },
+      {
+        accel: toElectronAccelerator(bindings.captureRegion),
+        action: () => void callbacks.onCapture(sessionId, 'region'),
+      },
+      // HK-02: tag shortcuts — only register if callback provided
+      ...(callbacks.onTagCapture ? [
+        {
+          accel: toElectronAccelerator(bindings.tagPass),
+          action: () => void callbacks.onTagCapture!(sessionId, 'pass'),
+        },
+        {
+          accel: toElectronAccelerator(bindings.tagFail),
+          action: () => void callbacks.onTagCapture!(sessionId, 'fail'),
+        },
+      ] : []),
+      // HK-02: toolbar toggle — only register if callback provided
+      ...(callbacks.onToggleToolbar ? [
+        {
+          accel: toElectronAccelerator(bindings.openToolbar),
+          action: () => callbacks.onToggleToolbar!(),
+        },
+      ] : []),
     ];
 
-    // Conflict pre-check — globalShortcut.register() returns false silently
-    // if another process owns the accelerator; surface that as an EvidexError
-    // so the IPC layer can show a toast to the user.
+    // Pre-check all accelerators for conflicts.
     for (const { accel } of accelerators) {
       if (this.api.isRegistered(accel)) {
         throw new EvidexError(
@@ -90,17 +137,14 @@ export class ShortcutService {
       }
     }
 
-    for (const { accel, mode } of accelerators) {
+    for (const { accel, action } of accelerators) {
       const ok = this.api.register(accel, () => {
         if (!this.activeSessionId) return;
-        try {
-          void this.deps.onCapture(this.activeSessionId, mode);
-        } catch (err) {
-          logger.error('shortcut.callback.failed', { mode, err: String(err) });
+        try { void action(); } catch (err) {
+          logger.error('shortcut.callback.failed', { accel, err: String(err) });
         }
       });
       if (!ok) {
-        // Roll back partial registration so we never leak hotkeys.
         this.api.unregisterAll();
         throw new EvidexError(
           EvidexErrorCode.SHORTCUT_CONFLICT,

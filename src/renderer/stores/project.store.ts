@@ -19,6 +19,8 @@ interface ProjectStore {
   openProject:    (filePath: string) => Promise<Project>;
   closeProject:   () => Promise<void>;
   loadRecent:     () => Promise<void>;
+  /** FUNC-05: patch the in-memory activeProject after a successful settings save. */
+  patchActiveProject: (patch: Partial<Project>) => void;
   /** Reset everything — used on logout or window-all-closed scenarios. */
   clear: () => void;
 }
@@ -97,5 +99,11 @@ export const useProjectStore = create<ProjectStore>()((set, get) => ({
 
   clear() {
     set({ activeProject: null, recentProjects: [], isLoading: false });
+  },
+
+  patchActiveProject(patch) {
+    set((s) => ({
+      activeProject: s.activeProject ? { ...s.activeProject, ...patch } : null,
+    }));
   },
 }));
