@@ -59,6 +59,7 @@ import type { NamingService } from './services/naming.service';
 import {
   createAnnotationWindow,
   getAnnotationWindow,
+  createRegionWindow,
 } from './window-manager';
 
 export interface ServiceRegistry {
@@ -245,6 +246,25 @@ export function registerAllHandlers(services: ServiceRegistry): void {
   );
   registerHandler(IPC.SESSION_GET, SessionGetSchema, async (input) =>
     services.session.get(input.sessionId)
+  );
+  // §13: toolbar region button — opens the region overlay window.
+  // capture:screenshot with mode='region' requires a region payload (Zod-
+  // validated), so the toolbar button uses this dedicated channel instead.
+  registerHandler(
+    IPC.SESSION_START_REGION_CAPTURE,
+    SessionGetSchema, // reuses { sessionId: string } shape
+    async (input) => {
+      const session = services.session.get(input.sessionId);
+      if (!session || session.endedAt !== undefined) {
+        throw new EvidexError(
+          EvidexErrorCode.SESSION_NOT_ACTIVE,
+          'Session is not active',
+          { sessionId: input.sessionId }
+        );
+      }
+      createRegionWindow();
+      return null;
+    }
   );
   registerHandler(IPC.SESSION_LIST, SessionListSchema, async (input) =>
     services.session.getAll(input.projectId)

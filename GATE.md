@@ -5,37 +5,29 @@
 
 ---
 
-**Date:** 2026-05-15 08:53
-**Commit tested:** `97e4941`
-**Result:** GREEN
+**Date:** 2026-05-15 08:53 (last gate) → PENDING new gate for P0 fixes
+**Commit tested:** `97e4941` (last GREEN) | new commit: pending push
+**Result:** PENDING
 
-## Checks
+## Last GREEN checks (commit `97e4941`)
 
 | Check | Result | Detail |
 |---|---|---|
 | typecheck | PASS | — |
-| tests | PASS | 563/563 passed |
+| tests | PASS | 563/563 |
 | PBKDF2 | PASS | mean 93ms, max 94ms, budget 800ms |
 
-## Failing tests
+## Changes since last gate (P0 fixes — CTS)
 
-*(none)*
-
-## Typecheck errors
-
-*(none)*
-
-## Actions taken by Asus
-
-- Fixed `__tests__/session-service.spec.ts` — `ShortcutService` constructor updated to `{ callbacks: { onCapture } }` shape; `getCurrentBindings()` assertion updated to 6-field `HotkeyBindings` including `captureActiveWindow` (not `captureWindow`)
-- Fixed `__tests__/integration.session-lifecycle.spec.ts` — same `{ callbacks: { onCapture: vi.fn() } }` constructor fix
-- Fixed `__tests__/integration.project-roundtrip.spec.ts` — same constructor fix
-- Fixed `src/renderer/onboarding/hotkey-utils.ts` — `formatKeyEvent` now pushes `Meta` separately after `Shift` (was merged with `ctrlKey`)
-- Fixed `src/renderer/pages/SessionGalleryPage.tsx` — moved `isActive`/`displayCaptures` declarations before `counts` useMemo to resolve TS2448 (used before declaration)
-- Fixed `src/renderer/stores/nav-store.ts` — removed `project-list` from `isProjectPage` so navigating to it clears `currentSessionId`
-- Fixed `src/toolbar/App.tsx` — `setStatus` call uses conditional spread for `testId` to satisfy `exactOptionalPropertyTypes`
-- See ASUS-CHANGELOG.md for full details
+| File | Change |
+|---|---|
+| `src/main/services/session.service.ts` | `resolveHotkeyBindings` now converts stored `Ctrl+` → `CmdOrCtrl+` via `toElectronAccelerator` |
+| `src/main/services/project.service.ts` | `open()` no-ops if same file already open (§20b) |
+| `src/shared/ipc-channels.ts` | New channel `SESSION_START_REGION_CAPTURE` |
+| `src/main/ipc-router.ts` | Handler for new channel added |
+| `src/preload/preload.ts` | `session.startRegionCapture` exposed |
+| `src/toolbar/App.tsx` | Default tag `'pass'`; region button uses `startRegionCapture` |
 
 ## Next step
 
-**CTS:** GREEN — proceed to Phase 3 Week 11 — Template Engine.
+**Asus:** `git pull --ff-only && npm run report` → overwrite this file → push.

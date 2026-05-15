@@ -3,22 +3,33 @@
 
 ---
 
-## [2026-05-14] Audit pass (72 fixes) + pre-emptive spec updates
+## [2026-05-15] P0 fixes from UX observation session
 
 **Action:** `git pull --ff-only && npm run report` → overwrite `GATE.md` with result → push
 
-| Changed file | Test impact |
+| Changed file | Impact on tests |
 |---|---|
-| `src/main/services/shortcut.service.ts` | HotkeyBindings: 6 fields, `captureWindow` → `captureActiveWindow`, constructor shape `{ callbacks }` |
-| `src/renderer/stores/nav-store.ts` | `project-overview` no longer clears `currentSessionId` |
-| `src/shared/types/entities.ts` | `Settings` has `defaultExportPath` + `environments`; `SessionStatus` has optional `testId` |
-| `src/main/services/database.service.ts` | `insertCapture` writes `tester_name`; `mapCapture` reads it |
-| `src/main/migrations/002_captures_tester_name.ts` | New migration — runs idempotently via `initProjectSchema()` |
-| `src/shared/types/ipc.ts` | New error code `STORAGE_LIMIT_EXCEEDED` |
-| `__tests__/shortcut-service.spec.ts` | **CTS already updated** — full rewrite for 6-binding shape |
-| `__tests__/nav-store.spec.ts` | **CTS already updated** — NAV-NEW-01 tests added |
-| `__tests__/settings-service.spec.ts` | **CTS already updated** — new fields in toMatchObject assertions |
+| `src/main/services/session.service.ts` | `resolveHotkeyBindings` now calls `toElectronAccelerator()` on stored bindings (§20a). `toElectronAccelerator` import added at top of file. |
+| `src/main/services/project.service.ts` | `open()` no-ops if file is already the active container (§20b). Existing `session-lifecycle` + `project-roundtrip` tests unaffected. |
+| `src/shared/ipc-channels.ts` | New channel `SESSION_START_REGION_CAPTURE = 'session:startRegionCapture'`. Channel count increases by 1 → **`ipc-router.spec.ts` handler-count assertion will change**. |
+| `src/main/ipc-router.ts` | Handler for `SESSION_START_REGION_CAPTURE` added. `createRegionWindow` imported. |
+| `src/preload/preload.ts` | `session.startRegionCapture(sessionId)` added to preload bridge. |
+| `src/toolbar/App.tsx` | Default tag changed `'untagged'` → `'pass'` (§15). Region button now calls `startRegionCapture` instead of `screenshot` (§13). |
 
-**Expected result:** GREEN. CTS pre-fixed all likely failing specs. If still RED, Asus should fix per GATE.md errors, log to ASUS-CHANGELOG.md, and re-run before writing GATE.md.
+**Likely RED spec:**
+
+1. `__tests__/ipc-router.spec.ts` — line: `expect(handlers.size).toBe(Object.values(IPC).length)` — this is dynamic so it self-corrects. **Should stay GREEN** as long as the handler is registered.
+
+**If RED, look at:**
+- `__tests__/session-service.spec.ts` — if `resolveHotkeyBindings` is tested directly
+- `__tests__/ipc-router.spec.ts` — if handler count or channel list is hardcoded
+
+**Expected result:** GREEN — no shape changes, only new handler + logic fixes.
+
+---
+
+## [DONE 2026-05-15] Audit pass (72 fixes) + spec pre-fixes
+
+Gate result: GREEN — 563/563. See GATE.md commit `97e4941`.
 
 ---

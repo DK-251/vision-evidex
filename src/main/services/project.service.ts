@@ -150,6 +150,19 @@ export class ProjectService {
       );
     }
 
+    // §20b: guard against double-open — React strict-mode double-effects and
+    // rapid double-clicks can fire project:open 2-3× in quick succession.
+    // If this exact file is already the open container, return early.
+    const existing = this.deps.container.getCurrentHandle();
+    if (existing && existing.filePath === filePath) {
+      const projectDb = this.deps.container.getProjectDb();
+      const project = projectDb?.getProject(existing.projectId) ?? null;
+      if (project) {
+        logger.info('project.open.already-open — no-op', { projectId: existing.projectId });
+        return { project: { ...project, storagePath: filePath }, handle: existing };
+      }
+    }
+
     let handle: ContainerHandle;
     try {
       handle = await this.deps.container.open(filePath);

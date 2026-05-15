@@ -9,6 +9,7 @@ export const IPC = {
   SESSION_CREATE: 'session:create',
   SESSION_END: 'session:end',
   SESSION_GET: 'session:get',
+  SESSION_START_REGION_CAPTURE: 'session:startRegionCapture', // §13: toolbar region button
   SESSION_LIST: 'session:list',          // W9 — list all sessions for a project
   CAPTURE_LIST: 'capture:list',          // W9 — list all captures for a session
 

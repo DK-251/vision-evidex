@@ -16,6 +16,7 @@ import type { SettingsService } from './settings.service';
 import {
   ShortcutService,
   DEFAULT_HOTKEY_BINDINGS,
+  toElectronAccelerator,
   type HotkeyBindings,
 } from './shortcut.service';
 import { logger } from '../logger';
@@ -311,14 +312,18 @@ export function makeSessionWindowControls(
 }
 
 // HK-01: aligned to captureActiveWindow. HK-02: all 6 actions resolved.
+// §20a fix: stored renderer bindings use 'Ctrl+' format; toElectronAccelerator()
+// converts them to 'CmdOrCtrl+' before passing to globalShortcut.register().
 function resolveHotkeyBindings(settings: Settings): HotkeyBindings {
   const hotkeys = settings.hotkeys ?? {};
+  const resolve = (id: string, fallback: string): string =>
+    toElectronAccelerator(hotkeys[id] ?? fallback);
   return {
-    captureFullscreen:   hotkeys['captureFullscreen']   ?? DEFAULT_HOTKEY_BINDINGS.captureFullscreen,
-    captureActiveWindow: hotkeys['captureActiveWindow'] ?? DEFAULT_HOTKEY_BINDINGS.captureActiveWindow,
-    captureRegion:       hotkeys['captureRegion']       ?? DEFAULT_HOTKEY_BINDINGS.captureRegion,
-    tagPass:             hotkeys['tagPass']             ?? DEFAULT_HOTKEY_BINDINGS.tagPass,
-    tagFail:             hotkeys['tagFail']             ?? DEFAULT_HOTKEY_BINDINGS.tagFail,
-    openToolbar:         hotkeys['openToolbar']         ?? DEFAULT_HOTKEY_BINDINGS.openToolbar,
+    captureFullscreen:   resolve('captureFullscreen',   DEFAULT_HOTKEY_BINDINGS.captureFullscreen),
+    captureActiveWindow: resolve('captureActiveWindow', DEFAULT_HOTKEY_BINDINGS.captureActiveWindow),
+    captureRegion:       resolve('captureRegion',       DEFAULT_HOTKEY_BINDINGS.captureRegion),
+    tagPass:             resolve('tagPass',             DEFAULT_HOTKEY_BINDINGS.tagPass),
+    tagFail:             resolve('tagFail',             DEFAULT_HOTKEY_BINDINGS.tagFail),
+    openToolbar:         resolve('openToolbar',         DEFAULT_HOTKEY_BINDINGS.openToolbar),
   };
 }

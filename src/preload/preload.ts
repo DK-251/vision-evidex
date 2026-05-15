@@ -50,6 +50,9 @@ const evidexAPI = {
       ipcRenderer.invoke(IPC.SESSION_GET, { sessionId }),
     list: (projectId: string): Promise<IpcResult<Session[]>> =>
       ipcRenderer.invoke(IPC.SESSION_LIST, { projectId }),
+    /** §13: open region overlay from toolbar button */
+    startRegionCapture: (sessionId: string): Promise<IpcResult<null>> =>
+      ipcRenderer.invoke(IPC.SESSION_START_REGION_CAPTURE, { sessionId }),
   },
 
   capture: {

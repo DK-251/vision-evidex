@@ -72,7 +72,7 @@ export function App(): JSX.Element {
   const [collapsed,    setCollapsed]     = useState(false);
   const [ending,       setEnding]        = useState(false);
   const [confirmEnd,   setConfirmEnd]    = useState(false);    // TB-05
-  const [nextTag,      setNextTag]       = useState<StatusTag>('untagged'); // TB-02
+  const [nextTag,      setNextTag]       = useState<StatusTag>('pass'); // §15: default pass (was 'untagged')
   const [firedMode,    setFiredMode]     = useState<CaptureMode | null>(null); // TB-06
   const [pillWidth,    setPillWidth]     = useState(() => computePillWidth());
   const [pillLeft,     setPillLeft]      = useState(-1);
@@ -128,16 +128,26 @@ export function App(): JSX.Element {
   async function handleCapture(mode: CaptureMode): Promise<void> {
     if (!status) return;
     const api = (window as Window & {
-      evidexAPI?: { capture?: { screenshot?: (r: { sessionId: string; mode: string; statusTag: string }) => Promise<unknown> } };
+      evidexAPI?: {
+        capture?: { screenshot?: (r: { sessionId: string; mode: string; statusTag: string }) => Promise<unknown> };
+        session?: { startRegionCapture?: (id: string) => Promise<unknown> };
+      };
     }).evidexAPI;
-    if (!api?.capture?.screenshot) return;
 
     // TB-06: briefly highlight the button that was clicked.
     setFiredMode(mode);
     window.setTimeout(() => setFiredMode(null), 150);
 
+    // §13: region mode must trigger the region overlay via a dedicated IPC
+    // channel — calling capture:screenshot with mode='region' and no region
+    // payload fails Zod validation and silently does nothing.
+    if (mode === 'region') {
+      await api?.session?.startRegionCapture?.(status.sessionId);
+      return;
+    }
+
     try {
-      await api.capture.screenshot({ sessionId: status.sessionId, mode, statusTag: nextTag });
+      await api?.capture?.screenshot?.({ sessionId: status.sessionId, mode, statusTag: nextTag });
     } catch {
       /* main broadcasts CAPTURE_ARRIVED on success */
     }
