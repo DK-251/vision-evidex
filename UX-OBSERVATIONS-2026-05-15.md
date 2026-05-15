@@ -194,9 +194,9 @@ All issues below are observed during a live session with the quick toolbar activ
 
 ---
 
-### 19. Annotation workspace — full production redesign
+### 19. Annotation workspace — full production redesign *(Phase 3 scope — deferred)*
 
-See the full specification below. This is Phase 3 scope; do **not** start until §3–§18 are complete and gated GREEN.
+See the full specification below. **Deferred to Phase 3.** Do not start until §1–§18 are complete and gated GREEN.
 
 #### Architecture
 
@@ -349,4 +349,14 @@ Three sessions were created and ended; all had `captureCount: 0`. This correlate
 | P2 — Medium | 2 | Close button tooltip misaligned |
 | P2 — Medium | 10 | Project Settings: edit project metadata |
 | P2 — Medium | 20b | Double `project.open` calls |
-| P3 — Phase 3 scope | 19 | Annotation workspace full redesign |
+| P3 — Phase 3 scope | 19 | Annotation workspace full redesign — **deferred, do not start until §1–§18 GREEN** |
+
+---
+
+## Decisions locked (2026-05-15)
+
+| § | Decision |
+|---|---|
+| §3 | Live-save kept. Add `✓ Saved` toast after each `patch()` call. No explicit Save button. |
+| §16 delete | Ship redesigned card with **disabled** delete icon + "Delete coming in Phase 3" tooltip. Full `capture:delete` IPC is Phase 3 scope. |
+| §19 | Deferred to Phase 3. Blocking condition: §1–§18 all complete and gate GREEN. |

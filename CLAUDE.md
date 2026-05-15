@@ -6,7 +6,7 @@ Update Section 1 each sprint. Update Section 8 from `run-reports/latest.md`.
 
 ## 1. Current sprint focus
 
-- **SPRINT:** Pre-Phase 3 UX fix pass — P0 + P1 + P2 issues from Asus manual testing (2026-05-15).
-- **GATE:** GREEN — 563/563, commit `97e4941`, 2026-05-15 08:53. See [GATE.md](GATE.md).
-- **NOW WORKING ON:** P0 fixes — §20a `resolveHotkeyBindings`, §13 toolbar critical bugs.
-- **BLOCKED ON:** Nothing.
+- **SPRINT:** Pre-Phase 3 UX fix pass — all 14 remaining §1–§18 observations complete.
+- **GATE:** PENDING — UX fix pass pushed 2026-05-15, Asus gate run needed. See [GATE.md](GATE.md).
+- **NOW WORKING ON:** Nothing until gate GREEN.
+- **BLOCKED ON:** Asus `npm run report` on UX fix pass commit.

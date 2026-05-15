@@ -85,6 +85,7 @@ export const IPC_EVENTS = {
    */
   CAPTURE_ARRIVED: 'capture:arrived',
   SESSION_STATUS_UPDATE: 'session:statusUpdate',
+  SESSION_ENDED: 'session:ended',     // §13: push to all renderers when session ends
   STORAGE_WARNING: 'storage:warning',
   APP_UPDATE_AVAILABLE: 'app:updateAvailable',
   THEME_ACCENT_COLOUR_UPDATE: 'theme:accentColourUpdate',
@@ -93,6 +94,7 @@ export const IPC_EVENTS = {
   REGION_SELECTED: 'region:selected',  // W10 — region renderer → main with selected Rect
   REGION_CANCEL:   'region:cancel',    // W10 — region renderer cancels via Esc
   ANNOTATION_LOAD: 'annotation:load',  // W10 — main sends image to annotation renderer
+  SESSION_ENDED:   'session:ended',     // §13 — main broadcasts after toolbar-initiated end
 } as const;
 
 export type IpcChannel = typeof IPC[keyof typeof IPC];

@@ -38,12 +38,11 @@ import { logger } from '../logger';
 export interface SessionWindowControls {
   showToolbar(session: Session): void;
   hideToolbar(): void;
-  /**
-   * Optional broadcaster for `session:statusUpdate` push events. The IPC
-   * router is the natural owner; SessionService only fires the event
-   * when count deltas land — currently only on session end.
-   */
   broadcastSessionStatus?: (status: SessionStatus) => void;
+  /** §13: notify all renderer windows that a session ended (toolbar-initiated end). */
+  broadcastSessionEnded?: (sessionId: string) => void;
+  /** §13: access BrowserWindow list for direct IPC sends. */
+  getAllWindows?: () => BrowserWindow[];
 }
 
 export interface SessionServiceDeps {
@@ -249,6 +248,12 @@ export class SessionService {
       blockedCount: existing.blockedCount,
     });
 
+    // §13: broadcast SESSION_ENDED so the gallery can drop the Live pill
+    // even when session.end was triggered from the toolbar window.
+    for (const win of this.deps.windows.getAllWindows?.() ?? []) {
+      if (!win.isDestroyed()) win.webContents.send(IPC_EVENTS.SESSION_ENDED, sessionId);
+    }
+
     logger.info('session.end', summary as unknown as Record<string, unknown>);
     return summary;
   }
@@ -308,6 +313,13 @@ export function makeSessionWindowControls(
         win.webContents.send(IPC_EVENTS.SESSION_STATUS_UPDATE, status);
       }
     },
+    broadcastSessionEnded: (sessionId: string): void => {
+      for (const win of getAllWindows()) {
+        if (win.isDestroyed()) continue;
+        win.webContents.send(IPC_EVENTS.SESSION_ENDED, sessionId);
+      }
+    },
+    getAllWindows,
   };
 }
 

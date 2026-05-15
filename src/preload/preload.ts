@@ -190,6 +190,12 @@ const evidexAPI = {
       ipcRenderer.on(IPC_EVENTS.SESSION_STATUS_UPDATE, listener);
       return () => ipcRenderer.removeListener(IPC_EVENTS.SESSION_STATUS_UPDATE, listener);
     },
+    /** §13: fired from any window (toolbar, main) when session:end completes */
+    onSessionEnded: (handler: (sessionId: string) => void): (() => void) => {
+      const listener = (_e: unknown, sessionId: string): void => handler(sessionId);
+      ipcRenderer.on(IPC_EVENTS.SESSION_ENDED, listener);
+      return () => ipcRenderer.removeListener(IPC_EVENTS.SESSION_ENDED, listener);
+    },
     onStorageWarning: (handler: (pct: number) => void): (() => void) => {
       const listener = (_e: unknown, pct: number): void => handler(pct);
       ipcRenderer.on(IPC_EVENTS.STORAGE_WARNING, listener);
@@ -219,6 +225,12 @@ const evidexAPI = {
       const listener = (_e: unknown, payload: { captureId: string; imageBase64: string; width: number; height: number; existingLayerJson?: object }): void => handler(payload);
       ipcRenderer.on(IPC_EVENTS.ANNOTATION_LOAD, listener);
       return () => ipcRenderer.removeListener(IPC_EVENTS.ANNOTATION_LOAD, listener);
+    },
+    /** §13: gallery listens for toolbar-initiated session end to update Live pill. */
+    onSessionEnded: (handler: (sessionId: string) => void): (() => void) => {
+      const listener = (_e: unknown, sessionId: string): void => handler(sessionId);
+      ipcRenderer.on(IPC_EVENTS.SESSION_ENDED, listener);
+      return () => ipcRenderer.removeListener(IPC_EVENTS.SESSION_ENDED, listener);
     },
   },
 } as const;

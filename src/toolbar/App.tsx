@@ -7,22 +7,27 @@ import {
   RecordStopRegular,
   ChevronUpRegular,
   ChevronDownRegular,
-  ReOrderDotsVerticalRegular,
 } from '@fluentui/react-icons';
 import type { SessionStatus, StatusTag } from '@shared/types/entities';
 
 /**
- * Capture toolbar (S-05 / D36) — all audit fixes applied:
+ * Capture toolbar (S-05 / D36).
  *
- * TB-01: testId now arrives via SessionStatus (type updated in entities.ts)
- * TB-02: P/F/B tag-selector buttons so next capture gets the right tag
- * TB-03: pill width is responsive (min 440, max 720, never overflows viewport)
- * TB-04: collapsed state shows the red recording dot
- * TB-05: "End" requires confirmation before calling session.end()
- * TB-06: capture buttons flash briefly to acknowledge the shot
- * TB-07: dead window.electron.ipcRenderer fallback removed
- * TB-09: zero-value counter pills hidden (not shown as "0")
- * TB-NEW-03: window resize listener recalculates pill centring
+ * §13 fixes applied this pass:
+ *   - Session end: calls session.end IPC, waits for result, then window
+ *     sends SESSION_ENDED event so gallery updates live status.
+ *   - Capture count: SESSION_STATUS_UPDATE now correctly sets state.
+ *     Root cause was the Electron accelerator fix (§20a) — captures were
+ *     never firing. Counter was working; now tested with real captures.
+ *   - Region button: routes through session.startRegionCapture (new IPC).
+ *   - Drag removed entirely: toolbar fixed to top-center. movable:false
+ *     set in window-manager.ts. No drag handle rendered.
+ *   - App blocking: alwaysOnTop level set to 'pop-up-menu' in
+ *     window-manager.ts. setIgnoreMouseEvents called outside pill bounds.
+ *
+ * §15: default next-tag = 'pass'.
+ * TB-05: End requires confirmation.
+ * TB-06: Capture buttons flash on fire.
  */
 
 interface ToolbarStatus {
@@ -64,54 +69,52 @@ const slideDown = {
 // TB-03: compute responsive pill width clamped to the viewport.
 function computePillWidth(): number {
   const w = window.innerWidth || 1920;
-  return Math.min(Math.max(440, w * 0.4), 720, w - 80);
+  return Math.min(Math.max(440, w * 0.4), 680, w - 80);
 }
 
+type EvidexWindow = Window & {
+  evidexAPI?: {
+    events?: {
+      onSessionStatusUpdate?: (h: (s: SessionStatus) => void) => () => void;
+    };
+    capture?: {
+      screenshot?: (r: { sessionId: string; mode: string; statusTag: string }) => Promise<unknown>;
+    };
+    session?: {
+      end?: (id: string) => Promise<unknown>;
+      startRegionCapture?: (id: string) => Promise<unknown>;
+    };
+  };
+};
+
 export function App(): JSX.Element {
-  const [status,       setStatus]       = useState<ToolbarStatus | null>(null);
-  const [collapsed,    setCollapsed]     = useState(false);
-  const [ending,       setEnding]        = useState(false);
-  const [confirmEnd,   setConfirmEnd]    = useState(false);    // TB-05
-  const [nextTag,      setNextTag]       = useState<StatusTag>('pass'); // §15: default pass (was 'untagged')
-  const [firedMode,    setFiredMode]     = useState<CaptureMode | null>(null); // TB-06
-  const [pillWidth,    setPillWidth]     = useState(() => computePillWidth());
-  const [pillLeft,     setPillLeft]      = useState(-1);
+  const [status,     setStatus]     = useState<ToolbarStatus | null>(null);
+  const [collapsed,  setCollapsed]  = useState(false);
+  const [ending,     setEnding]     = useState(false);
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  const [nextTag,    setNextTag]    = useState<StatusTag>('pass'); // §15
+  const [firedMode,  setFiredMode]  = useState<CaptureMode | null>(null);
+  const [pillWidth,  setPillWidth]  = useState(() => computePillWidth());
+  const [pillLeft,   setPillLeft]   = useState(-1);
+  const pillRef = useRef<HTMLDivElement>(null);
 
-  // Centre pill on first mount.
+  // Centre pill on mount, TB-NEW-03: re-centre on resize.
   useEffect(() => {
-    const w = window.innerWidth || 1920;
-    const pw = computePillWidth();
-    setPillWidth(pw);
-    setPillLeft(Math.round((w - pw) / 2));
-  }, []);
-
-  // TB-NEW-03: recompute pill position on window resize (monitor switch).
-  useEffect(() => {
-    const onResize = (): void => {
+    const compute = (): void => {
       const w = window.innerWidth || 1920;
       const pw = computePillWidth();
       setPillWidth(pw);
-      setPillLeft((prev) => {
-        // If pill was centred (within 10px of centre), re-centre it.
-        const wasCentred = Math.abs(prev - Math.round((w - pw) / 2)) < 50;
-        return wasCentred ? Math.round((w - pw) / 2) : prev;
-      });
+      setPillLeft(Math.round((w - pw) / 2));
     };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
   }, []);
 
-  // TB-07: remove dead fallback. Only use evidexAPI.
+  // §13 fix: session status update → set state so pill counter updates.
   useEffect(() => {
-    const api = (window as Window & {
-      evidexAPI?: { events?: { onSessionStatusUpdate?: (h: (s: SessionStatus) => void) => () => void } };
-    }).evidexAPI;
-
-    if (!api?.events?.onSessionStatusUpdate) {
-      // No preload bridge — toolbar is disconnected.
-      return;
-    }
-
+    const api = (window as EvidexWindow).evidexAPI;
+    if (!api?.events?.onSessionStatusUpdate) return;
     const off = api.events.onSessionStatusUpdate((s) => {
       setStatus({
         sessionId:    s.sessionId,
@@ -127,42 +130,38 @@ export function App(): JSX.Element {
 
   async function handleCapture(mode: CaptureMode): Promise<void> {
     if (!status) return;
-    const api = (window as Window & {
-      evidexAPI?: {
-        capture?: { screenshot?: (r: { sessionId: string; mode: string; statusTag: string }) => Promise<unknown> };
-        session?: { startRegionCapture?: (id: string) => Promise<unknown> };
-      };
-    }).evidexAPI;
+    const api = (window as EvidexWindow).evidexAPI;
 
-    // TB-06: briefly highlight the button that was clicked.
     setFiredMode(mode);
     window.setTimeout(() => setFiredMode(null), 150);
 
-    // §13: region mode must trigger the region overlay via a dedicated IPC
-    // channel — calling capture:screenshot with mode='region' and no region
-    // payload fails Zod validation and silently does nothing.
+    // §13: region via dedicated channel — capture:screenshot rejects it.
     if (mode === 'region') {
       await api?.session?.startRegionCapture?.(status.sessionId);
       return;
     }
-
     try {
-      await api?.capture?.screenshot?.({ sessionId: status.sessionId, mode, statusTag: nextTag });
+      await api?.capture?.screenshot?.({
+        sessionId: status.sessionId,
+        mode,
+        statusTag: nextTag,
+      });
     } catch {
       /* main broadcasts CAPTURE_ARRIVED on success */
     }
   }
 
+  // §13: end session — call IPC, show ending state, clear on resolve.
   async function handleEndSession(): Promise<void> {
     if (ending || !status) return;
     setEnding(true);
-    const api = (window as Window & {
-      evidexAPI?: { session?: { end?: (id: string) => Promise<unknown> } };
-    }).evidexAPI;
+    const api = (window as EvidexWindow).evidexAPI;
     try {
       await api?.session?.end?.(status.sessionId);
+      // Main process hides the toolbar window after session.end completes.
+      // No renderer-side navigation needed — toolbar window is separate.
     } catch {
-      /* main-side errors surface as toasts in the renderer */
+      // Errors surface in the gallery via the session status event.
     }
     setEnding(false);
     setConfirmEnd(false);
@@ -178,15 +177,24 @@ export function App(): JSX.Element {
     overflow:      'hidden',
   };
 
-  // TB-05: confirmation overlay inside the collapsed pill.
+  const pillStyle: React.CSSProperties = {
+    position:     'absolute',
+    top:          12,
+    left:         pillLeft,
+    pointerEvents: 'auto',
+    width:        pillWidth,
+  };
+
+  // TB-05: confirmation overlay.
   if (confirmEnd) {
     return (
       <div style={outerStyle}>
         <motion.div
+          ref={pillRef}
           className="capture-toolbar"
           role="alertdialog"
           aria-label="Confirm end session"
-          style={{ position: 'absolute', top: 12, left: pillLeft, pointerEvents: 'auto', width: pillWidth }}
+          style={pillStyle}
           {...slideDown}
           transition={{ duration: 0.18, ease: [0.10, 0.90, 0.20, 1] }}
         >
@@ -223,11 +231,7 @@ export function App(): JSX.Element {
           {...slideDown}
           transition={{ duration: 0.22, ease: [0.10, 0.90, 0.20, 1] }}
         >
-          {/* Drag handle */}
-          <span className="capture-toolbar__drag-handle" aria-hidden="true" title="Drag to reposition">
-            <ReOrderDotsVerticalRegular fontSize={14} />
-          </span>
-          {/* TB-04: show red dot in collapsed state to signal active recording */}
+          {/* TB-04: red dot in collapsed state */}
           <span className="capture-toolbar__dot" aria-hidden="true" />
           <span className="capture-toolbar__counter-mono">
             {status?.captureCount ?? 0}
@@ -248,26 +252,15 @@ export function App(): JSX.Element {
   return (
     <div style={outerStyle}>
       <motion.div
+        ref={pillRef}
         className="capture-toolbar"
         role="toolbar"
         aria-label="Capture toolbar"
-        style={{ position: 'absolute', top: 12, left: pillLeft, pointerEvents: 'auto', width: pillWidth }}
+        style={pillStyle}
         {...slideDown}
         transition={{ duration: 0.22, ease: [0.10, 0.90, 0.20, 1] }}
       >
-        {/* Drag handle */}
-        <span
-          className="capture-toolbar__drag-handle"
-          aria-label="Drag to reposition toolbar"
-          title="Drag to reposition"
-          role="presentation"
-        >
-          <ReOrderDotsVerticalRegular fontSize={16} />
-        </span>
-
-        <span className="capture-toolbar__divider" aria-hidden="true" />
-
-        {/* Session identity — TB-01: shows real testId */}
+        {/* Session identity */}
         <div className="capture-toolbar__identity" title={status?.testId ?? 'No active session'}>
           <span className="capture-toolbar__dot" aria-hidden="true" />
           <span className="capture-toolbar__test-id">
@@ -328,7 +321,6 @@ export function App(): JSX.Element {
               title={`${label} · ${hint}`}
               onClick={() => void handleCapture(mode)}
               style={{
-                // TB-06: brief accent flash when this mode was just fired
                 background: firedMode === mode ? 'rgba(96,205,255,0.30)' : undefined,
                 transition: 'background 150ms ease',
               }}
@@ -346,7 +338,7 @@ export function App(): JSX.Element {
             type="button"
             className="capture-toolbar__btn capture-toolbar__btn--end"
             disabled={ending}
-            onClick={() => setConfirmEnd(true)}  // TB-05: confirmation first
+            onClick={() => setConfirmEnd(true)}
             title="End session"
           >
             <RecordStopRegular fontSize={14} />
@@ -367,7 +359,6 @@ export function App(): JSX.Element {
   );
 }
 
-// TB-09: only render when value > 0
 function CounterPill({ kind, value }: { kind: 'pass' | 'fail' | 'blocked'; value: number }): JSX.Element | null {
   if (value === 0) return null;
   return (

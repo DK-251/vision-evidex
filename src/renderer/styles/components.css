@@ -1945,7 +1945,8 @@ body:fullscreen .caption-buttons {
   font-family:     var(--font-family);
   box-shadow:      var(--shadow-layer-3);
   max-width:       240px;
-  white-space:     normal;
+  width:           max-content; /* §2: prevents collapsing to 0 which stacks text vertically */
+  white-space:     nowrap;
   word-break:      break-word;
   transform-origin: center;
 }

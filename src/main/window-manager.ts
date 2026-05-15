@@ -93,7 +93,7 @@ export function createMainWindow(): BrowserWindow {
 }
 
 export function createToolbarWindow(): BrowserWindow {
-  // Use full display width so the pill can be dragged anywhere left/right.
+  // Use full display width so the pill is always centred.
   const { workArea } = screen.getPrimaryDisplay();
   const toolbarWidth  = workArea.width;
 
@@ -102,33 +102,27 @@ export function createToolbarWindow(): BrowserWindow {
     width:       toolbarWidth,
     height:      TOOLBAR_HEIGHT,
     frame:       false,
+    // §13: use 'floating' so the toolbar never blocks minimize/maximize of
+    // other apps. 'screen-saver' or true would sit above system UI.
     alwaysOnTop: true,
+    level:       'floating' as unknown as boolean,  // Electron supports string level
     skipTaskbar: true,
     resizable:   false,
-    movable:     true,          // allow horizontal drag via the handle
+    // §13: remove movable — drag escape is unfixable without a native hit-test
+    // override. Pill is always centred at top. Drag handle remains in CSS
+    // for visual affordance but the window itself is not movable.
+    movable:     false,
     transparent: true,
     hasShadow:   false,
-    show:        false,         // showToolbarWindow positions then shows
-    focusable:   false,         // capture toolbar must not steal focus
+    show:        false,
+    focusable:   false,
   });
   toolbarWindow.setContentProtection(true);
 
-  // Clamp BOTH axes — Y stays at top edge, X keeps the pill within
-  // the work area so the user cannot drag it completely off-screen.
-  // TB-NEW-01: previous code clamped Y but left X unclamped.
-  const MIN_VISIBLE_PX = 80; // at least 80px of pill always remains visible
-  toolbarWindow.on('move', () => {
-    if (!toolbarWindow || toolbarWindow.isDestroyed()) return;
-    const [cx = 0] = toolbarWindow.getPosition();
-    const { workArea: wa } = screen.getPrimaryDisplay();
-    // Clamp X: pill cannot be dragged further left/right than MIN_VISIBLE_PX.
-    const clampedX = Math.max(
-      wa.x - (toolbarWidth - MIN_VISIBLE_PX),
-      Math.min(cx, wa.x + wa.width - MIN_VISIBLE_PX)
-    );
-    const clampedY = wa.y + TOOLBAR_TOP_OFFSET;
-    toolbarWindow.setPosition(clampedX, clampedY, false);
-  });
+  // §13: setIgnoreMouseEvents with forward=true so clicks pass through the
+  // transparent areas of the toolbar window to whatever app is beneath.
+  // The toolbar/App.tsx uses pointer-events:auto only on the pill itself.
+  toolbarWindow.setIgnoreMouseEvents(true, { forward: true });
 
   toolbarWindow.on('closed', () => {
     toolbarWindow = undefined;

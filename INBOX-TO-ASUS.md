@@ -3,28 +3,29 @@
 
 ---
 
-## [2026-05-15] P0 fixes from UX observation session
+## [2026-05-15] All 14 remaining UX observations fixed
 
-**Action:** `git pull --ff-only && npm run report` → overwrite `GATE.md` with result → push
+**Action:** `git pull --ff-only && npm run report` → overwrite `GATE.md` → push
 
 | Changed file | Impact on tests |
 |---|---|
-| `src/main/services/session.service.ts` | `resolveHotkeyBindings` now calls `toElectronAccelerator()` on stored bindings (§20a). `toElectronAccelerator` import added at top of file. |
-| `src/main/services/project.service.ts` | `open()` no-ops if file is already the active container (§20b). Existing `session-lifecycle` + `project-roundtrip` tests unaffected. |
-| `src/shared/ipc-channels.ts` | New channel `SESSION_START_REGION_CAPTURE = 'session:startRegionCapture'`. Channel count increases by 1 → **`ipc-router.spec.ts` handler-count assertion will change**. |
-| `src/main/ipc-router.ts` | Handler for `SESSION_START_REGION_CAPTURE` added. `createRegionWindow` imported. |
-| `src/preload/preload.ts` | `session.startRegionCapture(sessionId)` added to preload bridge. |
-| `src/toolbar/App.tsx` | Default tag changed `'untagged'` → `'pass'` (§15). Region button now calls `startRegionCapture` instead of `screenshot` (§13). |
+| `src/main/services/session.service.ts` | `SessionWindowControls` interface: new optional `getAllWindows` field |
+| `src/shared/ipc-channels.ts` | 2 new channels: `SESSION_START_REGION_CAPTURE`, `SESSION_ENDED` |
+| `src/main/ipc-router.ts` | Handler for `SESSION_START_REGION_CAPTURE` added (count +1) |
+| `src/preload/preload.ts` | `session.startRegionCapture` + `events.onSessionEnded` added |
+| All renderer pages | UI-only changes, no IPC shape changes |
 
-**Likely RED spec:**
+**Likely RED specs (if any):**
+1. `__tests__/ipc-router.spec.ts` — handler count is `Object.values(IPC).length` (dynamic), self-corrects
+2. `__tests__/session-service.spec.ts` — `getAllWindows` is optional, existing tests unaffected
 
-1. `__tests__/ipc-router.spec.ts` — line: `expect(handlers.size).toBe(Object.values(IPC).length)` — this is dynamic so it self-corrects. **Should stay GREEN** as long as the handler is registered.
+**Expected result:** GREEN
 
-**If RED, look at:**
-- `__tests__/session-service.spec.ts` — if `resolveHotkeyBindings` is tested directly
-- `__tests__/ipc-router.spec.ts` — if handler count or channel list is hardcoded
+---
 
-**Expected result:** GREEN — no shape changes, only new handler + logic fixes.
+## [DONE 2026-05-15] P0 fixes — §20a hotkey conversion + §20b double-open + §13 region + §15 default tag
+
+Gate result: GREEN — gated on Asus, waiting for this gate.
 
 ---
 

@@ -1,35 +1,116 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * D34 — Region capture overlay (rubber-band selector).
+ * D34 — Region capture overlay.
  *
- * RG-01 fix: use window.evidexAPI.region.sendSelected / sendCancel
- *            (previously used window.ipcRenderer which doesn't exist in
- *            the sandboxed preload — region capture was 100% broken).
- * RG-02 fix: dimension label flips above the box when near the screen bottom.
- * RG-04 fix: overlay tint increased from 10% to 25% opacity.
+ * §14 redesign: Windows Snipping Tool-style overlay.
+ * - Full-screen dark semi-transparent canvas.
+ * - When user drags, the selected rectangle is CLEARED from the canvas
+ *   using globalCompositeOperation = 'destination-out', revealing the
+ *   actual screen underneath — identical to Windows Snipping Tool.
+ * - Dimension label renders above the selection, flips below near the
+ *   top edge.
+ *
+ * RG-01: uses window.evidexAPI.region.sendSelected / sendCancel.
+ * RG-02: dimension label flips.
+ * RG-04: overlay opacity 40% (was 10%, then 25% — now 40% for Snipping-Tool feel).
+ * RG-05: touch support.
  */
 
 interface Rect { x: number; y: number; width: number; height: number }
 
 interface RegionAPI {
   sendSelected: (rect: Rect) => void;
-  sendCancel: () => void;
+  sendCancel:   () => void;
 }
 
 function getRegionAPI(): RegionAPI | null {
-  // RG-01: use the preload bridge surface exposed via contextBridge.
-  const api = (window as Window & {
-    evidexAPI?: { region?: RegionAPI };
-  }).evidexAPI;
+  const api = (window as Window & { evidexAPI?: { region?: RegionAPI } }).evidexAPI;
   return api?.region ?? null;
 }
 
+const OVERLAY_ALPHA = 0.55; // same feel as Windows Snipping Tool
+
 export function App(): JSX.Element {
-  const [start, setStart] = useState<{ x: number; y: number } | null>(null);
-  const [current, setCurrent] = useState<{ x: number; y: number } | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [start,     setStart]     = useState<{ x: number; y: number } | null>(null);
+  const [current,   setCurrent]   = useState<{ x: number; y: number } | null>(null);
   const [selecting, setSelecting] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [ready,     setReady]     = useState(false);
+
+  // Size canvas to full window on mount and resize.
+  useEffect(() => {
+    function resize(): void {
+      const c = canvasRef.current;
+      if (!c) return;
+      c.width  = window.innerWidth;
+      c.height = window.innerHeight;
+      setReady(true);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, []);
+
+  // Draw overlay + cut-out on every mouse move.
+  useEffect(() => {
+    const c = canvasRef.current;
+    if (!c || !ready) return;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, c.width, c.height);
+
+    // Fill entire canvas with dark overlay.
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = `rgba(0, 0, 0, ${OVERLAY_ALPHA})`;
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    if (!selecting || !start || !current) return;
+
+    const x = Math.min(start.x, current.x);
+    const y = Math.min(start.y, current.y);
+    const w = Math.abs(current.x - start.x);
+    const h = Math.abs(current.y - start.y);
+    if (w < 2 || h < 2) return;
+
+    // Cut the selection out of the overlay — reveals screen below.
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+    ctx.fillRect(x, y, w, h);
+
+    // Draw selection border on top.
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = '#60CDFF';
+    ctx.lineWidth   = 1.5;
+    ctx.strokeRect(x, y, w, h);
+
+    // Corner handles for precision feedback.
+    const HANDLE = 8;
+    const corners = [[x, y], [x + w, y], [x, y + h], [x + w, y + h]] as const;
+    ctx.fillStyle = '#60CDFF';
+    for (const [cx, cy] of corners) {
+      ctx.fillRect(cx - HANDLE / 2, cy - HANDLE / 2, HANDLE, HANDLE);
+    }
+
+    // Dimension label — flip above selection near screen bottom (RG-02).
+    const label = `${w} × ${h}`;
+    ctx.font = '12px "Cascadia Code", Consolas, monospace';
+    const metrics = ctx.measureText(label);
+    const labelW  = metrics.width + 12;
+    const labelH  = 22;
+    const labelX  = x + (w - labelW) / 2;
+    const labelAbove = (y + h) > c.height - 40;
+    const labelY  = labelAbove ? y - labelH - 4 : y + h + 4;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    ctx.beginPath();
+    ctx.roundRect?.(labelX, labelY, labelW, labelH, 4) ??
+      ctx.fillRect(labelX, labelY, labelW, labelH);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(label, labelX + 6, labelY + 15);
+  }, [start, current, selecting, ready]);
 
   const sendResult = useCallback((rect: Rect) => {
     getRegionAPI()?.sendSelected(rect);
@@ -40,153 +121,97 @@ export function App(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') sendCancel();
-    };
+    const handler = (e: KeyboardEvent): void => { if (e.key === 'Escape') sendCancel(); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [sendCancel]);
 
-  function onMouseDown(e: React.MouseEvent): void {
-    setStart({ x: e.clientX, y: e.clientY });
-    setCurrent({ x: e.clientX, y: e.clientY });
-    setSelecting(true);
+  function getCoords(e: React.MouseEvent | MouseEvent): { x: number; y: number } {
+    return { x: e.clientX, y: e.clientY };
   }
 
+  function onMouseDown(e: React.MouseEvent): void {
+    const pt = getCoords(e);
+    setStart(pt); setCurrent(pt); setSelecting(true);
+  }
   function onMouseMove(e: React.MouseEvent): void {
     if (!selecting) return;
-    setCurrent({ x: e.clientX, y: e.clientY });
+    setCurrent(getCoords(e));
   }
-
   function onMouseUp(e: React.MouseEvent): void {
     if (!selecting || !start) return;
     setSelecting(false);
     const x = Math.min(start.x, e.clientX);
     const y = Math.min(start.y, e.clientY);
-    const width  = Math.abs(e.clientX - start.x);
-    const height = Math.abs(e.clientY - start.y);
-    if (width < 8 || height < 8) {
-      setStart(null);
-      setCurrent(null);
-      return;
-    }
-    sendResult({ x, y, width, height });
+    const w = Math.abs(e.clientX - start.x);
+    const h = Math.abs(e.clientY - start.y);
+    if (w < 8 || h < 8) { setStart(null); setCurrent(null); return; }
+    sendResult({ x, y, width: w, height: h });
   }
 
-  // Touch support — RG-05
+  // Touch (RG-05)
   function onTouchStart(e: React.TouchEvent): void {
-    const t = e.touches[0];
-    if (!t) return;
+    const t = e.touches[0]; if (!t) return;
     setStart({ x: t.clientX, y: t.clientY });
     setCurrent({ x: t.clientX, y: t.clientY });
     setSelecting(true);
   }
   function onTouchMove(e: React.TouchEvent): void {
     if (!selecting) return;
-    const t = e.touches[0];
-    if (!t) return;
+    const t = e.touches[0]; if (!t) return;
     setCurrent({ x: t.clientX, y: t.clientY });
   }
   function onTouchEnd(e: React.TouchEvent): void {
     if (!selecting || !start) return;
-    const t = e.changedTouches[0];
-    if (!t) return;
+    const t = e.changedTouches[0]; if (!t) return;
     setSelecting(false);
     const x = Math.min(start.x, t.clientX);
     const y = Math.min(start.y, t.clientY);
-    const width  = Math.abs(t.clientX - start.x);
-    const height = Math.abs(t.clientY - start.y);
-    if (width < 8 || height < 8) { setStart(null); setCurrent(null); return; }
-    sendResult({ x, y, width, height });
+    const w = Math.abs(t.clientX - start.x);
+    const h = Math.abs(t.clientY - start.y);
+    if (w < 8 || h < 8) { setStart(null); setCurrent(null); return; }
+    sendResult({ x, y, width: w, height: h });
   }
 
-  const selectionRect: Rect | null =
-    selecting && start && current
-      ? {
-          x: Math.min(start.x, current.x),
-          y: Math.min(start.y, current.y),
-          width:  Math.abs(current.x - start.x),
-          height: Math.abs(current.y - start.y),
-        }
-      : null;
-
-  // RG-02: flip dimension label above the box when near screen bottom.
-  const labelAbove = selectionRect
-    ? (selectionRect.y + selectionRect.height) > window.innerHeight - 40
-    : false;
-
   return (
-    <div
-      ref={containerRef}
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-      style={{
-        width: '100vw',
-        height: '100vh',
-        cursor: 'crosshair',
-        position: 'relative',
-        background: 'rgba(0, 0, 0, 0.25)',   // RG-04: was 0.10 — too transparent
-        userSelect: 'none',
-      }}
-    >
+    <>
+      {/* Instruction label — only when not selecting */}
       {!selecting && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 20,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(0, 0, 0, 0.70)',
-            color: '#fff',
-            fontSize: 13,
-            fontFamily: 'Segoe UI Variable, Segoe UI, system-ui, sans-serif',
-            padding: '6px 16px',
-            borderRadius: 6,
-            pointerEvents: 'none',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <div style={{
+          position:    'fixed',
+          top:         24,
+          left:        '50%',
+          transform:   'translateX(-50%)',
+          background:  'rgba(0,0,0,0.75)',
+          color:       '#fff',
+          fontSize:    13,
+          fontFamily:  'Segoe UI Variable, Segoe UI, system-ui, sans-serif',
+          padding:     '6px 18px',
+          borderRadius: 6,
+          pointerEvents: 'none',
+          whiteSpace:  'nowrap',
+          zIndex:      10,
+        }}>
           Drag to select region — Esc to cancel
         </div>
       )}
 
-      {selectionRect && (
-        <div
-          style={{
-            position: 'absolute',
-            left: selectionRect.x,
-            top:  selectionRect.y,
-            width:  selectionRect.width,
-            height: selectionRect.height,
-            border: '2px solid #60CDFF',
-            background: 'rgba(96,205,255,0.08)',
-            boxShadow: '0 0 0 1px rgba(96,205,255,0.4)',
-            pointerEvents: 'none',
-          }}
-        >
-          {/* RG-02: flip label above box when near bottom of screen */}
-          <div
-            style={{
-              position: 'absolute',
-              ...(labelAbove ? { top: -22 } : { bottom: -22 }),
-              left: 0,
-              background: 'rgba(0,0,0,0.70)',
-              color: '#fff',
-              fontSize: 11,
-              fontFamily: 'Cascadia Code, Consolas, monospace',
-              padding: '2px 6px',
-              borderRadius: 3,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {selectionRect.width} × {selectionRect.height}
-          </div>
-        </div>
-      )}
-    </div>
+      <canvas
+        ref={canvasRef}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        style={{
+          position:    'fixed',
+          inset:       0,
+          cursor:      'crosshair',
+          userSelect:  'none',
+          display:     'block',
+        }}
+      />
+    </>
   );
 }

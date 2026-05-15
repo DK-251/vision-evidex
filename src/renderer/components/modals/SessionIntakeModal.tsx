@@ -63,6 +63,7 @@ export function SessionIntakeModal({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isShortcutConflict, setIsShortcutConflict] = useState(false); // HK-05
+  const [testDataPairs, setTestDataPairs] = useState<Array<{ key: string; value: string }>>([]);
   const [showDataMatrix, setShowDataMatrix] = useState(false);
   const [discardPrompt, setDiscardPrompt] = useState(false);
 
@@ -235,44 +236,66 @@ export function SessionIntakeModal({
             />
           </Field>
 
-          {/* Row 3: Test Data Matrix (collapsible) */}
-          {showDataMatrix ? (
-            <Field
-              label="Test data matrix"
-              hint={
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowDataMatrix(false);
-                    setField('testDataMatrix', '');
-                  }}
-                  className="btn-link"
-                  style={LINK_BTN}
-                >
-                  Remove
-                </button>
-              }
-            >
-              <Textarea
-                id="session-intake-testDataMatrix"
-                value={form.testDataMatrix}
-                onChange={(e) => setField('testDataMatrix', e.target.value)}
-                rows={3}
-                placeholder="One row per data combination"
-              />
-            </Field>
-          ) : (
-            <div style={{ marginBottom: 'var(--space-4)' }}>
-              <button
-                type="button"
-                onClick={() => setShowDataMatrix(true)}
-                className="btn-link"
-                style={LINK_BTN}
-              >
-                + Add test data
-              </button>
+          {/* Row 3: Test Data — §11: dynamic key-value pair list */}
+          {testDataPairs.length > 0 && (
+            <div style={{ marginBottom: 'var(--space-3)' }}>
+              <span style={{ display: 'block', fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
+                Test data
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                {testDataPairs.map((pair, i) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 'var(--space-2)', alignItems: 'center' }}>
+                    <Input
+                      value={pair.key}
+                      onChange={(e) => {
+                        const next = [...testDataPairs];
+                        next[i] = { ...next[i]!, key: e.target.value };
+                        setTestDataPairs(next);
+                        setField('testDataMatrix', JSON.stringify(next));
+                      }}
+                      placeholder="Field name"
+                    />
+                    <Input
+                      value={pair.value}
+                      onChange={(e) => {
+                        const next = [...testDataPairs];
+                        next[i] = { ...next[i]!, value: e.target.value };
+                        setTestDataPairs(next);
+                        setField('testDataMatrix', JSON.stringify(next));
+                      }}
+                      placeholder="Value"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = testDataPairs.filter((_, j) => j !== i);
+                        setTestDataPairs(next);
+                        setField('testDataMatrix', next.length ? JSON.stringify(next) : '');
+                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)', padding: '0 4px', fontSize: 16, lineHeight: 1 }}
+                      aria-label="Remove row"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
+          <div style={{ marginBottom: 'var(--space-4)' }}>
+            <button
+              type="button"
+              onClick={() => {
+                const next = [...testDataPairs, { key: '', value: '' }];
+                setTestDataPairs(next);
+                setShowDataMatrix(true);
+              }}
+              className="btn-link"
+              style={LINK_BTN}
+            >
+              + Add test data
+            </button>
+          </div>
 
           {/* Row 4: Requirement ID (40%) | Requirement Description (60%) */}
           <div style={ROW_40_60}>
@@ -323,13 +346,19 @@ export function SessionIntakeModal({
             </Field>
           </div>
 
-          {/* Row 6: Tester Name | Date */}
+          {/* Row 6: Tester Name (read-only from profile) | Date */}
           <div style={ROW_2COL}>
-            <Field label="Tester name">
+            <Field label="Tester name" hint={<span style={{ color: 'var(--color-text-tertiary)', fontSize: 10 }}>from profile</span>}>
+              {/* §12: Tester Name is pre-filled from settings profile and disabled.
+                  Per-session override is not allowed — attribution must come
+                  from the authenticated profile to maintain audit integrity. */}
               <Input
                 id="session-intake-testerName"
-                value={form.testerName}
-                onChange={(e) => setField('testerName', e.target.value)}
+                value={form.testerName || 'Set in Settings → Profile'}
+                readOnly
+                disabled
+                title={form.testerName ? undefined : 'Set your name in Settings → Profile'}
+                style={{ opacity: form.testerName ? 1 : 0.6 }}
               />
             </Field>
             <Field label="Date">

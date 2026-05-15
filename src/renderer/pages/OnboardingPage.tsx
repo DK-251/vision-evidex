@@ -91,13 +91,16 @@ export function OnboardingPage(): JSX.Element {
       }}
     >
       <TitleBar title="Vision-EviDex · Setup" />
+      {/* §1: outer scroll container so "Get Started" is reachable on short windows */}
       <div
         style={{
           flex:           1,
           display:        'flex',
-          alignItems:     'center',
+          alignItems:     'flex-start',
           justifyContent: 'center',
           padding:        'var(--space-6)',
+          overflowY:      'auto',
+          minHeight:      0,
         }}
       >
       <div
@@ -108,6 +111,8 @@ export function OnboardingPage(): JSX.Element {
           flexDirection:  'column',
           alignItems:     'center',
           gap:            'var(--space-4)',
+          marginTop:      'auto',
+          marginBottom:   'auto',
         }}
       >
         <StepIndicator total={visible.length} currentIndex={currentIndex} />
@@ -270,13 +275,16 @@ function CompletedCard(): JSX.Element {
       }}
     >
       <TitleBar title="Vision-EviDex · Setup" />
+      {/* §1: outer div must scroll when window is short so Get Started is reachable */}
       <div
         style={{
           flex: 1,
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           justifyContent: 'center',
           padding: 'var(--space-6)',
+          overflowY: 'auto',
+          minHeight: 0,
         }}
       >
       <div
@@ -287,6 +295,8 @@ function CompletedCard(): JSX.Element {
           padding: 'var(--space-8)',
           textAlign: 'center',
           borderRadius: 'var(--radius-dialog)',
+          marginTop: 'auto',
+          marginBottom: 'auto',
         }}
       >
         <div
