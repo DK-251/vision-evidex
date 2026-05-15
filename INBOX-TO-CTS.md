@@ -10,7 +10,74 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
-## 2026-05-15 11:00 — Post-gate manual testing observations (19 issues + terminal log bugs)
+## 2026-05-15 14:30 — Premium UI/UX redesign pass applied by Asus
+
+**From:** Asus TUF — post-gate UI audit + implementation  
+**Commit:** `2154a71` — GREEN, 563/563 PASS
+
+Asus performed a full senior UI/UX audit and applied a premium redesign pass directly. **CTS must read this before writing any new component or CSS.** The following tokens, classes, and conventions have changed.
+
+### Design token changes (`src/renderer/styles/tokens.css`)
+
+| Token | Old value | New value | Impact |
+|---|---|---|---|
+| `--radius-control` | 4px | 6px | All inputs, buttons, dropdowns |
+| `--radius-card` | 8px | 12px | All cards, capture thumbnails |
+| `--radius-dialog` | 8px | 16px | All modals/dialogs |
+| `--shadow-card` | 0 1px 2px rgba(0,0,0,0.04) | richer 2-layer shadow | Elevated surfaces |
+| `--shadow-layer-2` | 0 2px 4px … | deeper 12px blur | Flyouts, hover states |
+| `--shadow-layer-3` | 0 8px 16px … | 32px blur | Modals |
+| `--shadow-card-hover` | *(new)* | 0 8px 24px -4px … | Used on all hoverable cards |
+| `--shadow-accent-glow` | *(new)* | accent-tinted glow | Capture thumbnail hover |
+| `--type-title-weight` | 600 | 700 | All h1/title headings |
+| `--type-title-large-weight` | 600 | 700 | Display headings |
+| `--duration-medium` | *(new)* | 200ms | Mid-speed transitions |
+| `--easing-spring` | *(new)* | cubic-bezier(0.34,1.56,0.64,1) | Bounce entry animations |
+| `--space-7` | *(new)* | 28px | Gap between space-6 and space-8 |
+
+### Component class changes (`src/renderer/styles/components.css`)
+
+| Class | Change |
+|---|---|
+| `.btn-accent` | Now gradient `accent → dark-1` + tinted drop shadow. No flat colour. |
+| `.card-elevated` | Now has `:hover` state — border-color and box-shadow lift |
+| `.modal-backdrop` | Now has `backdrop-filter: blur(8px)` for premium glass feel |
+| `.capture-thumbnail:hover` | Uses `--shadow-accent-glow` instead of `--shadow-layer-2` |
+| `.gallery-summary-tile` | Left-border accent (not top), tonal `::before` overlay, value 26px/700 |
+| `.gallery-header__live-pill` | Red gradient pill, uppercase, white dot pulse — not fail-colour badges |
+| `.detail-panel__header` | Gradient tinted by status colour + coloured bottom border |
+| `.detail-panel__section-label` | 10px/700/0.12em tracking (was 11px/600/0.08em) |
+| `.avatar` | Gradient `accent → dark-2` with drop shadow (was flat fill-accent-subtle) |
+
+### Page/component changes
+
+| File | What changed |
+|---|---|
+| `src/renderer/pages/ProjectListPage.tsx` | Card gradient strip 96px (was 72px), glass avatar, date pill in header, "Open project" footer, richer saturated gradients |
+| `src/renderer/pages/AppSettingsPage.tsx` | 3-stop gradient header with decorative orbs, underline-style tabs (not filled pills), larger avatar (60px/700) |
+| `src/renderer/pages/SessionGalleryPage.tsx` | `DetailPanel`: status-tinted gradient header, coloured bottom border, `TAG_BG` gradient fills for status pill; empty state orb with `orb-breathe` animation |
+| `src/renderer/components/ui/CaptureThumbnail.tsx` | Header row removed; sequence + size as glassmorphic overlaid pills on the screenshot body; footer background `fill-subtle` |
+| `src/renderer/styles/global.css` | Added `@keyframes pulse`, `fade-up`, `scale-in`, `spin` globally |
+
+### What CTS must NOT do
+
+- Do **not** revert border radius to 4/8/8px. All new components use 6/12/16px.
+- Do **not** use `background: var(--color-accent-default)` for accent buttons — use the gradient or the `.btn-accent` class.
+- Do **not** add new `border-top: 3px solid` on summary tiles — the new pattern is `border-left: 3px solid`.
+- Do **not** hardcode `box-shadow: var(--shadow-layer-2)` on hover states — use `--shadow-card-hover` instead.
+- Do **not** write `font-weight: 600` on any `h1` or title — use `700`.
+
+### Suggested next steps for CTS
+
+Phase 3 can now start. The design system is premium-ready. When building Template Engine components (Phase 3 W11), follow these patterns:
+- Use `.card-elevated` for all Template cards.
+- Use gradient `linear-gradient(145deg, …)` for any branding/accent strip.
+- Use `--easing-spring` for any element that pops in from a tap/click.
+- Status colours are available as both `--color-status-*` (solid) and should be composed as `rgba(...)` tonal fills for backgrounds.
+
+---
+
+## [RESOLVED 2026-05-15] 2026-05-15 11:00 — Post-gate manual testing observations (19 issues + terminal log bugs)
 
 **From:** Asus TUF — manual testing session after GREEN gate (`1ba7918`)  
 **Full detail:** See [UX-OBSERVATIONS-2026-05-15.md](UX-OBSERVATIONS-2026-05-15.md)

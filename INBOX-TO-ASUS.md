@@ -3,7 +3,7 @@
 
 ---
 
-## [2026-05-15] All 14 remaining UX observations fixed
+## [DONE 2026-05-15] All 14 remaining UX observations fixed + premium UX redesign
 
 **Action:** `git pull --ff-only && npm run report` → overwrite `GATE.md` → push
 
