@@ -121,17 +121,22 @@ export function AppSettingsPage(): JSX.Element {
       className="shell-content-column"
       style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}
     >
-      {/* §8: Gradient accent header */}
+      {/* §8: Premium gradient accent header */}
       <div style={{
-        background:   'linear-gradient(135deg, var(--color-accent-default) 0%, var(--color-accent-dark-1) 100%)',
+        background:   'linear-gradient(135deg, #667eea 0%, var(--color-accent-default) 50%, var(--color-accent-dark-2) 100%)',
         borderRadius: 'var(--radius-card)',
-        padding:      'var(--space-5) var(--space-6)',
+        padding:      'var(--space-6) var(--space-6)',
         color:        '#fff',
+        position:     'relative',
+        overflow:     'hidden',
       }}>
-        <h1 style={{ margin: 0, fontFamily: 'var(--font-family-display)', fontSize: 'var(--type-title-size)', fontWeight: 'var(--type-title-weight)', color: '#fff' }}>
+        {/* decorative orbs */}
+        <div style={{ position: 'absolute', top: -20, right: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -30, right: 60, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
+        <h1 style={{ margin: 0, fontFamily: 'var(--font-family-display)', fontSize: 'var(--type-title-size)', fontWeight: 700, color: '#fff', position: 'relative' }}>
           Settings
         </h1>
-        <p style={{ margin: 'var(--space-1) 0 0', fontSize: 'var(--type-caption-size)', opacity: 0.80 }}>
+        <p style={{ margin: 'var(--space-1) 0 0', fontSize: 'var(--type-body-size)', opacity: 0.80, position: 'relative' }}>
           Profile, hotkeys, appearance, storage and defaults
         </p>
       </div>
@@ -142,8 +147,8 @@ export function AppSettingsPage(): JSX.Element {
         </div>
       )}
 
-      {/* §8: Pivot strip with icons */}
-      <div role="tablist" style={{ display: 'flex', gap: 'var(--space-1)', padding: 3, background: 'var(--color-fill-secondary)', borderRadius: 'var(--radius-control)', width: 'fit-content' }}>
+      {/* §8: Premium underline pivot tabs */}
+      <div role="tablist" style={{ display: 'flex', gap: 0, borderBottom: '2px solid var(--color-stroke-divider)', width: '100%', maxWidth: 680 }}>
         {TABS.map((t) => {
           const label = t.id === 'licence' && mode === 'none' ? 'About' : t.label;
           const active = activeTab === t.id;
@@ -155,22 +160,22 @@ export function AppSettingsPage(): JSX.Element {
               aria-selected={active}
               onClick={() => navigateTab(t.id)}
               style={{
-                display:     'inline-flex',
-                alignItems:  'center',
-                gap:         'var(--space-1)',
-                height:      32,
-                padding:     '0 var(--space-3)',
-                border:      0,
-                borderRadius: 'var(--radius-control)',
-                background:  active ? 'var(--color-layer-1)' : 'transparent',
-                color:       active ? 'var(--color-accent-default)' : 'var(--color-text-secondary)',
-                fontFamily:  'var(--font-family)',
-                fontSize:    'var(--type-body-size)',
-                fontWeight:  active ? 'var(--type-body-strong-weight)' : 'var(--type-body-weight)',
-                cursor:      'pointer',
-                boxShadow:   active ? 'var(--shadow-card)' : 'none',
-                transition:  'all 120ms ease',
-                whiteSpace:  'nowrap',
+                display:       'inline-flex',
+                alignItems:    'center',
+                gap:           6,
+                height:        40,
+                padding:       '0 var(--space-4)',
+                border:        0,
+                borderBottom:  active ? '2px solid var(--color-accent-default)' : '2px solid transparent',
+                marginBottom:  -2,
+                background:    'transparent',
+                color:         active ? 'var(--color-accent-default)' : 'var(--color-text-secondary)',
+                fontFamily:    'var(--font-family)',
+                fontSize:      'var(--type-body-size)',
+                fontWeight:    active ? 700 : 400,
+                cursor:        'pointer',
+                whiteSpace:    'nowrap',
+                transition:    'color 0.15s ease, border-color 0.15s ease',
               }}
             >
               <t.Icon fontSize={14} aria-hidden />
@@ -241,15 +246,15 @@ function ProfileTab({ settings, patch }: TabProps): JSX.Element {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
-        <span className="avatar" style={{ width: 56, height: 56, fontSize: 22 }} aria-hidden>
+        <span className="avatar" style={{ width: 60, height: 60, fontSize: 24 }} aria-hidden>
           {initialsOf(profile.name)}
         </span>
         <div>
-          <div style={{ fontSize: 'var(--type-body-strong-size)', fontWeight: 'var(--type-body-strong-weight)', color: 'var(--color-text-primary)' }}>
+          <div style={{ fontSize: 'var(--type-subtitle-size)', fontWeight: 700, color: 'var(--color-text-primary)', lineHeight: 1.2 }}>
             {profile.name || 'Your name'}
           </div>
-          <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)' }}>
-            {profile.role || '—'}
+          <div style={{ fontSize: 'var(--type-caption-size)', color: 'var(--color-text-secondary)', marginTop: 2 }}>
+            {profile.role || 'No role set'}
           </div>
         </div>
       </div>

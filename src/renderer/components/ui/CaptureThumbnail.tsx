@@ -68,40 +68,7 @@ export function CaptureThumbnail({
       className={`capture-thumbnail ${isSelected ? 'selected' : ''}`.trim()}
       style={{ cursor: 'default', padding: 0 }}
     >
-      {/* ── Header: sequence # + file size ── */}
-      <div style={{
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'space-between',
-        padding:        '4px var(--space-2)',
-        borderBottom:   '1px solid var(--color-stroke-divider)',
-        background:     'var(--color-layer-1)',
-        pointerEvents:  'none',
-        userSelect:     'none',
-      }}>
-        {sequenceNum !== undefined ? (
-          <span style={{
-            padding:      '1px 7px',
-            borderRadius: 'var(--radius-pill)',
-            background:   'var(--color-fill-subtle)',
-            border:       '1px solid var(--color-stroke-divider)',
-            fontFamily:   'var(--font-mono)',
-            fontSize:     11,
-            color:        'var(--color-text-secondary)',
-          }}>
-            #{sequenceNum}
-          </span>
-        ) : <span />}
-        <span style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize:   11,
-          color:      'var(--color-text-tertiary)',
-        }}>
-          {formatKB(capture.fileSizeBytes)}
-        </span>
-      </div>
-
-      {/* ── Body: screenshot — clickable ── */}
+      {/* ── Body: screenshot — clickable, sequence badge overlaid ── */}
       <button
         type="button"
         onClick={handleBodyClick}
@@ -115,6 +82,7 @@ export function CaptureThumbnail({
           background: 'none',
           cursor:     'pointer',
           lineHeight: 0,
+          position:   'relative',
         }}
       >
         <img
@@ -123,12 +91,55 @@ export function CaptureThumbnail({
           alt=""
           style={{ display: 'block', width: '100%' }}
         />
+        {/* Sequence number badge — overlaid glass pill */}
+        {sequenceNum !== undefined && (
+          <span style={{
+            position:       'absolute',
+            top:            6,
+            left:           6,
+            padding:        '2px 8px',
+            borderRadius:   'var(--radius-pill)',
+            background:     'rgba(0,0,0,0.52)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            color:          '#FFFFFF',
+            fontFamily:     'var(--font-mono)',
+            fontSize:       10,
+            fontWeight:     600,
+            letterSpacing:  '0.04em',
+            lineHeight:     '16px',
+            pointerEvents:  'none',
+          }}>
+            #{sequenceNum}
+          </span>
+        )}
+        {/* File size badge — top right */}
+        <span style={{
+          position:       'absolute',
+          top:            6,
+          right:          6,
+          padding:        '2px 7px',
+          borderRadius:   'var(--radius-pill)',
+          background:     'rgba(0,0,0,0.38)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          color:          'rgba(255,255,255,0.85)',
+          fontFamily:     'var(--font-mono)',
+          fontSize:       10,
+          lineHeight:     '16px',
+          pointerEvents:  'none',
+        }}>
+          {formatKB(capture.fileSizeBytes)}
+        </span>
       </button>
 
       {/* ── Footer: status + time + delete (disabled) ── */}
       <div
         className="capture-thumbnail-footer"
-        style={{ pointerEvents: 'none' }}
+        style={{
+          pointerEvents:  'none',
+          background:     'var(--color-fill-subtle)',
+        }}
       >
         <StatusBadge tag={capture.statusTag as StatusTagKind} />
         <span className="capture-thumbnail__time">

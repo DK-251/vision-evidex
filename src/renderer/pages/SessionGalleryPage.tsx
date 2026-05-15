@@ -303,13 +303,35 @@ function derivedCounts(captures: CaptureResult[]): {
 
 function EmptyState(): JSX.Element {
   return (
-    <div className="gallery-empty">
-      <div className="gallery-empty__title">No captures yet</div>
-      <div className="gallery-empty__hint">
-        Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>1</kbd> for fullscreen,{' '}
-        <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>2</kbd> for the active window, or{' '}
-        <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>3</kbd> to draw a region. The
-        capture toolbar at the top of the screen does the same.
+    <div className="gallery-empty" style={{
+      display:        'flex',
+      flexDirection:  'column',
+      alignItems:     'center',
+      gap:            'var(--space-4)',
+      padding:        'var(--space-12) var(--space-6)',
+      textAlign:      'center',
+    }}>
+      <div style={{
+        width:          80,
+        height:         80,
+        borderRadius:   '50%',
+        background:     'linear-gradient(135deg, var(--color-accent-default) 0%, var(--color-accent-dark-2) 100%)',
+        display:        'flex',
+        alignItems:     'center',
+        justifyContent: 'center',
+        boxShadow:      'var(--shadow-accent-glow)',
+        animation:      'orb-breathe 3s ease-in-out infinite',
+      }}>
+        <EditRegular fontSize={34} style={{ color: '#fff' }} />
+      </div>
+      <div>
+        <div className="gallery-empty__title" style={{ fontWeight: 700, fontSize: 'var(--type-subtitle-size)', marginBottom: 'var(--space-2)' }}>No captures yet</div>
+        <div className="gallery-empty__hint" style={{ maxWidth: 360, color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
+          Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>1</kbd> for fullscreen,{' '}
+          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>2</kbd> for the active window, or{' '}
+          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>3</kbd> to draw a region. The
+          capture toolbar at the top of the screen does the same.
+        </div>
       </div>
     </div>
   );
@@ -378,6 +400,14 @@ const TAG_COLOR: Record<StatusTag, string> = {
   untagged: 'var(--color-text-tertiary)',
 };
 
+const TAG_BG: Record<StatusTag, string> = {
+  pass:     'linear-gradient(135deg, rgba(15,157,88,0.12) 0%, rgba(14,122,13,0.08) 100%)',
+  fail:     'linear-gradient(135deg, rgba(196,43,28,0.12) 0%, rgba(196,43,28,0.06) 100%)',
+  blocked:  'linear-gradient(135deg, rgba(157,93,0,0.12) 0%, rgba(157,93,0,0.06) 100%)',
+  skip:     'linear-gradient(135deg, rgba(97,97,97,0.08) 0%, rgba(97,97,97,0.04) 100%)',
+  untagged: 'var(--color-fill-subtle)',
+};
+
 function DetailPanel({
   capture,
   allCaptures,
@@ -398,6 +428,7 @@ function DetailPanel({
   const idx = allCaptures.findIndex((c) => c.captureId === capture.captureId);
   const prevCapture = idx > 0 ? allCaptures[idx - 1] : null;
   const nextCapture = idx < allCaptures.length - 1 ? allCaptures[idx + 1] : null;
+  const captureNum = idx + 1;
 
   async function cycleTag(): Promise<void> {
     if (saving) return;
@@ -408,91 +439,130 @@ function DetailPanel({
     finally { setSaving(false); }
   }
 
-  // §17/18: additional details persisted as capture notes JSON
   useEffect(() => {
     try {
       if (capture.notes) {
         const parsed = JSON.parse(capture.notes);
         if (Array.isArray(parsed)) { setAdditionalDetails(parsed); return; }
       }
-    } catch { /* notes is plain text, not JSON */ }
+    } catch { /* notes is plain text */ }
     setAdditionalDetails([]);
   }, [capture.captureId, capture.notes]);
 
   async function saveAdditionalDetails(next: typeof additionalDetails): Promise<void> {
     setAdditionalDetails(next);
     await window.evidexAPI.capture.updateTag(capture.captureId, currentTag);
-    // Persist as JSON in notes via a notes update IPC (available in Phase 3).
-    // For now: no-op persistence beyond local state.
   }
 
   return (
     <>
-      {/* §17/18: card header — title + close */}
-      <div className="detail-panel__header">
-        <h2 className="detail-panel__title">
-          Capture #{allCaptures.findIndex((c) => c.captureId === capture.captureId) + 1}
-        </h2>
+      {/* Header — gradient tinted by status */}
+      <div className="detail-panel__header" style={{
+        background: TAG_BG[currentTag],
+        borderBottom: `2px solid ${TAG_COLOR[currentTag]}`,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{
+            width:          28,
+            height:         28,
+            borderRadius:   '50%',
+            background:     TAG_COLOR[currentTag],
+            display:        'inline-flex',
+            alignItems:     'center',
+            justifyContent: 'center',
+            color:          '#fff',
+            fontSize:       11,
+            fontWeight:     700,
+            fontFamily:     'var(--font-mono)',
+            flexShrink:     0,
+          }}>
+            #{captureNum}
+          </span>
+          <h2 className="detail-panel__title" style={{ fontSize: 'var(--type-body-large-size)' }}>
+            Capture #{captureNum}
+          </h2>
+        </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close detail panel"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', display: 'inline-flex', padding: 4, borderRadius: 'var(--radius-control)' }}
+          style={{
+            background:    'var(--color-fill-subtle)',
+            border:        '1px solid var(--color-stroke-default)',
+            cursor:        'pointer',
+            color:         'var(--color-text-secondary)',
+            display:       'inline-flex',
+            padding:       '4px 8px',
+            borderRadius:  'var(--radius-control)',
+            fontSize:      16,
+            lineHeight:    1,
+            transition:    'background 0.12s ease',
+          }}
         >
           ×
         </button>
       </div>
 
-      {/* §17/18: full-width thumbnail */}
+      {/* Full-width screenshot */}
       <div className="detail-panel__hero">
-        {imgSrc && <img src={imgSrc} alt="" />}
+        {imgSrc ? (
+          <img src={imgSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-tertiary)', fontSize: 12 }}>
+            No preview
+          </div>
+        )}
       </div>
 
       <div className="detail-panel__body">
-        {/* §17/18: 2-col metadata grid */}
-        <dl className="detail-panel__meta">
-          <dt style={{ gridColumn: '1 / -1', fontWeight: 600 }}>Filename</dt>
-          <dd style={{ gridColumn: '1 / -1' }} className="normal">{capture.filename}</dd>
-          <dt>Date</dt>
-          <dd className="normal">{new Date(capture.capturedAt).toLocaleDateString()}</dd>
-          <dt>Time</dt>
-          <dd className="normal">{new Date(capture.capturedAt).toLocaleTimeString()}</dd>
-          <dt>SHA-256</dt>
-          <dd title={capture.sha256Hash}>…{capture.sha256Hash.slice(-12)}</dd>
-          <dt>Size</dt>
-          <dd className="normal">{(capture.fileSizeBytes / 1024).toFixed(1)} KB</dd>
-        </dl>
-
-        {/* §17/18: status pill — click cycles through statuses */}
+        {/* Status pill — gradient fill matching status */}
         <div>
           <div className="detail-panel__section-label">Status</div>
           <button
             type="button"
             disabled={saving}
             onClick={() => void cycleTag()}
-            title="Click to change status"
+            title="Click to cycle status"
             style={{
               display:      'inline-flex',
               alignItems:   'center',
               gap:          8,
-              padding:      '6px 16px',
+              padding:      '7px 18px',
               borderRadius: 'var(--radius-pill)',
-              border:       `2px solid ${TAG_COLOR[currentTag]}`,
-              background:   'transparent',
+              border:       `1.5px solid ${TAG_COLOR[currentTag]}`,
+              background:   TAG_BG[currentTag],
               color:        TAG_COLOR[currentTag],
-              fontWeight:   600,
+              fontWeight:   700,
               fontSize:     'var(--type-caption-size)',
-              cursor:       'pointer',
-              transition:   'all 0.14s ease',
+              letterSpacing: '0.04em',
+              cursor:       saving ? 'wait' : 'pointer',
+              transition:   'all 0.15s var(--easing-standard)',
             }}
             aria-label={`Status: ${currentTag}. Click to cycle.`}
           >
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: TAG_COLOR[currentTag], flexShrink: 0 }} />
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: TAG_COLOR[currentTag], flexShrink: 0 }} />
             {currentTag.charAt(0).toUpperCase() + currentTag.slice(1)}
           </button>
         </div>
 
-        {/* §17/18: additional details — key-value pairs */}
+        {/* 2-col metadata grid */}
+        <div>
+          <div className="detail-panel__section-label">Details</div>
+          <dl className="detail-panel__meta">
+            <dt style={{ gridColumn: '1 / -1', fontWeight: 600 }}>Filename</dt>
+            <dd style={{ gridColumn: '1 / -1' }} className="normal">{capture.filename}</dd>
+            <dt>Date</dt>
+            <dd className="normal">{new Date(capture.capturedAt).toLocaleDateString()}</dd>
+            <dt>Time</dt>
+            <dd className="normal">{new Date(capture.capturedAt).toLocaleTimeString()}</dd>
+            <dt>SHA-256</dt>
+            <dd title={capture.sha256Hash}>…{capture.sha256Hash.slice(-12)}</dd>
+            <dt>Size</dt>
+            <dd className="normal">{(capture.fileSizeBytes / 1024).toFixed(1)} KB</dd>
+          </dl>
+        </div>
+
+        {/* Additional details — key-value pairs */}
         <div>
           <div className="detail-panel__section-label">Additional details</div>
           {additionalDetails.map((d, i) => (
@@ -538,14 +608,25 @@ function DetailPanel({
         </div>
       </div>
 
-      {/* §17/18: footer — prev / annotate / next */}
+      {/* Footer — prev / annotate / next */}
       <div className="detail-panel__actions" style={{ justifyContent: 'space-between' }}>
         <button
           type="button"
           onClick={() => prevCapture && onNavigate(prevCapture.captureId)}
           disabled={!prevCapture}
           aria-label="Previous capture"
-          style={{ background: 'none', border: '1px solid var(--color-stroke-default)', borderRadius: 'var(--radius-control)', cursor: prevCapture ? 'pointer' : 'default', opacity: prevCapture ? 1 : 0.4, padding: '4px 12px', color: 'var(--color-text-primary)', fontSize: 'var(--type-caption-size)' }}
+          style={{
+            background:    'none',
+            border:        '1px solid var(--color-stroke-default)',
+            borderRadius:  'var(--radius-control)',
+            cursor:        prevCapture ? 'pointer' : 'default',
+            opacity:       prevCapture ? 1 : 0.35,
+            padding:       '5px 14px',
+            color:         'var(--color-text-primary)',
+            fontSize:      'var(--type-caption-size)',
+            fontFamily:    'var(--font-family)',
+            transition:    'background 0.12s ease',
+          }}
         >
           ← Prev
         </button>
@@ -562,7 +643,18 @@ function DetailPanel({
           onClick={() => nextCapture && onNavigate(nextCapture.captureId)}
           disabled={!nextCapture}
           aria-label="Next capture"
-          style={{ background: 'none', border: '1px solid var(--color-stroke-default)', borderRadius: 'var(--radius-control)', cursor: nextCapture ? 'pointer' : 'default', opacity: nextCapture ? 1 : 0.4, padding: '4px 12px', color: 'var(--color-text-primary)', fontSize: 'var(--type-caption-size)' }}
+          style={{
+            background:    'none',
+            border:        '1px solid var(--color-stroke-default)',
+            borderRadius:  'var(--radius-control)',
+            cursor:        nextCapture ? 'pointer' : 'default',
+            opacity:       nextCapture ? 1 : 0.35,
+            padding:       '5px 14px',
+            color:         'var(--color-text-primary)',
+            fontSize:      'var(--type-caption-size)',
+            fontFamily:    'var(--font-family)',
+            transition:    'background 0.12s ease',
+          }}
         >
           Next →
         </button>
