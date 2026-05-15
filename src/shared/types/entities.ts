@@ -142,6 +142,7 @@ export interface CaptureResult {
   thumbnail: string; // base64 data URL, 160x90
   capturedAt: string;
   statusTag: StatusTag; // always present — defaults to 'untagged'
+  notes?: string;       // JSON-encoded additional details (Phase 3)
 }
 
 export interface CaptureCountDelta {

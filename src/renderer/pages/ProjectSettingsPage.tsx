@@ -44,7 +44,7 @@ export function ProjectSettingsPage(): JSX.Element | null {
         patchActiveProject({
           name:        name.trim(),
           clientName:  clientName.trim(),
-          description: description.trim() || undefined,
+          ...(description.trim() !== '' ? { description: description.trim() } : {}),
         });
         showToast('success', '✓ Project settings saved');
         goBack();

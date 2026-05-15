@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type MotionStyle } from 'framer-motion';
 import {
   ScreenshotRegular,
   WindowRegular,
@@ -194,7 +194,7 @@ export function App(): JSX.Element {
           className="capture-toolbar"
           role="alertdialog"
           aria-label="Confirm end session"
-          style={pillStyle}
+          style={pillStyle as MotionStyle}
           {...slideDown}
           transition={{ duration: 0.18, ease: [0.10, 0.90, 0.20, 1] }}
         >
@@ -256,7 +256,7 @@ export function App(): JSX.Element {
         className="capture-toolbar"
         role="toolbar"
         aria-label="Capture toolbar"
-        style={pillStyle}
+        style={pillStyle as MotionStyle}
         {...slideDown}
         transition={{ duration: 0.22, ease: [0.10, 0.90, 0.20, 1] }}
       >

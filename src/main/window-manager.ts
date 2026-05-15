@@ -102,10 +102,9 @@ export function createToolbarWindow(): BrowserWindow {
     width:       toolbarWidth,
     height:      TOOLBAR_HEIGHT,
     frame:       false,
-    // §13: use 'floating' so the toolbar never blocks minimize/maximize of
-    // other apps. 'screen-saver' or true would sit above system UI.
+    // §13: use 'floating' level — set via setAlwaysOnTop after creation
+    // because BrowserWindowConstructorOptions only accepts boolean alwaysOnTop.
     alwaysOnTop: true,
-    level:       'floating' as unknown as boolean,  // Electron supports string level
     skipTaskbar: true,
     resizable:   false,
     // §13: remove movable — drag escape is unfixable without a native hit-test
@@ -118,6 +117,8 @@ export function createToolbarWindow(): BrowserWindow {
     focusable:   false,
   });
   toolbarWindow.setContentProtection(true);
+  // §13: 'floating' level keeps toolbar above app windows but below system UI.
+  toolbarWindow.setAlwaysOnTop(true, 'floating');
 
   // §13: setIgnoreMouseEvents with forward=true so clicks pass through the
   // transparent areas of the toolbar window to whatever app is beneath.
