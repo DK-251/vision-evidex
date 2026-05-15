@@ -226,12 +226,6 @@ const evidexAPI = {
       ipcRenderer.on(IPC_EVENTS.ANNOTATION_LOAD, listener);
       return () => ipcRenderer.removeListener(IPC_EVENTS.ANNOTATION_LOAD, listener);
     },
-    /** §13: gallery listens for toolbar-initiated session end to update Live pill. */
-    onSessionEnded: (handler: (sessionId: string) => void): (() => void) => {
-      const listener = (_e: unknown, sessionId: string): void => handler(sessionId);
-      ipcRenderer.on(IPC_EVENTS.SESSION_ENDED, listener);
-      return () => ipcRenderer.removeListener(IPC_EVENTS.SESSION_ENDED, listener);
-    },
   },
 } as const;
 
