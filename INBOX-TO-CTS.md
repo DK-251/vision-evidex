@@ -10,6 +10,71 @@ Append-only messages from the Asus TUF run machine to the CTS laptop. Asus write
 
 ---
 
+## 2026-05-15 11:00 — Post-gate manual testing observations (19 issues + terminal log bugs)
+
+**From:** Asus TUF — manual testing session after GREEN gate (`1ba7918`)  
+**Full detail:** See [UX-OBSERVATIONS-2026-05-15.md](UX-OBSERVATIONS-2026-05-15.md)
+
+### Work to complete BEFORE starting Phase 3
+
+The following items were observed during live testing today. All P0/P1 items must be fixed and gated GREEN before Phase 3 (Template Engine) begins.
+
+#### P0 — Critical (fix first)
+
+**§13 — Quick toolbar: multiple critical failures**
+- Session end from toolbar does not persist → session still shows as "Live" in gallery + "End session" button still enabled. Root cause: toolbar End handler not completing the `session:end` IPC → DB write → `container.save()` chain.
+- Region capture button in toolbar does nothing (shortcut `Ctrl+Shift+3` works fine).
+- Capture count in toolbar does not increment when captures are taken.
+- Toolbar pill width overflows to the right of the collapse button.
+- Drag can take toolbar out of viewport — if complex to fix, remove drag and fix at top-centre.
+- Toolbar BrowserWindow blocks minimize/maximize of other apps — set appropriate `alwaysOnTop` level or apply `ignoreMouseEvents` outside pill bounds.
+- **Files:** `src/toolbar/App.tsx`, `src/main/window-manager.ts`
+
+**§20a — `resolveHotkeyBindings` not converting stored `Ctrl+` to `CmdOrCtrl+`**
+- Logged bindings show `Ctrl+Shift+1` instead of `CmdOrCtrl+Shift+1`. Settings stored by the renderer use `Ctrl+` format; `resolveHotkeyBindings` must run `toElectronAccelerator()` on user-stored values.
+- **File:** `src/main/services/session.service.ts` → `resolveHotkeyBindings()`
+
+#### P1 — High (before Phase 3 gate)
+
+| § | File(s) likely | Issue |
+|---|---|---|
+| §1 | `src/renderer/pages/OnboardingPage.tsx` (AllSet step) | "All Set" screen not scrollable on small/minimized window — "Get Started" unreachable |
+| §3 + §8 | `src/renderer/pages/AppSettingsPage.tsx` | Settings: no Save button per tab; full modern redesign required (icons, gradients, glassmorphism, Fluent) |
+| §11 | `src/renderer/components/modals/SessionIntakeModal.tsx` | "Add Test Data" → dynamic key-value pair list (title + value per row, add/remove) |
+| §12 | `src/renderer/components/modals/SessionIntakeModal.tsx` | Tester Name field must be disabled, pre-filled from settings profile |
+| §14 | `src/region/App.tsx` | Region capture: replace blue box with snipping-tool dark overlay + transparent cut-out on drag |
+| §15 | `src/toolbar/App.tsx` | Default next-tag = `'pass'` (currently `'untagged'`) |
+| §16 | `src/renderer/components/ui/CaptureThumbnail.tsx` | Thumbnail card redesign: header (#N + KB), body (thumbnail, clickable), footer (status pill + time + delete icon) |
+| §17 + §18 | `SessionGalleryPage.tsx` → `DetailPanel` sub-component | Capture detail panel redesign: card header, thumbnail, 2-col metadata, additional details (title+desc pairs, +Add), status pill, prev/annotate/next footer |
+| §9 | `src/renderer/pages/ProjectListPage.tsx` (or equivalent) | Project list → card grid with gradient, icon, title, client, description; search bar |
+
+#### P2 — Medium (before Phase 3 gate, can batch)
+
+| § | File(s) likely | Issue |
+|---|---|---|
+| §2 | Tooltip component / CSS | Close button tooltip renders as vertical text stack — add `white-space: nowrap` |
+| §4 | `AppSettingsPage.tsx` Profile tab | Role field → dropdown matching onboarding + "Other" free-text |
+| §5 | `AppSettingsPage.tsx` Hotkeys tab | Add instruction text, active-binding highlight, green/red valid/invalid border |
+| §6 | `AppSettingsPage.tsx` Appearance tab | Text-size button active state does not follow selection |
+| §7 | `AppSettingsPage.tsx` Storage tab | Buttons overflow outside the card box |
+| §10 | `src/renderer/pages/ProjectSettingsPage.tsx` | Allow editing project name, client name, description → `project:update` IPC |
+| §20b | `src/main/services/project.service.ts` | `project:open` called 2–3× in quick succession — add guard: no-op if project already open |
+
+#### P3 — Phase 3 scope (do NOT start until P0/P1/P2 done and gated)
+
+| § | Issue |
+|---|---|
+| §19 | Annotation workspace full redesign — full spec in UX-OBSERVATIONS-2026-05-15.md §19 |
+
+### Terminal logs reviewed — additional bug in logs
+
+Three sessions created and ended with `captureCount: 0`. Combined with the `Ctrl+` binding issue (§20a) this strongly suggests global shortcuts were not registered with Electron in the correct format, causing all hotkey captures to silently fail. Investigate and fix §20a first; then retest capture pipeline end-to-end.
+
+**Action required:** CTS to review [UX-OBSERVATIONS-2026-05-15.md](UX-OBSERVATIONS-2026-05-15.md) in full, implement P0 fixes first, then P1, then P2. Open a new INBOX-TO-ASUS entry when each priority tier is complete and ready to gate.
+
+---
+
+
 ## [RESOLVED 2026-05-11] 2026-05-11 — Step 4/5/9 Manual Verification Results (Wk8 gate — long-pending)
 
 **From:** Asus TUF manual testing session  
