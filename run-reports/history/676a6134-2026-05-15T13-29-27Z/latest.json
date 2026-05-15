@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-05-15T13:37:45.448Z",
+  "timestamp": "2026-05-15T13:29:27.410Z",
   "branch": "main",
   "commitSha": "676a61345ab296c170ef5118e296f0ef30f77b17",
   "shortSha": "676a6134",
   "nodeVersion": "22.22.2",
   "electronVersion": "^30.4.0",
-  "totalDurationMs": 1,
+  "totalDurationMs": 0,
   "modules": [
     {
       "name": "licence",
@@ -204,12 +204,21 @@
   },
   "prechecks": {
     "typecheck": {
-      "ok": true,
-      "duration_ms": 20091
+      "ok": false,
+      "duration_ms": 18185,
+      "errors": [
+        "src/main/window-manager.ts(108,5): error TS2353: Object literal may only specify known properties, and 'level' does not exist in type 'BrowserWindowConstructorOptions'.\r",
+        "src/renderer/pages/ProjectSettingsPage.tsx(44,28): error TS2379: Argument of type '{ name: string; clientName: string; description: string | undefined; }' is not assignable to parameter of type 'Partial<Project>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r",
+        "src/renderer/pages/SessionGalleryPage.tsx(414,19): error TS2339: Property 'notes' does not exist on type 'CaptureResult'.\r",
+        "src/renderer/pages/SessionGalleryPage.tsx(415,43): error TS2339: Property 'notes' does not exist on type 'CaptureResult'.\r",
+        "src/renderer/pages/SessionGalleryPage.tsx(420,34): error TS2339: Property 'notes' does not exist on type 'CaptureResult'.\r",
+        "src/toolbar/App.tsx(197,11): error TS2375: Type 'CSSProperties' is not assignable to type 'MotionStyle' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r",
+        "src/toolbar/App.tsx(259,9): error TS2375: Type 'CSSProperties' is not assignable to type 'MotionStyle' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r"
+      ]
     },
     "tests": {
       "ok": true,
-      "duration_ms": 23336,
+      "duration_ms": 23822,
       "total": 563,
       "passed": 563,
       "failed": 0,
@@ -218,9 +227,9 @@
   },
   "pbkdf2": {
     "ok": true,
-    "duration_ms": 945,
+    "duration_ms": 979,
     "record": {
-      "ts": "2026-05-15T13:38:30.125Z",
+      "ts": "2026-05-15T13:30:10.899Z",
       "node": "22.22.2",
       "platform": "win32-x64",
       "iterations": 310000,
@@ -228,15 +237,15 @@
       "salt_len_bytes": 16,
       "runs": 5,
       "samples_ms": [
-        147.22,
-        159.15,
-        150.39,
-        165.29,
-        167.3
+        163.6,
+        157.1,
+        149.56,
+        166.82,
+        165.01
       ],
-      "min_ms": 147.22,
-      "max_ms": 167.3,
-      "mean_ms": 157.87,
+      "min_ms": 149.56,
+      "max_ms": 166.82,
+      "mean_ms": 160.42,
       "budget_ms": 800,
       "passed": true
     }
@@ -251,9 +260,10 @@
       "critical": 0,
       "total": 8
     },
-    "duration_ms": 3346
+    "duration_ms": 5752
   },
   "next_actions": [
+    "PRECHECK [typecheck] FAIL — src/main/window-manager.ts(108,5): error TS2353: Object literal may only specify known properties, and 'level' does not exist in type 'BrowserWindowConstructorOptions'.\r",
     "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
   ]
 }

@@ -5,6 +5,21 @@
 
 ---
 
+## [2026-05-15 13:37] commit `676a6134` — UX fix pass gate fix (563 tests GREEN)
+
+**Files changed:**
+
+| File | What changed | Why |
+|---|---|---|
+| `src/main/window-manager.ts` | Removed `level` from `BrowserWindow` constructor; added `setAlwaysOnTop(true, 'floating')` call after creation | TS error: `level` not a valid constructor option on this Electron type |
+| `src/renderer/pages/ProjectSettingsPage.tsx` | Conditional spread for optional `description` in `patchActiveProject` call | `exactOptionalPropertyTypes`: `string \| undefined` not assignable to `?: string` |
+| `src/shared/types/entities.ts` | Added `notes?: string` to `CaptureResult` interface | Referenced in `SessionGalleryPage` detail panel; missing from type caused TS error |
+| `src/toolbar/App.tsx` | Cast `pillStyle` object to `MotionStyle` | Framer Motion type constraint; excess properties rejected without explicit cast |
+
+**Confirmed green after fix:** YES — typecheck PASS, 563/563 tests PASS, PBKDF2 mean 167ms.
+
+---
+
 ## [2026-05-15 08:53] commit `97e4941` — audit pass gate fix (563 tests GREEN)
 
 **Files changed:**

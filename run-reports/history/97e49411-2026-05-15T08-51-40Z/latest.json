@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-05-15T13:37:45.448Z",
+  "timestamp": "2026-05-15T08:51:40.178Z",
   "branch": "main",
-  "commitSha": "676a61345ab296c170ef5118e296f0ef30f77b17",
-  "shortSha": "676a6134",
+  "commitSha": "97e494118607194d55e3ed46366c77a65bf22e6a",
+  "shortSha": "97e49411",
   "nodeVersion": "22.22.2",
   "electronVersion": "^30.4.0",
-  "totalDurationMs": 1,
+  "totalDurationMs": 0,
   "modules": [
     {
       "name": "licence",
@@ -205,22 +205,28 @@
   "prechecks": {
     "typecheck": {
       "ok": true,
-      "duration_ms": 20091
+      "duration_ms": 10421
     },
     "tests": {
-      "ok": true,
-      "duration_ms": 23336,
+      "ok": false,
+      "duration_ms": 11846,
       "total": 563,
-      "passed": 563,
-      "failed": 0,
-      "failures": []
+      "passed": 562,
+      "failed": 1,
+      "failures": [
+        {
+          "file": "__tests__\\session-service.spec.ts",
+          "name": "SessionService — lifecycle (Phase 2 Wk7 / D33) create() resolves hotkeys from settings.hotkeys, falling back to defaults per missing key",
+          "message": "AssertionError: expected { …(6) } to deeply equal { …(3) }\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\session-service.spec.ts:226:44\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:533:5\n    at runTest (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js"
+        }
+      ]
     }
   },
   "pbkdf2": {
     "ok": true,
-    "duration_ms": 945,
+    "duration_ms": 562,
     "record": {
-      "ts": "2026-05-15T13:38:30.125Z",
+      "ts": "2026-05-15T08:52:03.184Z",
       "node": "22.22.2",
       "platform": "win32-x64",
       "iterations": 310000,
@@ -228,15 +234,15 @@
       "salt_len_bytes": 16,
       "runs": 5,
       "samples_ms": [
-        147.22,
-        159.15,
-        150.39,
-        165.29,
-        167.3
+        93.16,
+        93.56,
+        93.77,
+        92.7,
+        92.07
       ],
-      "min_ms": 147.22,
-      "max_ms": 167.3,
-      "mean_ms": 157.87,
+      "min_ms": 92.07,
+      "max_ms": 93.77,
+      "mean_ms": 93.05,
       "budget_ms": 800,
       "passed": true
     }
@@ -251,9 +257,11 @@
       "critical": 0,
       "total": 8
     },
-    "duration_ms": 3346
+    "duration_ms": 5987
   },
   "next_actions": [
+    "PRECHECK [tests] FAIL — 1/563 failed",
+    "  · __tests__\\session-service.spec.ts › SessionService — lifecycle (Phase 2 Wk7 / D33) create() resolves hotkeys from settings.hotkeys, falling back to defaults per missing key",
     "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
   ]
 }

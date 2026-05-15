@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-05-15T13:37:45.448Z",
+  "timestamp": "2026-05-15T13:36:41.795Z",
   "branch": "main",
   "commitSha": "676a61345ab296c170ef5118e296f0ef30f77b17",
   "shortSha": "676a6134",
   "nodeVersion": "22.22.2",
   "electronVersion": "^30.4.0",
-  "totalDurationMs": 1,
+  "totalDurationMs": 0,
   "modules": [
     {
       "name": "licence",
@@ -205,11 +205,11 @@
   "prechecks": {
     "typecheck": {
       "ok": true,
-      "duration_ms": 20091
+      "duration_ms": 18410
     },
     "tests": {
       "ok": true,
-      "duration_ms": 23336,
+      "duration_ms": 24747,
       "total": 563,
       "passed": 563,
       "failed": 0,
@@ -218,9 +218,9 @@
   },
   "pbkdf2": {
     "ok": true,
-    "duration_ms": 945,
+    "duration_ms": 1029,
     "record": {
-      "ts": "2026-05-15T13:38:30.125Z",
+      "ts": "2026-05-15T13:37:26.276Z",
       "node": "22.22.2",
       "platform": "win32-x64",
       "iterations": 310000,
@@ -228,15 +228,15 @@
       "salt_len_bytes": 16,
       "runs": 5,
       "samples_ms": [
-        147.22,
-        159.15,
-        150.39,
-        165.29,
-        167.3
+        169.56,
+        164.58,
+        179.36,
+        171.99,
+        178.86
       ],
-      "min_ms": 147.22,
-      "max_ms": 167.3,
-      "mean_ms": 157.87,
+      "min_ms": 164.58,
+      "max_ms": 179.36,
+      "mean_ms": 172.87,
       "budget_ms": 800,
       "passed": true
     }
@@ -251,7 +251,7 @@
       "critical": 0,
       "total": 8
     },
-    "duration_ms": 3346
+    "duration_ms": 5998
   },
   "next_actions": [
     "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"

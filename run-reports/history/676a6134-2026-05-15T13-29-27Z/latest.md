@@ -1,9 +1,9 @@
 # Vision-EviDex Run Report
 
-**Date:** 2026-05-15T13:37:45.448Z  
+**Date:** 2026-05-15T13:29:27.410Z  
 **Branch:** `main` · **Commit:** `676a6134`  
 **Node:** v22.22.2 · **Electron:** ^30.4.0  
-**Duration:** 1 ms
+**Duration:** 0 ms
 
 ## Summary
 
@@ -23,8 +23,8 @@
 
 | Check | Status | Duration | Notes |
 |---|---|---|---|
-| typecheck | PASS | 20091 ms | — |
-| tests | PASS | 23336 ms | 563/563 passed |
+| typecheck | FAIL | 18185 ms | src/main/window-manager.ts(108,5): error TS2353: Object literal may only specify known properties, and 'level' does not exist in type 'BrowserWindowConstructorOptions'. |
+| tests | PASS | 23822 ms | 563/563 passed |
 
 ## Module results
 
@@ -53,7 +53,7 @@
 
 | Benchmark | min | mean | max | budget | Status |
 |---|---|---|---|---|---|
-| PBKDF2 (310k iter, SHA-256) | 147.22 ms | 157.87 ms | 167.3 ms | 800 ms | PASS |
+| PBKDF2 (310k iter, SHA-256) | 149.56 ms | 160.42 ms | 166.82 ms | 800 ms | PASS |
 
 Risk R-07 — history in [sprint0-benchmark.json](sprint0-benchmark.json).
 
@@ -71,4 +71,5 @@ Source: `npm audit --omit=dev --json`. See [VULNERABILITIES.md](../VULNERABILITI
 
 ## Next actions
 
+- PRECHECK [typecheck] FAIL — src/main/window-manager.ts(108,5): error TS2353: Object literal may only specify known properties, and 'level' does not exist in type 'BrowserWindowConstructorOptions'.
 - DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md

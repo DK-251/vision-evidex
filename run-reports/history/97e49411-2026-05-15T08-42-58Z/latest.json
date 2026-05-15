@@ -1,0 +1,392 @@
+{
+  "timestamp": "2026-05-15T08:42:58.303Z",
+  "branch": "main",
+  "commitSha": "97e494118607194d55e3ed46366c77a65bf22e6a",
+  "shortSha": "97e49411",
+  "nodeVersion": "22.22.2",
+  "electronVersion": "^30.4.0",
+  "totalDurationMs": 0,
+  "modules": [
+    {
+      "name": "licence",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 4"
+    },
+    {
+      "name": "onboarding",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 5)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 5"
+    },
+    {
+      "name": "dashboard",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 5)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 5"
+    },
+    {
+      "name": "session",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 2 Week 7)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 2 Week 7"
+    },
+    {
+      "name": "capture",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 2 Week 7)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 2 Week 7"
+    },
+    {
+      "name": "annotation",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 2 Week 9)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 2 Week 9"
+    },
+    {
+      "name": "project",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 6)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 6"
+    },
+    {
+      "name": "naming",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 4"
+    },
+    {
+      "name": "template",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "metrics_import",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "report_builder",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "export_word",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "export_pdf",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "export_html",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "status_reports",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 3"
+    },
+    {
+      "name": "audit_pack",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 4"
+    },
+    {
+      "name": "sign_off",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 4)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 4"
+    },
+    {
+      "name": "settings",
+      "status": "SKIP",
+      "reason": "Phase 0 scaffold — not implemented yet (planned: Phase 1 Week 3)",
+      "assertions": [],
+      "duration_ms": 0,
+      "plannedPhase": "Phase 1 Week 3"
+    }
+  ],
+  "summary": {
+    "total_modules": 18,
+    "pass": 0,
+    "fail": 0,
+    "warn": 0,
+    "suspect": 0,
+    "skip": 18
+  },
+  "features": {
+    "done": 49,
+    "total": 92,
+    "byModule": {
+      "OB": {
+        "done": 8,
+        "total": 13
+      },
+      "DB": {
+        "done": 5,
+        "total": 5
+      },
+      "EC": {
+        "done": 17,
+        "total": 17
+      },
+      "PM": {
+        "done": 9,
+        "total": 10
+      },
+      "TE": {
+        "done": 0,
+        "total": 11
+      },
+      "RB": {
+        "done": 0,
+        "total": 13
+      },
+      "SR": {
+        "done": 0,
+        "total": 4
+      },
+      "AU": {
+        "done": 2,
+        "total": 7
+      },
+      "WS": {
+        "done": 8,
+        "total": 12
+      }
+    }
+  },
+  "prechecks": {
+    "typecheck": {
+      "ok": false,
+      "duration_ms": 9287,
+      "errors": [
+        "src/renderer/pages/SessionGalleryPage.tsx(116,24): error TS2448: Block-scoped variable 'displayCaptures' used before its declaration.\r",
+        "src/renderer/pages/SessionGalleryPage.tsx(116,24): error TS2454: Variable 'displayCaptures' is used before being assigned.\r",
+        "src/toolbar/App.tsx(116,17): error TS2345: Argument of type '{ sessionId: string; testId: string | undefined; captureCount: number; passCount: number; failCount: number; blockedCount: number; }' is not assignable to parameter of type 'SetStateAction<ToolbarStatus | null>'.\r"
+      ]
+    },
+    "tests": {
+      "ok": false,
+      "duration_ms": 14801,
+      "total": 563,
+      "passed": 539,
+      "failed": 24,
+      "failures": [
+        {
+          "file": "__tests__\\hotkey-utils.spec.ts",
+          "name": "formatKeyEvent orders modifiers Ctrl+Alt+Shift+Meta",
+          "message": "AssertionError: expected 'Ctrl+Alt+Shift+F' to be 'Ctrl+Alt+Shift+Meta+F' // Object.is equality\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\hotkey-utils.spec.ts:13:7\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///D:/DEV/proje"
+        },
+        {
+          "file": "__tests__\\integration.project-roundtrip.spec.ts",
+          "name": "Phase 2 Wk 8 — full project round-trip create project → start session → capture (mocked) → end session — every Wk 8 contract holds",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.project-roundtrip.spec.ts:183:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration create() inserts a session record retrievable via DatabaseService",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:127:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration create() session has endedAt undefined (active per AQ3)",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:134:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration create() registers global shortcuts via the (mocked) globalShortcut module",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:140:20\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration create() calls windows.showToolbar with the new session",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:147:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration create() writes a session_start access_log row",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:154:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration end() closes the session in the DB (endedAt becomes a string)",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:160:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration end() unregisters global shortcuts (CLAUDE.md hotkey-release rule)",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:169:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration end() invokes container.save() — Architectural Rule 8",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:175:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration end() calls windows.hideToolbar",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:181:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration end() writes a session_end access_log row",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:187:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration end() returns a SessionSummary with the expected shape",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:194:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration getActive() returns the session while it is active",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:208:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration getActive() returns null after the session is ended",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:213:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration throws SESSION_ALREADY_ACTIVE when creating a 2nd session on the same project (Rule 12)",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:219:20\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration allows concurrent sessions on different projects",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:226:31\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration end() throws SESSION_NOT_ACTIVE for an already-ended session",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:240:36\n    at"
+        },
+        {
+          "file": "__tests__\\integration.session-lifecycle.spec.ts",
+          "name": "Session lifecycle integration end() skips container.save when no container is open (no throw — pre-Wk8 mode)",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\integration.session-lifecycle.spec.ts:251:36\n    at"
+        },
+        {
+          "file": "__tests__\\pre-w9-gap-coverage.spec.ts",
+          "name": "useNavStore — param clearing on navigate (PRE-W9 fix) navigating to project-list clears currentSessionId",
+          "message": "AssertionError: expected 's1' to be null\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\pre-w9-gap-coverage.spec.ts:73:53\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/runner/d"
+        },
+        {
+          "file": "__tests__\\session-service.spec.ts",
+          "name": "SessionService — lifecycle (Phase 2 Wk7 / D33) create() inserts a session row, logs access_log, registers shortcuts, shows toolbar",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\session-service.spec.ts:151:35\n    at file:///D:/DE"
+        },
+        {
+          "file": "__tests__\\session-service.spec.ts",
+          "name": "SessionService — lifecycle (Phase 2 Wk7 / D33) create() rolls the DB row back to closed if shortcut registration fails",
+          "message": "AssertionError: expected TypeError: Cannot read properties of unde… to match object { code: 'SHORTCUT_CONFLICT' }\n    at _Assertion.<anonymous> (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/expect/dist/index.js:1134:13)\n    at _Assertion.<anonymous> (file:///D:/DEV/projects/vision-evidex/node_modules/@vitest/expect/dist/index.js:972:17)\n    at _Assertion.methodWrapper (file:///D:/DEV"
+        },
+        {
+          "file": "__tests__\\session-service.spec.ts",
+          "name": "SessionService — lifecycle (Phase 2 Wk7 / D33) create() resolves hotkeys from settings.hotkeys, falling back to defaults per missing key",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\session-service.spec.ts:224:19\n    at file:///D:/DE"
+        },
+        {
+          "file": "__tests__\\session-service.spec.ts",
+          "name": "SessionService — lifecycle (Phase 2 Wk7 / D33) end() unregisters shortcuts AND calls container.save (Rule 8)",
+          "message": "TypeError: Cannot read properties of undefined (reading 'onTagCapture')\n    at ShortcutService.registerSessionShortcuts (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\shortcut.service.ts:110:21)\n    at SessionService.create (D:\\DEV\\projects\\vision-evidex\\src\\main\\services\\session.service.ts:132:27)\n    at D:\\DEV\\projects\\vision-evidex\\__tests__\\session-service.spec.ts:237:19\n    at file:///D:/DE"
+        }
+      ]
+    }
+  },
+  "pbkdf2": {
+    "ok": true,
+    "duration_ms": 575,
+    "record": {
+      "ts": "2026-05-15T08:43:23.159Z",
+      "node": "22.22.2",
+      "platform": "win32-x64",
+      "iterations": 310000,
+      "key_len_bytes": 32,
+      "salt_len_bytes": 16,
+      "runs": 5,
+      "samples_ms": [
+        97.27,
+        93.43,
+        97.5,
+        93.1,
+        93.91
+      ],
+      "min_ms": 93.1,
+      "max_ms": 97.5,
+      "mean_ms": 95.04,
+      "budget_ms": 800,
+      "passed": true
+    }
+  },
+  "dependencyAudit": {
+    "ok": true,
+    "counts": {
+      "info": 0,
+      "low": 3,
+      "moderate": 0,
+      "high": 5,
+      "critical": 0,
+      "total": 8
+    },
+    "duration_ms": 4950
+  },
+  "next_actions": [
+    "PRECHECK [tests] FAIL — 24/563 failed",
+    "PRECHECK [typecheck] FAIL — src/renderer/pages/SessionGalleryPage.tsx(116,24): error TS2448: Block-scoped variable 'displayCaptures' used before its declaration.\r",
+    "  · __tests__\\hotkey-utils.spec.ts › formatKeyEvent orders modifiers Ctrl+Alt+Shift+Meta",
+    "  · __tests__\\integration.project-roundtrip.spec.ts › Phase 2 Wk 8 — full project round-trip create project → start session → capture (mocked) → end session — every Wk 8 contract holds",
+    "  · __tests__\\integration.session-lifecycle.spec.ts › Session lifecycle integration create() inserts a session record retrievable via DatabaseService",
+    "  · __tests__\\integration.session-lifecycle.spec.ts › Session lifecycle integration create() session has endedAt undefined (active per AQ3)",
+    "  · __tests__\\integration.session-lifecycle.spec.ts › Session lifecycle integration create() registers global shortcuts via the (mocked) globalShortcut module",
+    "DEP-AUDIT [npm audit --omit=dev] 0 critical / 5 high / 0 moderate / 3 low — see VULNERABILITIES.md"
+  ]
+}
