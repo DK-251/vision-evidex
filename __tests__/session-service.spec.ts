@@ -133,7 +133,7 @@ describe('SessionService — lifecycle (Phase 2 Wk7 / D33)', () => {
     };
     onCapture = vi.fn();
     shortcutsApi = makeFakeShortcuts();
-    shortcuts = new ShortcutService({ onCapture, shortcuts: shortcutsApi });
+    shortcuts = new ShortcutService({ callbacks: { onCapture }, shortcuts: shortcutsApi });
 
     service = new SessionService({
       getDb: () => db as never,
@@ -224,9 +224,12 @@ describe('SessionService — lifecycle (Phase 2 Wk7 / D33)', () => {
     await service.create(INTAKE);
 
     expect(shortcuts.getCurrentBindings()).toEqual({
-      captureFullscreen: 'CmdOrCtrl+Alt+F',
-      captureWindow:     DEFAULT_HOTKEY_BINDINGS.captureWindow,
-      captureRegion:     DEFAULT_HOTKEY_BINDINGS.captureRegion,
+      captureFullscreen:   'CmdOrCtrl+Alt+F',
+      captureActiveWindow: DEFAULT_HOTKEY_BINDINGS.captureActiveWindow,
+      captureRegion:       DEFAULT_HOTKEY_BINDINGS.captureRegion,
+      tagPass:             DEFAULT_HOTKEY_BINDINGS.tagPass,
+      tagFail:             DEFAULT_HOTKEY_BINDINGS.tagFail,
+      openToolbar:         DEFAULT_HOTKEY_BINDINGS.openToolbar,
     });
   });
 

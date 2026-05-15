@@ -5,6 +5,24 @@
 
 ---
 
+## [2026-05-15 08:53] commit `97e4941` — audit pass gate fix (563 tests GREEN)
+
+**Files changed:**
+
+| File | What changed | Why |
+|---|---|---|
+| `__tests__/session-service.spec.ts` | `ShortcutService({ onCapture, ... })` → `ShortcutService({ callbacks: { onCapture }, ... })`; `getCurrentBindings()` assertion updated to 6-field shape with `captureActiveWindow` replacing `captureWindow` | Constructor shape changed in audit pass; old spec was stale |
+| `__tests__/integration.session-lifecycle.spec.ts` | Same `{ callbacks: { onCapture: vi.fn() } }` constructor fix | Same root cause |
+| `__tests__/integration.project-roundtrip.spec.ts` | Same constructor fix | Same root cause |
+| `src/renderer/onboarding/hotkey-utils.ts` | `formatKeyEvent`: split `if (ctrlKey \|\| metaKey)` into `if (ctrlKey)` + `if (metaKey)` to output `Meta` as separate modifier | Test expected `Ctrl+Alt+Shift+Meta+F`; function was collapsing both into `Ctrl` |
+| `src/renderer/pages/SessionGalleryPage.tsx` | Moved `isActive`/`displayCaptures` declarations before `counts` useMemo | TS2448: used before declaration |
+| `src/renderer/stores/nav-store.ts` | Removed `project-list` from `isProjectPage` set | `project-list` must clear `currentSessionId`; test `pre-w9-gap-coverage` asserted this |
+| `src/toolbar/App.tsx` | `setStatus` call: conditional spread for `testId` instead of direct assignment | TS2345: `exactOptionalPropertyTypes` — `string \| undefined` not assignable to `?: string` |
+
+**Confirmed green after fix:** YES — `npm run report` PASS, typecheck PASS, 563/563 tests, PBKDF2 mean 93ms.
+
+---
+
 ## [2026-05-05 07:00] commit `4920e56` — Wk8 gate regression hotfix
 
 **Files changed:**

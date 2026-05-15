@@ -74,9 +74,10 @@ export const DEFAULT_HOTKEYS: Readonly<Record<string, string>> = Object.freeze(
  */
 export function formatKeyEvent(e: Pick<KeyboardEvent, 'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey' | 'key'>): string {
   const mods: string[] = [];
-  if (e.ctrlKey || e.metaKey) mods.push('Ctrl');
+  if (e.ctrlKey) mods.push('Ctrl');
   if (e.altKey) mods.push('Alt');
   if (e.shiftKey) mods.push('Shift');
+  if (e.metaKey) mods.push('Meta');
   let key = e.key;
   if (key.length === 1) key = key.toUpperCase();
   return [...mods, key].join('+');

@@ -130,7 +130,7 @@ afterEach(() => {
 describe('Phase 2 Wk 8 — full project round-trip', () => {
 
   it('create project → start session → capture (mocked) → end session — every Wk 8 contract holds', async () => {
-    const shortcuts = new ShortcutService({ onCapture: vi.fn() });
+    const shortcuts = new ShortcutService({ callbacks: { onCapture: vi.fn() } });
 
     const sessions = new SessionService({
       getDb: () => containerMock.getProjectDb(),

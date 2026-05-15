@@ -5,42 +5,37 @@
 
 ---
 
-**Date:** 2026-05-14 (pre-run — audit pass not yet gated)
-**Commit tested:** `pending — audit pass + spec fixes pushed by CTS`
-**Result:** PENDING
+**Date:** 2026-05-15 08:53
+**Commit tested:** `97e4941`
+**Result:** GREEN
 
 ## Checks
 
 | Check | Result | Detail |
 |---|---|---|
-| typecheck | PENDING | — |
-| tests | PENDING | — |
-| PBKDF2 | PENDING | last known: mean 143ms, max 158ms, budget 800ms |
+| typecheck | PASS | — |
+| tests | PASS | 563/563 passed |
+| PBKDF2 | PASS | mean 93ms, max 94ms, budget 800ms |
 
 ## Failing tests
 
-*(gate not yet run)*
+*(none)*
 
 ## Typecheck errors
 
-*(gate not yet run)*
+*(none)*
 
 ## Actions taken by Asus
 
-- [none yet]
-
-## What CTS pre-fixed in this commit (no Asus action needed for these)
-
-| Spec file | What was updated |
-|---|---|
-| `__tests__/shortcut-service.spec.ts` | Full rewrite — 6-field HotkeyBindings, new `callbacks` constructor shape, captureActiveWindow (not captureWindow), 6 accelerators registered when all callbacks given, 3 when capture-only |
-| `__tests__/nav-store.spec.ts` | Added NAV-NEW-01 describe block — project-overview preserves sessionId; dashboard/settings clear it |
-| `__tests__/settings-service.spec.ts` | Updated `toMatchObject` assertions to include `defaultExportPath: ''` and `environments: []` |
+- Fixed `__tests__/session-service.spec.ts` — `ShortcutService` constructor updated to `{ callbacks: { onCapture } }` shape; `getCurrentBindings()` assertion updated to 6-field `HotkeyBindings` including `captureActiveWindow` (not `captureWindow`)
+- Fixed `__tests__/integration.session-lifecycle.spec.ts` — same `{ callbacks: { onCapture: vi.fn() } }` constructor fix
+- Fixed `__tests__/integration.project-roundtrip.spec.ts` — same constructor fix
+- Fixed `src/renderer/onboarding/hotkey-utils.ts` — `formatKeyEvent` now pushes `Meta` separately after `Shift` (was merged with `ctrlKey`)
+- Fixed `src/renderer/pages/SessionGalleryPage.tsx` — moved `isActive`/`displayCaptures` declarations before `counts` useMemo to resolve TS2448 (used before declaration)
+- Fixed `src/renderer/stores/nav-store.ts` — removed `project-list` from `isProjectPage` so navigating to it clears `currentSessionId`
+- Fixed `src/toolbar/App.tsx` — `setStatus` call uses conditional spread for `testId` to satisfy `exactOptionalPropertyTypes`
+- See ASUS-CHANGELOG.md for full details
 
 ## Next step
 
-**Asus:** `git pull --ff-only && npm run report` → overwrite this file with structured result → push.
-
-**CTS (if GREEN):** Proceed to Phase 3 Week 11 — Template Engine.
-
-**CTS (if RED):** Read exact errors above. Fix only listed files. Do not start Phase 3.
+**CTS:** GREEN — proceed to Phase 3 Week 11 — Template Engine.

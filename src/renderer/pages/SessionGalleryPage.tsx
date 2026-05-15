@@ -103,6 +103,11 @@ export function SessionGalleryPage(): JSX.Element | null {
     return off;
   }, []);
 
+  // SG-NEW-01: use live captures for active session, historic otherwise.
+  const isActive = session !== null && session.endedAt === undefined
+    && activeSession?.id === sessionId;
+  const displayCaptures = isActive ? captures : historicCaptures;
+
   const counts = useMemo(() => {
     const derived = derivedCounts(displayCaptures);
     const captureCount = status?.captureCount ?? session?.captureCount ?? derived.captureCount;
@@ -143,11 +148,6 @@ export function SessionGalleryPage(): JSX.Element | null {
   }
 
   // Rules-of-hooks: keep ALL hooks above the early-return guard below.
-  // SG-NEW-01: use live captures for active session, historic otherwise.
-  const isActive = session !== null && session.endedAt === undefined
-    && activeSession?.id === sessionId;
-  const displayCaptures = isActive ? captures : historicCaptures;
-
   const openedCapture = useMemo(
     () => displayCaptures.find((c) => c.captureId === openCaptureId) ?? null,
     [displayCaptures, openCaptureId]

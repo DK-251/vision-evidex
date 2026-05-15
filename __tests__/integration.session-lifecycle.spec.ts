@@ -105,7 +105,7 @@ beforeEach(() => {
     broadcastSessionStatus: vi.fn(),
   };
 
-  shortcuts = new ShortcutService({ onCapture: vi.fn() });
+  shortcuts = new ShortcutService({ callbacks: { onCapture: vi.fn() } });
 
   sessions = new SessionService({
     getDb: () => db,

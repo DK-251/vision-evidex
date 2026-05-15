@@ -115,7 +115,7 @@ export function App(): JSX.Element {
     const off = api.events.onSessionStatusUpdate((s) => {
       setStatus({
         sessionId:    s.sessionId,
-        testId:       (s as SessionStatus & { testId?: string }).testId,
+        ...(s.testId !== undefined ? { testId: s.testId } : {}),
         captureCount: s.captureCount,
         passCount:    s.passCount,
         failCount:    s.failCount,

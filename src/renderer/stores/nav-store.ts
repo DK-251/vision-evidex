@@ -63,10 +63,11 @@ export const useNavStore = create<NavState>()((set) => ({
         page === 'session-detail';
 
       // Pages that carry project context (session pages implicitly do too).
+      // NAV-NEW-01: project-list is NOT a project page — navigating to it
+      // leaves the project context, so currentSessionId is cleared.
       const isProjectPage =
         isSessionPage ||
         page === 'create-project' ||
-        page === 'project-list' ||
         page === 'project-overview' ||
         page === 'session-list' ||
         page === 'project-settings';
