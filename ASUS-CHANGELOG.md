@@ -5,11 +5,18 @@
 
 ---
 
-## [2026-05-15 13:37] commit `676a6134` — UX fix pass gate run (563 tests GREEN)
+## [2026-05-15 14:10] commit `8b05f37` — UX fix pass gate fix (563 tests GREEN)
 
-**Files changed:** none — report was GREEN immediately, no fixes required.
+**Files changed:**
 
-**Confirmed green:** YES — typecheck PASS, 563/563 tests PASS, PBKDF2 mean 167ms.
+| File | What changed | Why |
+|---|---|---|
+| `src/main/window-manager.ts` | Removed `level: 'floating' as unknown as boolean` from `BrowserWindow` constructor; added `toolbarWindow.setAlwaysOnTop(true, 'floating')` after creation | `level` is not a valid constructor option — TS error on strict types |
+| `src/renderer/pages/ProjectSettingsPage.tsx` | Conditional spread `...(description.trim() !== '' ? { description: description.trim() } : {})` | `exactOptionalPropertyTypes`: `string \| undefined` not assignable to `?: string` |
+| `src/shared/types/entities.ts` | Added `notes?: string` to `CaptureResult` interface | Referenced in `SessionGalleryPage` detail panel; missing field caused TS error |
+| `src/toolbar/App.tsx` | Imported `MotionStyle`; cast `pillStyle as MotionStyle` in both `motion.div` `style` props | Framer Motion rejects excess properties without explicit cast |
+
+**Confirmed green after fix:** YES — typecheck PASS, 563/563 tests PASS, PBKDF2 mean 180ms.
 
 ---
 
